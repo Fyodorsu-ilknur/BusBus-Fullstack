@@ -21,7 +21,7 @@ app.get('/api/routes', (req, res) => {
       console.error("CSV okuma hatası:", err);
       res.status(500).send("CSV okuma hatası");
     });
-;
+});
 
 app.listen(PORT, () => {
   console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
