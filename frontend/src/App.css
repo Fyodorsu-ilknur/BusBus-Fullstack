@@ -1,0 +1,49 @@
+/* frontend/src/App.css */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-layout {
+  display: flex;
+  background-color: #f9fafb;
+  min-height: 100vh; 
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; 
+  height: 100vh;
+  /* Sidebar'ın sabit genişliği kadar boşluk  */
+  margin-left: 70px; 
+  transition: margin-left 0.3s ease; 
+}
+
+.content-area {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden; /* Harita veya panel taşarsa scrollbar çıkmasını engeller */
+}
+
+.vehicle-list-wrapper {
+  width: 0; /* Kapalıyken genişlik 0 */
+  overflow: hidden; 
+  transition: width 0.3s ease-in-out; 
+  flex-shrink: 0; /* Flexbox içinde küçülmesini engeller */
+  box-shadow: 3px 0px 15px rgba(0,0,0,0.2); 
+  background-color: #f7f9fa; 
+  border-right: 1px solid #e0e0e0; 
+}
+
+.vehicle-list-wrapper.open {
+  width: 200px; 
+}
+
+.map-container { 
+  flex-grow: 1;
+}

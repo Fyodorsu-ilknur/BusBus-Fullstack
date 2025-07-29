@@ -1,0 +1,49 @@
+/* frontend/src/components/Navbar.css */
+.navbar {
+  height: 60px;
+  background-color: #1f2937; 
+  color: #fafbfc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Sağa ve sola yasla */
+  padding: 0 30px;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  flex-shrink: 0; /* Küçülmesini engelle */
+}
+
+.navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-button {
+  background-color: #5591f0;
+  color: rgb(241, 240, 244);
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 20px;
+  font-weight: 500;
+}
+
+.navbar-icon {
+  font-size: 24px;
+  color: #6b7280;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.navbar-profile {
+  width: 32px;
+  height: 32px;
+  background-color: cornsilk;
+  border-radius: 50%;
+  cursor: pointer;
+}

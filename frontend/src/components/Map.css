@@ -1,0 +1,14 @@
+/* frontend/src/components/Map.css */
+
+
+
+.map-container { 
+  flex-grow: 1; 
+  height: 100%; 
+  z-index: 1; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  margin-right: 15px; 
+  margin-bottom: 15px; 
+}
+

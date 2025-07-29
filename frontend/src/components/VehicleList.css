@@ -1,0 +1,78 @@
+/* src/components/VehicleList.css */
+
+.vehicle-list-container {
+   width: 100%; 
+  padding: 15px; 
+  height: 100%; 
+  overflow-y: auto; 
+  box-sizing: border-box; 
+}
+
+.list-header {
+    display: flex; 
+    justify-content: space-between; /* İki elemanı uçlara hizala */
+    align-items: center; 
+    margin-bottom: 15px;
+}
+
+.vehicle-list-container h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.close-panel-button { 
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease;
+}
+
+.close-panel-button:hover {
+    color: #333;
+}
+
+
+.vehicle-list-container ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.vehicle-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.vehicle-item:hover {
+  background-color: #eef4ff;
+  border-color: #4a90e2;
+}
+
+.vehicle-item.selected {
+  background-color: #afc0d6; 
+  border-color: #3b82f6; 
+  font-weight: bold; 
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.no-results {
+    color: #666;
+    text-align: center;
+    margin-top: 20px;
+}
