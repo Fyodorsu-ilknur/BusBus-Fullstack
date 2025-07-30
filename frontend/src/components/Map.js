@@ -160,6 +160,17 @@ function MapComponent({
         </Marker>
       )}
 
+      {/* Güzergah Başlangıç Noktası bilgilendirme pop up */}
+
+      {mapLoaded && selectedRoute?.start && selectedRoute?.end && (
+  <div className="route-info-overlay">
+    <div className="route-info-box">
+      <strong>Güzergah:</strong> {selectedRoute.start} → {selectedRoute.end}
+    </div>
+  </div>
+)}
+
+
       {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler) */}
       {mapLoaded && vehicles.map((vehicle) => (
         <Marker

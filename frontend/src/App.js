@@ -177,7 +177,29 @@ function App() {
       } else {
         setMapCenter([38.419, 27.128]);
       }
+//------------------------güzergah başlangıcıda varış kalkış durak bilgilerinin yazması için ekledim bu kısmı----------------------------
+    } else if (item.HAT_NO) {
+    const hatNo = item.HAT_NO.toString();
+    const hat = hatlarData.records.find(r => r[1].toString() === hatNo);
+
+    if (hat) {
+      const routeObj = {
+        id: hatNo,
+        route_number: hatNo,
+        route_name: hat[2] || `Hat ${hatNo}`,
+        route_description: hat[3] || '',
+        start: hat[5] || '',
+        end: hat[6] || '',
+        directions: routes[hatNo]?.directions || { '1': [], '2': [] },
+        center: routes[hatNo]?.center || [38.419, 27.128]
+      };
+
+      setSelectedRoute(routeObj);
+      setSelectedStop(null);
+      setMapCenter(routeObj.center);
     }
+  }
+
   };
 
   const togglePanel = () => {
