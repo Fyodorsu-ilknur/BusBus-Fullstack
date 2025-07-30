@@ -1,13 +1,16 @@
-
-
 // frontend/src/components/Map.js
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { getDistance } from 'geolib';
 import './Map.css';
 
 const locationIcon = require('../assets/location.png');
-const busIcon = require('../assets/bus_icon.png'); // Otobüs animasyonu için yeni ikon
+const busIcon = require('../assets/bus_icon.png');
+
+// Simüle edilmiş otobüs hızı (km/saat)
+const SIMULATED_BUS_SPEED_KMH = 40; // Örneğin 40 km/saat
+const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600; // Metre/saniye cinsine çevrildi
 
 function MapComponent({
   vehicles,
@@ -22,9 +25,22 @@ function MapComponent({
 }) {
   const mapRef = useRef();
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [animatedBusPosition, setAnimatedBusPosition] = useState(null); // Animasyonlu otobüsün konumu
-  const [currentPathIndex, setCurrentPathIndex] = useState(0); // Güzergah üzerindeki mevcut indeks
-  const animationIntervalRef = useRef(null); // Interval ID'sini tutmak için ref
+  const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
+  const [currentPathIndex, setCurrentPathIndex] = useState(0);
+  const animationIntervalRef = useRef(null);
+  const [distanceToDestination, setDistanceToDestination] = useState(null);
+  const [timeToDestination, setTimeToDestination] = useState(null);
+
+  // **** BURADAKİ DEĞİŞİKLİK: routeEndPoint tanımını YUKARI TAŞIDIK ****
+  // Güzergahın bitiş noktasını hesapla (useEffect'ten önce tanımlandı)
+  const routeEndPoint = React.useMemo(() => {
+    if (selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
+      const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
+      return { lat: lastCoord[0], lng: lastCoord[1] };
+    }
+    return null;
+  }, [selectedRoute]);
+  // ********************************************************************
 
   const MAP_STYLE = 'https://api.maptiler.com/maps/basic/style.json?key=boHgitm9Copjety599um';
 
@@ -34,16 +50,13 @@ function MapComponent({
   }, []);
 
   useEffect(() => {
-    console.log("Map.js - useEffect (mapCenter) tetiklendi:", mapCenter);
-
     let targetCenter = null;
     if (mapCenter && mapCenter.length === 2 && !isNaN(mapCenter[0]) && !isNaN(mapCenter[1])) {
-      targetCenter = [mapCenter[1], mapCenter[0]]; // [lat, lng] -> [lng, lat]
+      targetCenter = [mapCenter[1], mapCenter[0]];
     }
 
     if (targetCenter && mapRef.current && mapLoaded) {
       if (isNaN(targetCenter[0]) || isNaN(targetCenter[1])) return;
-      console.log(`Map.js - flyTo: ${targetCenter}, zoom: ${zoomLevel}`);
       mapRef.current.flyTo({
         center: targetCenter,
         zoom: zoomLevel,
@@ -52,7 +65,7 @@ function MapComponent({
     }
   }, [mapCenter, zoomLevel, mapLoaded]);
 
-  // Otobüs animasyonu için useEffect
+  // Otobüs animasyonu, kalan mesafe ve süre hesaplaması için useEffect
   useEffect(() => {
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
@@ -60,31 +73,106 @@ function MapComponent({
     }
 
     if (mapLoaded && selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
-      const pathCoordinates = selectedRoute.directions['1']; // [lat, lng] formatında
+      const pathCoordinates = selectedRoute.directions['1'];
+      const destinationPoint = routeEndPoint; // Artık burada erişebiliriz!
+
+      // Animasyonu sıfırla
       setCurrentPathIndex(0);
       setAnimatedBusPosition({ lat: pathCoordinates[0][0], lng: pathCoordinates[0][1] });
 
+      // Başlangıç mesafesini ve süreyi hesapla
+      if (destinationPoint && pathCoordinates[0]) {
+        try {
+          const initialDistance = getDistance(
+            { latitude: pathCoordinates[0][0], longitude: pathCoordinates[0][1] },
+            { latitude: destinationPoint.lat, longitude: destinationPoint.lng }
+          );
+          setDistanceToDestination(initialDistance);
+          if (SIMULATED_BUS_SPEED_MPS > 0 && initialDistance > 0) {
+            setTimeToDestination(initialDistance / SIMULATED_BUS_SPEED_MPS);
+          } else {
+            setTimeToDestination(0);
+          }
+        } catch (error) {
+          console.error("Başlangıç mesafesi/süresi hesaplanırken hata oluştu:", error);
+          setDistanceToDestination(null);
+          setTimeToDestination(null);
+        }
+      } else {
+        setDistanceToDestination(null);
+        setTimeToDestination(null);
+      }
+
       animationIntervalRef.current = setInterval(() => {
         setCurrentPathIndex(prevIndex => {
-          const nextIndex = (prevIndex + 1) % pathCoordinates.length;
+          const nextIndex = prevIndex + 1;
+          
+          if (nextIndex >= pathCoordinates.length) {
+            clearInterval(animationIntervalRef.current);
+            animationIntervalRef.current = null;
+            if (destinationPoint) {
+                setAnimatedBusPosition({ lat: destinationPoint.lat, lng: destinationPoint.lng });
+            }
+            setDistanceToDestination(0);
+            setTimeToDestination(0);
+            return prevIndex;
+          }
+
           const nextCoord = pathCoordinates[nextIndex];
           setAnimatedBusPosition({ lat: nextCoord[0], lng: nextCoord[1] });
+
+          if (destinationPoint) {
+            try {
+              const remainingDist = getDistance(
+                { latitude: nextCoord[0], longitude: nextCoord[1] },
+                { latitude: destinationPoint.lat, longitude: destinationPoint.lng }
+              );
+              setDistanceToDestination(remainingDist);
+
+              if (SIMULATED_BUS_SPEED_MPS > 0 && remainingDist > 0) {
+                setTimeToDestination(remainingDist / SIMULATED_BUS_SPEED_MPS);
+              } else {
+                setTimeToDestination(0);
+              }
+            } catch (error) {
+              console.error("Kalan mesafe veya süre hesaplanırken hata oluştu:", error);
+              setDistanceToDestination(null);
+              setTimeToDestination(null);
+            }
+          }
+
           return nextIndex;
         });
-      }, 100); // Her 100ms'de bir ilerleyerek pürüzsüz animasyon sağlar
+      }, 250);
     } else {
-      setAnimatedBusPosition(null); // Güzergah yoksa animasyonlu otobüsü kaldır
+      setAnimatedBusPosition(null);
       setCurrentPathIndex(0);
+      setDistanceToDestination(null);
+      setTimeToDestination(null);
     }
 
-    // Component unmount edildiğinde veya bağımlılıklar değiştiğinde interval'i temizle
     return () => {
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
       }
     };
-  }, [selectedRoute, mapLoaded]);
+  }, [selectedRoute, mapLoaded, routeEndPoint]); // Bağımlılıklar doğru
+
+  // Saniyeyi dakika ve saniyeye çeviren yardımcı fonksiyon
+  const formatTime = (totalSeconds) => {
+    if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
+    if (totalSeconds < 1) return 'Vardı';
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.round(totalSeconds % 60);
+
+    if (minutes > 0) {
+        return `${minutes} dk ${seconds} sn`;
+    } else {
+        return `${seconds} sn`;
+    }
+  };
 
 
   const routeGeoJSON = React.useMemo(() => {
@@ -97,7 +185,7 @@ function MapComponent({
         type: 'Feature',
         geometry: {
           type: 'LineString',
-          coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]]) // [lat, lng] -> [lng, lat]
+          coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]])
         },
         properties: {
           direction: 'gidis'
@@ -109,15 +197,6 @@ function MapComponent({
       type: 'FeatureCollection',
       features: features
     };
-  }, [selectedRoute]);
-
-  // Güzergahın bitiş noktasını hesapla
-  const routeEndPoint = React.useMemo(() => {
-    if (selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
-      const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
-      return { lat: lastCoord[0], lng: lastCoord[1] };
-    }
-    return null;
   }, [selectedRoute]);
 
 
@@ -161,17 +240,15 @@ function MapComponent({
       )}
 
       {/* Güzergah Başlangıç Noktası bilgilendirme pop up */}
-
       {mapLoaded && selectedRoute?.start && selectedRoute?.end && (
-  <div className="route-info-overlay">
-    <div className="route-info-box">
-      <strong>Güzergah:</strong> {selectedRoute.start} → {selectedRoute.end}
-    </div>
-  </div>
-)}
+        <div className="route-info-overlay">
+          <div className="route-info-box">
+            <strong>Güzergah:</strong> {selectedRoute.start} → {selectedRoute.end}
+          </div>
+        </div>
+      )}
 
-
-      {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler) */}
+      {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler - Eğer kullanılıyorsa) */}
       {mapLoaded && vehicles.map((vehicle) => (
         <Marker
           key={vehicle.id}
@@ -196,14 +273,14 @@ function MapComponent({
           anchor="center"
         >
           <img
-            src={locationIcon} // Mevcut canlı otobüsler için locationIcon'u kullanmaya devam ettim
+            src={locationIcon}
             alt="Başlangıç"
             style={{ width: '29px', height: '29px' }}
           />
         </Marker>
       )}
 
-      {/* Animasyonlu Otobüs Marker'ı */}
+      {/* Animasyonlu Otobüs Marker'ı ve Pop-up */}
       {mapLoaded && animatedBusPosition && (
         <Marker
           longitude={animatedBusPosition.lng}
@@ -211,14 +288,22 @@ function MapComponent({
           anchor="center"
         >
           <img
-            src={busIcon} // Animasyonlu otobüs için bus_icon.png kullanılıyor
+            src={busIcon}
             alt="Animated Bus"
-            style={{ width: '40px', height: '40px' }} // Görünürlüğü artırmak için boyut ayarı
+            style={{ width: '40px', height: '40px' }}
           />
+          {/* Varışa kalan mesafe, hız ve süre pop-up'ı */}
+          {distanceToDestination !== null && timeToDestination !== null && (
+            <div className="bus-popup">
+              <div>Kalan: {(distanceToDestination / 1000).toFixed(2)} km</div>
+              <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/s</div>
+              <div>Süre: {formatTime(timeToDestination)}</div>
+            </div>
+          )}
         </Marker>
       )}
 
-      {/* Güzergah Bitiş Noktası Marker'ı */}
+      {/* Güzergah Bitiş Noktası Marker'ı (görsel olarak da olsa) */}
       {mapLoaded && routeEndPoint && (
         <Marker
           longitude={routeEndPoint.lng}
@@ -226,9 +311,9 @@ function MapComponent({
           anchor="center"
         >
           <img
-            src={locationIcon} // Bitiş noktası için location.png kullanılıyor
+            src={locationIcon}
             alt="Bitiş Noktası"
-            style={{ width: '35px', height: '35px' }} // Daha görünür olması için boyut ayarı
+            style={{ width: '35px', height: '35px' }}
           />
         </Marker>
       )}
