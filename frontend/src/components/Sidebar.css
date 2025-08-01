@@ -2,31 +2,57 @@
 .sidebar {
   width: 70px;
   height: 100vh;
-  background-color: #111827; 
+  background-color: #111827;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px;
+  padding-top: 50px; /* İkonların daha aşağıda olması için artırıldı */
   box-sizing: border-box;
-  flex-shrink: 0; 
-  position: fixed; /* Sabit pozisyon */
+  flex-shrink: 0;
+  position: fixed;
   left: 0;
   top: 0;
-  z-index: 100; /* EN ÜSTTE OLMASI İÇİN YÜKSEK Z-INDEX */
+  z-index: 100;
 }
 
 .sidebar-item {
   color: #9ca3af;
-  font-size: 28px;
+  font-size: 28px; /* Material Icons için font-size */
   margin-bottom: 30px;
   cursor: pointer;
   transition: color 0.2s ease-in-out;
+  display: flex; /* İkonların ortalanması için */
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Sidebar item'ın tam genişliği */
+  height: 40px; /* Belirli bir yükseklik verilebilir */
 }
 
 .sidebar-item:hover {
   color: #ffffff;
+  background-color: #1f2937; /* Hover efekti */
 }
 
 .sidebar-item.active {
   color: #317df6;
+  border-left: 3px solid #317df6; /* Aktif ikon için sol kenarlık */
+}
+
+/* Material Icons için stil */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 28px; /* Material Icons'ın boyutunu belirler */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
 }

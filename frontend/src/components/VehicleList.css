@@ -1,17 +1,19 @@
 /* src/components/VehicleList.css */
 
 .vehicle-list-container {
-   width: 100%; 
-  padding: 15px; 
-  height: 100%; 
-  overflow-y: auto; 
-  box-sizing: border-box; 
+  width: 100%;
+  padding: 15px;
+  height: 100%;
+  overflow-y: auto; /* Dikey kaydırma çubuğu eklendi */
+  box-sizing: border-box;
+  background-color: #f7f9fa; /* Panel arka plan rengi */
+  color: #333; /* Genel metin rengi */
 }
 
 .list-header {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
 }
 
@@ -21,7 +23,7 @@
   color: #333;
 }
 
-.close-panel-button { 
+.close-button {
     background: none;
     border: none;
     font-size: 20px;
@@ -30,12 +32,11 @@
     transition: color 0.2s ease;
 }
 
-.close-panel-button:hover {
+.close-button:hover {
     color: #262626;
 }
 
-
-.vehicle-list-container ul {
+.list-items {
   list-style-type: none;
   padding: 0;
   margin: 0;
@@ -57,9 +58,9 @@
 }
 
 .vehicle-item.selected {
-  background-color: #afc0d6; 
-  border-color: #3b82f6; 
-  font-weight: bold; 
+  background-color: #afc0d6;
+  border-color: #3b82f6;
+  font-weight: bold;
 }
 
 .search-input {
@@ -76,18 +77,12 @@
     text-align: center;
     margin-top: 20px;
 }
+
 .item-details {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 2px dashed #311ec0; 
+  border-top: 1px dashed #cccccc;
   font-size: 0.8em;
-  color: #1b0404; 
+  color: #444;
   line-height: 1.4;
-}
-
-.no-results {
-  color: #bbb;
-  text-align: center;
-  margin-top: 20px;
-  font-style: italic;
 }

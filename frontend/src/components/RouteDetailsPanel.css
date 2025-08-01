@@ -1,0 +1,161 @@
+/* frontend/src/components/RouteDetailsPanel.css */
+
+/* Panelin genel stili App.css'teki .panel-wrapper tarafından yönetiliyor */
+/* .route-details-panel-wrapper { } */
+
+.route-details-panel {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #f7f9fa; /* Panel arka plan rengi */
+    color: #333; /* Metin rengi */
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.close-button:hover {
+  color: #ff6b6b;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.bus-number-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    font-size: 0.9em;
+}
+
+.direction-toggle {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+   
+}
+
+.direction-button {
+    flex: 1;
+    padding: 10px;
+    margin: 0 5px;
+    background-color: #4a4f57;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.direction-button:hover {
+    background-color: #5a606a;
+}
+
+.direction-button.active {
+    background-color: #007bff;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+.stop-list-section {
+    flex-grow: 1;
+    overflow-y: auto; /* Dikey kaydırma çubuğu eklendi */
+    padding-right: 5px; /* Kaydırma çubuğu için boşluk */
+        min-height: 0; 
+
+}
+
+.stop-list-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: #333;
+}
+
+.stop-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stop-item {
+    background-color: #3a3f47;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.route-summary {
+    margin-bottom: 15px;
+    font-size: 0.95em;
+    color: #ddd;
+    padding: 10px;
+    background-color: #3a3f47;
+    border-radius: 5px;
+}
+
+.departure-group {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #3a3f47;
+    border-radius: 5px;
+}
+
+.departure-group h5 {
+    margin-top: 0;
+    color: #333;
+    font-size: 0.9em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.9em;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.info-message {
+    color: #bbb;
+    font-size: 0.9em;
+    text-align: center;
+    margin-top: 15px;
+    font-style: italic;
+}

@@ -1,52 +1,46 @@
 // frontend/src/components/VehicleList.js
-import React, { useState, useEffect } from 'react'; // useEffect hook'unu da import ediyoruz
-import './VehicleList.css'; // Stil dosyasını import ediyor
+import React, { useState, useEffect } from 'react';
+import './VehicleList.css';
 
 function VehicleList({ items, onVehicleClick, selectedVehicle, onClose, onSearch }) {
-  const [searchTerm, setSearchTerm] = useState(''); // Arama kutusu için yerel state
-  // Hangi otobüs numarasının detaylarının açık olduğunu tutar
+  const [searchTerm, setSearchTerm] = useState('');
   const [expandedItemId, setExpandedItemId] = useState(null);
 
-  // Arama terimi değiştiğinde veya dışarıdan bir öğe seçildiğinde (Map.js'den gelen selectedVehicle)
-  // expandedItemId'yi senkronize etmek için kullanılır.
+  // selectedVehicle değiştiğinde expandedItemId'yi senkronize et
   useEffect(() => {
-    if (selectedVehicle && selectedVehicle.route_number) {
-      // Eğer seçilen öğe bir hat ise ve henüz açık değilse, onu aç
-      if (expandedItemId !== selectedVehicle.id) {
+    if (selectedVehicle) {
+      if (selectedVehicle.route_number && expandedItemId !== selectedVehicle.id) {
+        setExpandedItemId(selectedVehicle.id);
+      } else if (selectedVehicle.id && selectedVehicle.name && expandedItemId !== selectedVehicle.id) {
+        // Durak seçildiğinde de genişlet
         setExpandedItemId(selectedVehicle.id);
       }
     } else {
-      // Seçilen öğe bir hat değilse veya selectedVehicle null ise, açık olanı kapat
-      setExpandedItemId(null);
+      setExpandedItemId(null); // Seçim kaldırıldığında kapat
     }
-  }, [selectedVehicle]); // selectedVehicle değiştiğinde bu efekt çalışır
+  }, [selectedVehicle]);
 
   const handleSearchChange = (event) => {
     const term = event.target.value;
     setSearchTerm(term);
-    onSearch(term);
-    // Arama yapıldığında veya arama terimi değiştiğinde açık olan detayları kapat
-    setExpandedItemId(null); 
+    onSearch(term); // App.js'teki arama fonksiyonunu çağır
+    setExpandedItemId(null); // Arama yapıldığında açık olan detayları kapat
   };
 
   const handleItemClick = (item) => {
-    // Tıklanan öğe zaten açıksa, kapat
     if (expandedItemId === item.id) {
       setExpandedItemId(null);
     } else {
-      // Değilse, aç
       setExpandedItemId(item.id);
     }
-    // App.js'deki handleVehicleClick fonksiyonunu çağır (harita ve ana state güncellemeleri için)
-    onVehicleClick(item);
+    onVehicleClick(item); // App.js'teki tıklama fonksiyonunu çağır
   };
 
   return (
     <div className="vehicle-list-container">
       <div className="list-header">
         <h2>Aktif Araçlar / Arama Sonuçları</h2>
-        {/* Kapatma butonu, App.js'deki isPanelOpen state'ini değiştirir */}
-        <button onClick={onClose} className="close-button">X</button> 
+        <button onClick={onClose} className="close-button">X</button>
       </div>
       <input
         type="text"
@@ -55,33 +49,40 @@ function VehicleList({ items, onVehicleClick, selectedVehicle, onClose, onSearch
         value={searchTerm}
         onChange={handleSearchChange}
       />
-      <ul className="list-items"> {/* Kaydırma için bu ul'ye bir sınıf ekledim */}
+      <ul className="list-items">
         {items.length > 0 ? (
           items.map((item) => (
             <li
-              key={item.id || item.DURAK_ID} // Her öğe için benzersiz bir anahtar kullanın (hatlar için 'id', duraklar için 'DURAK_ID')
+              key={item.id} // Hatlar ve duraklar için 'id' kullanıyoruz
               className={`vehicle-item ${selectedVehicle?.id === item.id ? 'selected' : ''}`}
               onClick={() => handleItemClick(item)}
             >
-              {item.route_number && ( // Eğer öğe bir otobüs hattı ise (route_number'ı varsa)
+              {item.route_number && ( // Eğer öğe bir otobüs hattı ise
                 <>
                   <div className="item-title">
                     Otobüs Numarası: <strong>{item.route_number}</strong>
                   </div>
-                  {/* Sadece bu öğe genişletilmişse kalkış/varış bilgilerini göster */}
-                  {expandedItemId === item.id && (
+                  {expandedItemId === item.id && ( // Eğer bu öğenin detayları açık ise
                     <div className="item-details">
-                      <div>Kalkış: {item.start || 'Bilgi Yok'}</div>
-                      <div>Varış: {item.end || 'Bilgi Yok'}</div>
+                      <div>Hat Güzergahı: {item.route_name || 'Bilgi Yok'}</div>
+                      {/* Kalkış/Varış bilgileri Routes API'sinde yok */}
                     </div>
                   )}
                 </>
               )}
-              {item.name && ( // Eğer öğe bir durak ise (name'i varsa)
-                <div className="item-title">
-                  Durak Adı: <strong>{item.name}</strong>
-                  {item.busLines && ` (${item.busLines.join(', ')})`} {/* Duraklar için geçen hatları göster */}
-                </div>
+              {item.name && ( // Eğer öğe bir durak ise (stops API'sinden gelenler 'name' alanı içerir)
+                <>
+                  <div className="item-title">
+                    Durak Adı: <strong>{item.name}</strong>
+                  </div>
+                  {expandedItemId === item.id && ( // Eğer bu öğenin detayları açık ise
+                    <div className="item-details">
+                      <div>ID: {item.id}</div>
+                      {/* İlçe/Mahalle bilgisi şu anki GTFS stops.txt'de yok */}
+                      {item.district && <div>İlçe/Mahalle: {item.district}</div>}
+                    </div>
+                  )}
+                </>
               )}
             </li>
           ))

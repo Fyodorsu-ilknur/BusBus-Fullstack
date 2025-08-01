@@ -1,4 +1,11 @@
 /* frontend/src/App.css */
+
+html, body {
+  height: 100%; /* Bu satırları ekleyin */
+  margin: 0;
+}
+
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,39 +18,45 @@ body {
 .app-layout {
   display: flex;
   background-color: #f9fafb;
-  min-height: 100vh; 
+  min-height: 100vh;
 }
 
 .main-container {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; 
+  flex-grow: 1;
   height: 100vh;
-  /* Sidebar'ın sabit genişliği kadar boşluk  */
-  margin-left: 70px; 
-  transition: margin-left 0.3s ease; 
+  margin-left: 70px; /* Sidebar'ın sabit genişliği kadar boşluk */
 }
 
 .content-area {
   display: flex;
   flex-grow: 1;
   overflow: hidden; /* Harita veya panel taşarsa scrollbar çıkmasını engeller */
+  position: relative; /* Panellerin absolute konumlanması için */
 }
 
-.vehicle-list-wrapper {
-  width: 0; /* Kapalıyken genişlik 0 */
-  overflow: hidden; 
-  transition: width 0.3s ease-in-out; 
-  flex-shrink: 0; /* Flexbox içinde küçülmesini engeller */
-  box-shadow: 3px 0px 15px rgba(0,0,0,0.2); 
-  background-color: #f7f9fa; 
-  border-right: 1px solid #e0e0e0; 
+/* Paneller için genel wrapper (konumlandırma) */
+.panel-wrapper {
+    position: absolute; /* Sidebar'a göre konumlanır */
+    top: 0;
+    left: 0; /* Sidebar'ın hemen yanında başlar */
+    height: 100%;
+    width: 300px; /* Panelin genişliği */
+    background-color: #f7f9fa; /* Panel arka plan rengi */
+    box-shadow: 3px 0px 15px rgba(0,0,0,0.2);
+    transform: translateX(-100%); /* Başlangıçta gizli */
+    transition: transform 0.3s ease-in-out; /* Animasyon */
+    z-index: 50; /* Haritanın üzerinde */
+    display: flex;
+    flex-direction: column;
+    color: #333; /* Genel metin rengi */
 }
 
-.vehicle-list-wrapper.open {
-  width: 200px; 
+.panel-wrapper.open {
+  transform: translateX(0); /* Açıldığında görünür */
 }
 
-.map-container { 
+.map-container {
   flex-grow: 1;
 }
