@@ -1,88 +1,131 @@
-/* src/components/VehicleList.css */
+/* frontend/src/components/VehicleList.css */
 
 .vehicle-list-container {
-  width: 100%;
   padding: 15px;
-  height: 100%;
-  overflow-y: auto; /* Dikey kaydırma çubuğu eklendi */
-  box-sizing: border-box;
-  background-color: #f7f9fa; /* Panel arka plan rengi */
-  color: #333; /* Genel metin rengi */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  background-color: var(--panel-bg); /* <-- Değişken kullanımı */
+  color: var(--panel-text); /* <-- Değişken kullanımı */
 }
 
 .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
-.vehicle-list-container h2 {
-  margin-top: 0;
-  font-size: 18px;
-  color: #333;
+.list-header h2 {
+  margin: 0;
+  font-size: 1.1em;
+  color: var(--panel-header-text); /* <-- Değişken kullanımı */
 }
 
 .close-button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #999;
-    transition: color 0.2s ease;
+  background: none;
+  border: none;
+  color: var(--panel-text); /* <-- Değişken kullanımı */
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 5px;
 }
 
 .close-button:hover {
-    color: #262626;
-}
-
-.list-items {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.vehicle-item {
-  padding: 12px;
-  margin-bottom: 8px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.vehicle-item:hover {
-  background-color: #eef4ff;
-  border-color: #4a90e2;
-}
-
-.vehicle-item.selected {
-  background-color: #afc0d6;
-  border-color: #3b82f6;
-  font-weight: bold;
+  color: var(--error-text); /* Kırmızı tonu kullanabiliriz */
 }
 
 .search-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: calc(100% - 20px);
+  padding: 10px;
   margin-bottom: 15px;
-  box-sizing: border-box;
+  border: 1px solid var(--input-border); /* <-- Değişken kullanımı */
+  border-radius: 5px;
+  background-color: var(--input-bg); /* <-- Değişken kullanımı */
+  color: var(--input-text); /* <-- Değişken kullanımı */
+  font-size: 0.9em;
 }
 
-.no-results {
-    color: #666;
-    text-align: center;
-    margin-top: 20px;
+.list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  overflow-y: auto; /* Kaydırma çubuğu */
+  padding-right: 5px; /* Kaydırma çubuğu için boşluk */
+}
+
+.vehicle-item {
+  background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--list-item-text); /* <-- Değişken kullanımı */
+}
+
+.vehicle-item:hover {
+  background-color: var(--list-item-selected-bg); /* <-- Değişken kullanımı */
+  color: var(--list-item-selected-text); /* <-- Değişken kullanımı */
+}
+
+.vehicle-item.selected {
+  background-color: var(--list-item-selected-bg); /* <-- Değişken kullanımı */
+  color: var(--list-item-selected-text); /* <-- Değişken kullanımı */
+  font-weight: bold;
+  border: 1px solid var(--list-item-selected-text); /* Seçili öğe için belirgin kenarlık */
+}
+
+.item-title {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.item-title strong {
+  color: var(--panel-header-text); /* Başlıklarda kullanılan renk gibi */
 }
 
 .item-details {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #cccccc;
   font-size: 0.8em;
-  color: #444;
-  line-height: 1.4;
+  color: var(--info-text); /* Daha açık metin rengi */
+  padding-left: 10px;
+  border-left: 2px solid var(--input-border); /* Hafif ayırıcı */
+  margin-top: 5px;
+}
+
+.no-results {
+  color: var(--info-text); /* <-- Değişken kullanımı */
+  font-size: 0.9em;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Duraktan geçen hatlar stili */
+.routes-from-stop {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--input-border); /* Ayrım çizgisi */
+}
+
+.routes-from-stop h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: var(--panel-header-text); /* Veya istediğin bir renk */
+}
+
+.routes-from-stop ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.routes-from-stop li {
+    background-color: var(--list-item-bg); /* Hafif farklı bir arka plan */
+    padding: 5px 8px;
+    margin-bottom: 3px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: var(--list-item-text);
 }

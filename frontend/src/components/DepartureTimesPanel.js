@@ -137,7 +137,7 @@ function DepartureTimesPanel({ onClose }) {
                 <ul className="stop-list">
                   {departureData.gidis.map((item, index) => (
                     <li key={item.trip_id + index} className="stop-item">
-                      {item.departure_time} - {item.first_stop_name}
+                      {item.departure_time} - {item.first_stop_name} (ID: {item.first_stop_id})
                     </li>
                   ))}
                 </ul>
@@ -151,7 +151,7 @@ function DepartureTimesPanel({ onClose }) {
                 <ul className="stop-list">
                   {departureData.donus.map((item, index) => (
                     <li key={item.trip_id + index} className="stop-item">
-                      {item.departure_time} - {item.first_stop_name}
+                      {item.departure_time} - {item.first_stop_name} (ID: {item.first_stop_id}) 
                     </li>
                   ))}
                 </ul>

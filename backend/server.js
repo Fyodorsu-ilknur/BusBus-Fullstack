@@ -8,16 +8,16 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// PostgreSQL veritabanı bağlantı havuzu
+// PostgreSQL veritabanı bağlantı 
 const pool = new Pool({
-    user: 'postgres',           // Docker'da belirlediğin kullanıcı
-    host: 'localhost',          // Docker konteynerine erişim için
-    database: 'fleet_management_db', // Oluşturduğun veritabanı adı
-    password: 'SecurePass123!@#', // Docker komutuyla belirlediğin şifre
-    port: 5432,                 // Varsayılan PostgreSQL portu
+    user: 'postgres',           
+    host: 'localhost',          
+    database: 'fleet_management_db', 
+    password: 'SecurePass123!@#', 
+    port: 5432,                
 });
 
-// Veritabanı bağlantısını test et
+// Veritabanı bağlantısı test 
 pool.connect((err, client, release) => {
     if (err) {
         return console.error('PostgreSQL veritabanına bağlanırken hata oluştu:', err.stack);
@@ -31,20 +31,19 @@ pool.connect((err, client, release) => {
     });
 });
 
-// API Endpoint: Tüm hatları döndürür (VehicleList için)
+// API Endpoint: Tüm hatları döndürür VehicleList için
 app.get('/api/routes', async (req, res) => {
     try {
-        // PostgreSQL'deki routes tablosundan veriyi çek
         const result = await pool.query('SELECT route_id, route_short_name, route_long_name FROM routes ORDER BY route_short_name ASC');
         const allRoutes = {};
         result.rows.forEach(row => {
             allRoutes[row.route_id] = {
-                id: row.route_id, // Frontend'deki 'id'ye karşılık gelsin
-                route_number: row.route_short_name, // VehicleList'in beklediği format
+                id: row.route_id,
+                route_number: row.route_short_name, 
                 route_name: row.route_long_name,
-                start: '', // Backend'den alınmıyor, frontend'de ilk/son duraktan doldurulacak
+                start: '',
                 end: '',
-                center: null // Frontend'de hesaplanacak
+                center: null 
             };
         });
         res.json(allRoutes);
@@ -54,7 +53,7 @@ app.get('/api/routes', async (req, res) => {
     }
 });
 
-// YENİ API Endpoint: Durak adına veya ID'sine göre durakları döndürür (VehicleList için durak araması)
+ 
 app.get('/api/stops', async (req, res) => {
     const searchTerm = req.query.search || '';
     try {
@@ -64,7 +63,7 @@ app.get('/api/stops', async (req, res) => {
             query += ` WHERE stop_name ILIKE $1 OR stop_id ILIKE $1`; // ILIKE büyük/küçük harf duyarsız arama
             params.push(`%${searchTerm}%`);
         }
-        query += ` ORDER BY stop_name ASC LIMIT 50`; // Arama sonuçlarını sırala ve limit koy
+        query += ` ORDER BY stop_name ASC LIMIT 50`; // Arama sonuçlarını sırala ve limit 
 
         const result = await pool.query(query, params);
         const formattedStops = result.rows.map(row => ({
@@ -72,8 +71,7 @@ app.get('/api/stops', async (req, res) => {
             name: row.stop_name,
             lat: parseFloat(row.stop_lat),
             lng: parseFloat(row.stop_lon),
-            // ilçe/mahalle bilgisi GTFS stops.txt'de yok, bu yüzden eklenemiyor.
-            // Eğer bu bilgi bir şekilde temin edilirse buraya eklenebilir.
+           
             district: '' 
         }));
         res.json(formattedStops);
@@ -84,7 +82,7 @@ app.get('/api/stops', async (req, res) => {
 });
 
 
-// API Endpoint: Belirli bir hattın güzergah detaylarını (sıralı duraklar ve koordinatlar) döndürür
+// API EndpointBelirli bir hattın güzergah detaylarını döndürür
 app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
     const { routeNumber, direction } = req.params;
     const pgDirection = direction === '1' ? 0 : 1;
@@ -124,8 +122,7 @@ app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
             lat: parseFloat(row.stop_lat),
             lng: parseFloat(row.stop_lon),
             sequence: row.stop_sequence,
-            // arrivalTime: row.arrival_time, // Güzergah detaylarında gösterilmeyecek
-            // departureTime: row.departure_time // Güzergah detaylarında gösterilmeyecek
+            
         }));
 
         let routeCoordinates = [];
@@ -162,7 +159,7 @@ app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
             start_point: startStopName,
             end_point: endStopName,
             stops: stops, // Sıralı durak listesi
-            coordinates: routeCoordinates // Harita çizimi için
+            coordinates: routeCoordinates 
         });
 
     } catch (err) {
@@ -171,18 +168,18 @@ app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
     }
 });
 
-// API Endpoint: Belirli bir hattın günlük kalkış saatlerini döndürür (3. ikon için)
+// API Endpoint: Belirli bir hattın günlük kalkış saatlerini döndürür
 app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
-    const { routeNumber, dayOfWeek } = req.params; // dayOfWeek: 'monday', 'tuesday' vb.
+    const { routeNumber, dayOfWeek } = req.params;
 
     try {
-        // Güvenlik: dayOfWeek parametresini doğrudan sorguya eklemek yerine, izin verilenler listesinden kontrol et
+        
         const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         if (!validDays.includes(dayOfWeek)) {
             return res.status(400).json({ message: 'Geçersiz gün bilgisi.' });
         }
 
-        // 1. İlgili hat için servis ID'lerini bul (calendar tablosu ile)
+        
         const calendarQuery = `SELECT service_id FROM calendar WHERE ${dayOfWeek} = 1`;
         const calendarResult = await pool.query(calendarQuery);
         const activeServiceIds = calendarResult.rows.map(row => row.service_id);
@@ -191,7 +188,7 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
             return res.status(404).json({ message: 'Bu gün için aktif servis bulunamadı.' });
         }
 
-        // 2. Bu servis ID'leri ve hat numarası ile trip_id'leri al
+        // servisID'leri ve hat numarası ile trip_id'ler
         const tripsResult = await pool.query(
             `SELECT trip_id, direction_id FROM trips
             WHERE route_id = $1 AND service_id = ANY($2::text[])`,
@@ -208,12 +205,13 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
             tripDirections[row.trip_id] = row.direction_id === 0 ? 'Gidiş' : 'Dönüş';
         });
 
-        // 3. Bu trip_id'ler için ilk duraktaki kalkış saatlerini al (stop_sequence = 1 olan duraklar)
+        //  Bu trip_id'ler için ilk duraktaki kalkış saatleri
         const departureTimesResult = await pool.query(
             `SELECT
                 st.trip_id,
                 st.departure_time,
-                s.stop_name as first_stop_name
+                s.stop_name AS first_stop_name,
+                s.stop_id AS first_stop_id
             FROM stop_times st
             JOIN stops s ON st.stop_id = s.stop_id
             WHERE st.trip_id = ANY($1::text[]) AND st.stop_sequence = 1
@@ -221,15 +219,17 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
             [tripIds]
         );
 
-        // Gidiş ve Dönüş seferlerini ayırıp frontend'e gönder
         const gidisDepartures = [];
         const donusDepartures = [];
 
         departureTimesResult.rows.forEach(row => {
+                        console.log("Processing row for departure times:", row);
+
             const departure = {
                 trip_id: row.trip_id,
                 departure_time: row.departure_time,
-                first_stop_name: row.first_stop_name
+                first_stop_name: row.first_stop_name,
+                first_stop_id: row.first_stop_id
             };
             if (tripDirections[row.trip_id] === 'Gidiş') {
                 gidisDepartures.push(departure);
@@ -249,10 +249,48 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
         console.error(`Kalkış saatleri alınırken hata (Hat: ${routeNumber}, Gün: ${dayOfWeek}):`, err.stack);
         res.status(500).json({ error: 'Kalkış saatleri alınamadı.' });
     }
+
+});
+// API Endpoint Belirli bir duraktan geçen hatları döndürür
+app.get('/api/stop-routes/:stopId', async (req, res) => {
+    const { stopId } = req.params;
+    try {
+        // stop_times tablosunda bu durağı içeren trip_id'leri bul
+        const tripIdsResult = await pool.query(
+            `SELECT DISTINCT trip_id FROM stop_times WHERE stop_id = $1`,
+            [stopId]
+        );
+
+        if (tripIdsResult.rows.length === 0) {
+            return res.json([]); // Bu duraktan geçen hat yoksa boş dizi döndürür
+        }
+
+        const routeIds = tripIdsResult.rows.map(row => row.trip_id); 
+
+        // Aynı route_id'ye sahip birden fazla trip olabilir, DISTINCT kullanıyoruz.
+        const routesResult = await pool.query(
+            `SELECT DISTINCT r.route_id, r.route_short_name, r.route_long_name
+            FROM trips t
+            JOIN routes r ON t.route_id = r.route_id
+            WHERE t.trip_id = ANY($1::text[])
+            ORDER BY r.route_short_name ASC`,
+            [routeIds] // trip_id dizisini parametre olarak gönder
+        );
+
+        const formattedRoutes = routesResult.rows.map(row => ({
+            id: row.route_id,
+            route_number: row.route_short_name,
+            route_name: row.route_long_name
+        }));
+
+        res.json(formattedRoutes);
+
+    } catch (err) {
+        console.error(`Duraktan geçen hatlar alınırken hata (Durak ID: ${stopId}):`, err.stack);
+        res.status(500).json({ error: 'Duraktan geçen hatlar alınamadı.' });
+    }
 });
 
-
-// Sunucuyu başlat
 app.listen(PORT, () => {
     console.log(`Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
 });

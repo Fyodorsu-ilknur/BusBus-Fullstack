@@ -1,13 +1,97 @@
 /* frontend/src/App.css */
 
-html, body {
-  height: 100%; /* Bu satırları ekleyin */
-  margin: 0;
+/* Tema Değişkenleri Tanımları */
+:root {
+  /* Light Theme Varsayılanları */
+  --main-bg: #f9fafb;
+  --main-text: #333;
+
+  --navbar-bg: #282c34;
+  --navbar-text: white;
+  --navbar-hover-text: #61dafb;
+
+  --sidebar-bg: #111827;
+  --sidebar-item-text: #9ca3af;
+  --sidebar-item-hover-bg: #1f2937;
+  --sidebar-item-hover-text: #ffffff;
+  --sidebar-item-active-text: #317df6;
+
+  --panel-bg: #f7f9fa;
+  --panel-text: #333;
+  --panel-header-text: #333;
+  --panel-border: #eee;
+
+  --input-bg: #ffffff;
+  --input-text: #333;
+  --input-border: #ccc;
+  --label-text: #555;
+
+  --list-item-bg: #f0f0f0;
+  --list-item-text: #333;
+  --list-item-border: #eee;
+  --list-item-selected-bg: #e0e7ff; /* Açık mavi vurgu */
+  --list-item-selected-text: #333; /* Vurgulanan öğe metni */
+
+  --button-bg: #007bff;
+  --button-text: white;
+  --button-hover-bg: #0056b3;
+  --button-border: #007bff;
+
+  --error-text: #ff6b6b;
+  --info-text: #666;
 }
 
+/* Dark Theme Overrides */
+.dark-theme {
+  --main-bg: #1a1a2e;
+  --main-text: #e0e0e0;
+
+  --navbar-bg: #0f0f1d;
+  --navbar-text: #f0f0f0;
+  --navbar-hover-text: #a0dfff;
+
+  --sidebar-bg: #1f2937;
+  --sidebar-item-text: #b0b0b0;
+  --sidebar-item-hover-bg: #3a3f47;
+  --sidebar-item-hover-text: #ffffff;
+  --sidebar-item-active-text: #61dafb;
+
+  --panel-bg: #2a2a3e;
+  --panel-text: #e0e0e0;
+  --panel-header-text: #a0dfff;
+  --panel-border: #444;
+
+  --input-bg: #3a3a4e;
+  --input-text: #e0e0e0;
+  --input-border: #555;
+  --label-text: #b0b0b0;
+
+  --list-item-bg: #33334f;
+  --list-item-text: #e0e0e0;
+  --list-item-border: #4a4a60;
+  --list-item-selected-bg: #4a4a60;
+  --list-item-selected-text: #ffffff;
+
+  --button-bg: #0056b3;
+  --button-text: white;
+  --button-hover-bg: #007bff;
+  --button-border: #0056b3;
+
+  --error-text: #ff9999;
+  --info-text: #b0b0b0;
+}
+
+/* Genel Element Stilleri - Artık değişkenleri kullanıyorlar */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--main-bg); /* Değişken kullanımı */
+  color: var(--main-text); /* Değişken kullanımı */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Tema geçiş animasyonu */
+}
 
 body {
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -17,46 +101,65 @@ body {
 
 .app-layout {
   display: flex;
-  background-color: #f9fafb;
+  background-color: var(--main-bg);
   min-height: 100vh;
 }
 
+/* main-container: Harita ve diğer içeriği barındıran asıl alan */
 .main-container {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   height: 100vh;
-  margin-left: 70px; /* Sidebar'ın sabit genişliği kadar boşluk */
+  box-sizing: border-box;
+  padding-top: 50px; /* Navbar'ın yüksekliği kadar üstten boşluk bırak */
+  padding-left: 0; /* Başlangıçta soldan boşluk yok */
+  transition: padding-left 0.3s ease-in-out; /* Sidebar açılıp kapanırken padding animasyonu */
 }
 
+/* Sidebar açıkken main-container'ın padding-left'ini yönetecek */
+.app-layout.sidebar-expanded .main-container {
+  padding-left: 0px; /* Sidebar'ın açık genişliği kadar boşluk */
+}
+
+
+/* content-area: Paneller ve harita için esnek kapsayıcı */
 .content-area {
   display: flex;
   flex-grow: 1;
-  overflow: hidden; /* Harita veya panel taşarsa scrollbar çıkmasını engeller */
-  position: relative; /* Panellerin absolute konumlanması için */
+  overflow: hidden;
 }
+
 
 /* Paneller için genel wrapper (konumlandırma) */
 .panel-wrapper {
-    position: absolute; /* Sidebar'a göre konumlanır */
-    top: 0;
-    left: 0; /* Sidebar'ın hemen yanında başlar */
-    height: 100%;
-    width: 300px; /* Panelin genişliği */
-    background-color: #f7f9fa; /* Panel arka plan rengi */
+    position: fixed; /* Haritanın üzerinde yüzmesi için fixed konumlandırma */
+    top: 50px;       /* Navbar'ın yüksekliği kadar aşağıdan başla */
+    left: 0;         /* Başlangıçta 0'da olacak ama transform ile gizlenecek */
+    width: 250px;    /* Panelin daraltılmış genişliği */
+    height: calc(100vh - 50px); /* Kalan dikey alanı kapla (100vh - Navbar yüksekliği) */
+    background-color: var(--panel-bg);
     box-shadow: 3px 0px 15px rgba(0,0,0,0.2);
-    transform: translateX(-100%); /* Başlangıçta gizli */
-    transition: transform 0.3s ease-in-out; /* Animasyon */
-    z-index: 50; /* Haritanın üzerinde */
+    transform: translateX(-100%); /* Başlangıçta tamamen gizle (kendi genişliği kadar sola kaydır) */
+    transition: transform 0.3s ease-in-out; /* Yumuşak açılma/kapanma animasyonu */
+    z-index: 50; /* Haritanın üzerinde, hamburger ve sidebar'dan düşük */
     display: flex;
     flex-direction: column;
-    color: #333; /* Genel metin rengi */
+    color: var(--panel-text);
 }
 
 .panel-wrapper.open {
-  transform: translateX(0); /* Açıldığında görünür */
+  transform: translateX(60px); /* Sidebar açıkken paneli sidebar'ın yanında göster */
 }
 
+/* Sidebar kapalıyken panellerin konumu (gizli) */
+/* Paneller, sidebar kapalıyken de translate(-100%) ile gizli kalmalı */
+.app-layout.sidebar-collapsed .panel-wrapper.open {
+    transform: translateX(-100%); /* Sidebar kapalıyken paneli de gizle */
+}
+
+
+/* map-container: Harita için ayrılan alan */
 .map-container {
   flex-grow: 1;
 }

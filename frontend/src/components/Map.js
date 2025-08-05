@@ -2,47 +2,52 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getDistance } from 'geolib';
+import { getDistance } from 'geolib'; // Mesafe hesaplaması için
+
 import './Map.css'; // Map.css dosyanızın var olduğundan emin olun
 
 const locationIcon = require('../assets/location.png');
 const busIcon = require('../assets/bus_icon.png');
+// Duraklar için yeni bir ikon veya basit bir yuvarlak nokta stili kullanabiliriz
+// const stopMarkerIcon = require('../assets/stop_marker.png'); // Eğer özel bir ikon kullanacaksan
 
-const SIMULATED_BUS_SPEED_KMH = 40;
+const SIMULATED_BUS_SPEED_KMH = 30; // Hız 30 km/s olarak güncellendi
 const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
 
 function MapComponent({
   vehicles,
   onVehicleClick,
   selectedVehicle,
-  stops, // App.js'ten gelen durak arama sonuçları
-  routes, // App.js'ten gelen tüm hat listesi
-  selectedRoute, // App.js'ten gelen, haritada çizilecek olan seçili güzergah (koordinatları içerir)
-  selectedStop, // App.js'ten gelen, haritada gösterilecek seçili durak
-  mapCenter, // App.js'ten gelen harita merkezi ([lng, lat] formatında)
-  zoomLevel = 13
+  stops,
+  routes,
+  selectedRoute,
+  selectedStop,
+  mapCenter,
+  zoomLevel = 13,
+  onCurrentStopChange, // App.js'e mevcut durağı bildirecek
+  displayStartEndMarkers, // Başlangıç/bitiş marker'larını gösterip göstirmeme
+  startPointInfo,       // Başlangıç durağı bilgisi (name, lat, lng)
+  endPointInfo          // Bitiş durağı bilgisi (name, lat, lng)
 }) {
   const mapRef = useRef();
   const [mapLoaded, setMapLoaded] = useState(false);
   const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
   const animationIntervalRef = useRef(null);
-  const [distanceToDestination, setDistanceToDestination] = useState(null);
-  const [timeToDestination, setTimeToDestination] = useState(null);
+  const [currentDistanceToDestination, setCurrentDistanceToDestination] = useState(null); // Local state
+  const [currentTimeToDestination, setCurrentTimeToDestination] = useState(null);       // Local state
+  const [displayStopsOnRoute, setDisplayStopsOnRoute] = useState({ current: null, next: null });
 
-  const MAP_STYLE = 'https://api.maptiler.com/maps/basic/style.json?key=boHgitm9Copjety599um';
+
+  const MAP_STYLE = 'https://api.maptiler.com/maps/basic/style.json?key=xOQhMUZleM9cojouQ0fu'; // API anahtarını kontrol et
 
   const onMapLoad = useCallback(() => {
     setMapLoaded(true);
-    // console.log("Map.js - Harita yüklendi!"); // Debug için
   }, []);
 
-  // mapCenter değiştiğinde haritayı odakla
   useEffect(() => {
-    // mapCenter, App.js'ten [lng, lat] formatında gelmeli
     if (mapCenter && mapCenter.length === 2 && !isNaN(mapCenter[0]) && !isNaN(mapCenter[1])) {
       if (mapRef.current && mapLoaded) {
-        // console.log(`Map.js - flyTo: ${mapCenter}, zoom: ${zoomLevel}`); // Debug için
         mapRef.current.flyTo({
           center: mapCenter,
           zoom: zoomLevel,
@@ -52,18 +57,17 @@ function MapComponent({
     }
   }, [mapCenter, zoomLevel, mapLoaded]);
 
-  // Otobüs animasyonu, kalan mesafe ve süre hesaplaması için useEffect
+  // Otobüs animasyonu, kalan mesafe ve süre hesaplaması, DURAK GÖRÜNTÜLEME için useEffect
   useEffect(() => {
-    // Önceki interval'i temizle
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
       animationIntervalRef.current = null;
     }
 
-    // selectedRoute.directions['1'] formatı [lat, lng] array'leri içermelidir
     if (mapLoaded && selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
-      const pathCoordinates = selectedRoute.directions['1']; // [lat, lng] formatında
-      // Güzergahın son noktası (son koordinat)
+      const pathCoordinates = selectedRoute.directions['1'];
+      const routeStops = selectedRoute.stops;
+
       const destinationPoint = {
         lat: pathCoordinates[pathCoordinates.length - 1][0],
         lng: pathCoordinates[pathCoordinates.length - 1][1]
@@ -71,95 +75,127 @@ function MapComponent({
 
       setCurrentPathIndex(0);
       setAnimatedBusPosition({ lat: pathCoordinates[0][0], lng: pathCoordinates[0][1] });
+      setDisplayStopsOnRoute({ current: null, next: null });
+      if (onCurrentStopChange) { // Başlangıçta null gönder
+        onCurrentStopChange(null);
+      }
 
-      // Başlangıç mesafesini ve süreyi hesapla
+      // Mesafe ve süre hesaplamaları tekrar buraya getirildi!
       if (destinationPoint && pathCoordinates[0]) {
         try {
           const initialDistance = getDistance(
             { latitude: pathCoordinates[0][0], longitude: pathCoordinates[0][1] },
             { latitude: destinationPoint.lat, longitude: destinationPoint.lng }
           );
-          setDistanceToDestination(initialDistance);
+          setCurrentDistanceToDestination(initialDistance); // Kendi local state'ine set et
           if (SIMULATED_BUS_SPEED_MPS > 0 && initialDistance > 0) {
-            setTimeToDestination(initialDistance / SIMULATED_BUS_SPEED_MPS);
+            setCurrentTimeToDestination(initialDistance / SIMULATED_BUS_SPEED_MPS); // Kendi local state'ine set et
           } else {
-            setTimeToDestination(0);
+            setCurrentTimeToDestination(0);
           }
         } catch (error) {
           console.error("Başlangıç mesafesi/süresi hesaplanırken hata oluştu:", error);
-          setDistanceToDestination(null);
-          setTimeToDestination(null);
+          setCurrentDistanceToDestination(null);
+          setCurrentTimeToDestination(null);
         }
       } else {
-        setDistanceToDestination(null);
-        setTimeToDestination(null);
+        setCurrentDistanceToDestination(null);
+        setCurrentTimeToDestination(null);
       }
 
-      // Animasyon hızını ayarla: Her 250ms'de bir ilerle
       animationIntervalRef.current = setInterval(() => {
         setCurrentPathIndex(prevIndex => {
           const nextIndex = prevIndex + 1;
 
-          // Eğer güzergahın sonuna gelindiyse, animasyonu durdur
           if (nextIndex >= pathCoordinates.length) {
             clearInterval(animationIntervalRef.current);
             animationIntervalRef.current = null;
-            // Otobüsü varış noktasında bırak ve mesafeyi sıfırla
             if (destinationPoint) {
                 setAnimatedBusPosition({ lat: destinationPoint.lat, lng: destinationPoint.lng });
             }
-            setDistanceToDestination(0);
-            setTimeToDestination(0);
-            return prevIndex; // Son indekste kal
+            setCurrentDistanceToDestination(0); // Animasyon bitince sıfırla
+            setCurrentTimeToDestination(0);     // Animasyon bitince sıfırla
+
+            const finalStop = routeStops[routeStops.length - 1] || null;
+            setDisplayStopsOnRoute({ current: finalStop, next: null });
+            if (onCurrentStopChange) { // Son durağı bildir
+                onCurrentStopChange(finalStop);
+            }
+            return prevIndex;
           }
 
           const nextCoord = pathCoordinates[nextIndex];
           setAnimatedBusPosition({ lat: nextCoord[0], lng: nextCoord[1] });
 
-          // Her adımda kalan mesafeyi ve süreyi güncelle
+          // Kalan mesafe ve süre hesaplamaları tekrar buraya getirildi!
           if (destinationPoint) {
             try {
               const remainingDist = getDistance(
                 { latitude: nextCoord[0], longitude: nextCoord[1] },
                 { latitude: destinationPoint.lat, longitude: destinationPoint.lng }
               );
-              setDistanceToDestination(remainingDist);
-
+              setCurrentDistanceToDestination(remainingDist);
               if (SIMULATED_BUS_SPEED_MPS > 0 && remainingDist > 0) {
-                setTimeToDestination(remainingDist / SIMULATED_BUS_SPEED_MPS);
+                setCurrentTimeToDestination(remainingDist / SIMULATED_BUS_SPEED_MPS);
               } else {
-                setTimeToDestination(0);
+                setCurrentTimeToDestination(0);
               }
             } catch (error) {
               console.error("Kalan mesafe veya süre hesaplanırken hata oluştu:", error);
-              setDistanceToDestination(null);
-              setTimeToDestination(null);
+              setCurrentDistanceToDestination(null);
+              setCurrentTimeToDestination(null);
+            }
+          }
+
+          if (routeStops && routeStops.length > 0) {
+            const progressPercentage = nextIndex / pathCoordinates.length;
+            const estimatedStopIndex = Math.min(routeStops.length - 1, Math.floor(progressPercentage * routeStops.length));
+
+            let current = null;
+            let next = null;
+
+            if (estimatedStopIndex < routeStops.length) {
+              current = routeStops[estimatedStopIndex];
+              if (estimatedStopIndex + 1 < routeStops.length) {
+                next = routeStops[estimatedStopIndex + 1];
+              }
+            }
+            setDisplayStopsOnRoute({ current, next });
+            if (onCurrentStopChange) { // Her animasyon adımında mevcut durağı bildir
+                onCurrentStopChange(current);
             }
           }
 
           return nextIndex;
         });
-      }, 250); // Her 250ms'de bir adım
+      }, 250);
 
     } else {
-      // Güzergah yoksa tüm animasyon ve bilgi state'lerini sıfırla
       setAnimatedBusPosition(null);
       setCurrentPathIndex(0);
-      setDistanceToDestination(null);
-      setTimeToDestination(null);
+      setCurrentDistanceToDestination(null); // Güzergah yoksa sıfırla
+      setCurrentTimeToDestination(null);     // Güzergah yoksa sıfırla
+      setDisplayStopsOnRoute({ current: null, next: null });
+      if (onCurrentStopChange) { // Güzergah yoksa null bildir
+        onCurrentStopChange(null);
+      }
     }
 
-    // Component unmount edildiğinde veya bağımlılıklar değiştiğinde interval'i temizle
     return () => {
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
       }
+      setCurrentDistanceToDestination(null);
+      setCurrentTimeToDestination(null);
+      setDisplayStopsOnRoute({ current: null, next: null });
+      if (onCurrentStopChange) {
+        onCurrentStopChange(null);
+      }
     };
-  }, [selectedRoute, mapLoaded]);
+  }, [selectedRoute, mapLoaded, onCurrentStopChange]);
 
 
-  // Saniyeyi dakika ve saniyeye çeviren yardımcı fonksiyon
   const formatTime = (totalSeconds) => {
     if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
     if (totalSeconds < 1) return 'Vardı';
@@ -175,20 +211,17 @@ function MapComponent({
   };
 
 
-  // Güzergahı çizmek için GeoJSON verisi oluştur
   const routeGeoJSON = React.useMemo(() => {
     if (!selectedRoute || !selectedRoute.directions || !selectedRoute.directions['1'] || selectedRoute.directions['1'].length === 0) {
       return null;
     }
 
     const features = [];
-    // selectedRoute.directions['1'] formatı [lat, lng] array'leri içermelidir
-    // MapLibre [lng, lat] beklediği için dönüştürüyoruz
     features.push({
       type: 'Feature',
       geometry: {
         type: 'LineString',
-        coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]]) // [lat, lng] -> [lng, lat]
+        coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]])
       },
       properties: {
         direction: 'gidis'
@@ -201,13 +234,12 @@ function MapComponent({
     };
   }, [selectedRoute]);
 
-  // Güzergahın bitiş noktasını hesapla
   const routeEndPoint = React.useMemo(() => {
-    if (selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
-      const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
-      return { lat: lastCoord[0], lng: lastCoord[1] };
+    if (!selectedRoute?.directions?.['1'] || selectedRoute.directions['1'].length === 0) {
+      return null;
     }
-    return null;
+    const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
+    return { lat: lastCoord[0], lng: lastCoord[1] };
   }, [selectedRoute]);
 
 
@@ -215,14 +247,15 @@ function MapComponent({
     <Map
       ref={mapRef}
       initialViewState={{
-        longitude: 27.128, // İzmir varsayılan longitude
-        latitude: 38.419,  // İzmir varsayılan latitude
+        longitude: 27.128,
+        latitude: 38.419,
         zoom: 12
       }}
       style={{ width: '100%', height: '100%' }}
       mapStyle={MAP_STYLE}
       onLoad={onMapLoad}
     >
+      {/* Güzergah çizgisi sadece selectedRoute varsa çizilir */}
       {mapLoaded && selectedRoute && routeGeoJSON && (
         <Source id="route-data" type="geojson" data={routeGeoJSON}>
           <Layer
@@ -235,7 +268,7 @@ function MapComponent({
         </Source>
       )}
 
-      {/* Durak Marker (seçili durak varsa) */}
+      {/* Durak Marker (seçili durak varsa - arama panelinden seçilen durak) */}
       {mapLoaded && selectedStop?.lat && selectedStop?.lng && (
         <Marker
           longitude={selectedStop.lng}
@@ -250,18 +283,38 @@ function MapComponent({
         </Marker>
       )}
 
+      {/* GÜZERGAH ÜZERİNDEKİ TÜM DURAK MARKERLARI - SADECE selectedRoute varsa */}
+      {mapLoaded && selectedRoute?.stops && selectedRoute.stops.map((stop) => (
+        <Marker
+          key={stop.id + "-" + stop.sequence}
+          longitude={stop.lng}
+          latitude={stop.lat}
+          anchor="center"
+        >
+          {/* Basit bir kırmızı daire marker'ı */}
+          <div style={{
+            width: '12px',
+            height: '12px',
+            backgroundColor: 'red',
+            borderRadius: '50%',
+            border: '2px solid white',
+            boxShadow: '0 0 5px rgba(0,0,0,0.5)'
+          }} title={stop.name}></div>
+        </Marker>
+      ))}
+
+
       {/* Güzergah Başlangıç Noktası bilgilendirme pop up */}
       {mapLoaded && selectedRoute?.start_point && selectedRoute?.end_point && (
         <div className="route-info-overlay">
           <div className="route-info-box">
-            <strong>Güzergah:</strong> {selectedRoute.start_point} → {selectedRoute.end_point}
+            <strong>{selectedRoute.route_number}</strong> - {selectedRoute.start_point} → {selectedRoute.end_point}
           </div>
         </div>
       )}
 
 
       {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler - Eğer kullanılıyorsa) */}
-      {/* Bu kısım şu an backend'den veri almadığı için boş olabilir */}
       {mapLoaded && vehicles.map((vehicle) => (
         <Marker
           key={vehicle.id}
@@ -278,8 +331,8 @@ function MapComponent({
         </Marker>
       ))}
 
-      {/* Animasyonlu Otobüs Marker'ı ve Pop-up */}
-      {mapLoaded && animatedBusPosition && (
+      {/* Animasyonlu Otobüs Marker'ı ve Pop-up - SADECE selectedRoute varsa */}
+      {mapLoaded && animatedBusPosition && selectedRoute && (
         <Marker
           longitude={animatedBusPosition.lng}
           latitude={animatedBusPosition.lat}
@@ -290,19 +343,19 @@ function MapComponent({
             alt="Animated Bus"
             style={{ width: '40px', height: '40px' }}
           />
-          {/* Varışa kalan mesafe, hız ve süre pop-up'ı */}
-          {distanceToDestination !== null && timeToDestination !== null && (
+          {/* Varışa kalan mesafe, hız ve süre pop-up'ı (DURAK BİLGİSİ BURADAN KALDIRILDI) */}
+          {currentDistanceToDestination !== null && currentTimeToDestination !== null && (
             <div className="bus-popup">
-              <div>Kalan: {(distanceToDestination / 1000).toFixed(2)} km</div>
+              <div>Kalan: {(currentDistanceToDestination / 1000).toFixed(2)} km</div>
               <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/s</div>
-              <div>Süre: {formatTime(timeToDestination)}</div>
+              <div>Süre: {formatTime(currentTimeToDestination)}</div>
             </div>
           )}
         </Marker>
       )}
 
-      {/* Güzergah Bitiş Noktası Marker'ı */}
-      {mapLoaded && routeEndPoint && (
+      {/* Güzergah Bitiş Noktası Marker'ı - SADECE selectedRoute varsa */}
+      {mapLoaded && routeEndPoint && selectedRoute && (
         <Marker
           longitude={routeEndPoint.lng}
           latitude={routeEndPoint.lat}
@@ -314,6 +367,51 @@ function MapComponent({
             style={{ width: '35px', height: '35px' }}
           />
         </Marker>
+      )}
+
+      {/* BAŞLANGIÇ VE BİTİŞ DURAK MARKERLARI (displayStartEndMarkers prop'u true ise) */}
+      {mapLoaded && displayStartEndMarkers && selectedRoute?.stops && selectedRoute.stops.length > 0 && (
+        <>
+          {/* Başlangıç Durağı Marker */}
+          {startPointInfo?.lat && startPointInfo?.lng && (
+            <Marker
+              longitude={startPointInfo.lng}
+              latitude={startPointInfo.lat}
+              anchor="center"
+            >
+              <img
+                src={locationIcon}
+                alt="Başlangıç Durağı"
+                style={{ width: '35px', height: '35px', filter: 'hue-rotate(120deg)' }} /* Yeşil tonu için filter eklendi */
+              />
+              <div className="stop-popup">
+                <strong>{selectedRoute.route_number} No'lu Hattın Başlangıç Durağı</strong>
+                <br />
+                {startPointInfo.name}
+              </div>
+            </Marker>
+          )}
+
+          {/* Bitiş Durağı Marker */}
+          {endPointInfo?.lat && endPointInfo?.lng && (
+            <Marker
+              longitude={endPointInfo.lng}
+              latitude={endPointInfo.lat}
+              anchor="center"
+            >
+              <img
+                src={locationIcon}
+                alt="Bitiş Durağı"
+                style={{ width: '35px', height: '35px', filter: 'hue-rotate(240deg)' }} /* Mavi tonu için filter eklendi */
+              />
+              <div className="stop-popup">
+                <strong>{selectedRoute.route_number} No'lu Hattın Bitiş Durağı</strong>
+                <br />
+                {endPointInfo.name}
+              </div>
+            </Marker>
+          )}
+        </>
       )}
     </Map>
   );

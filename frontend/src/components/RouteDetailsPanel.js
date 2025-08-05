@@ -4,10 +4,10 @@ import './RouteDetailsPanel.css';
 
 function RouteDetailsPanel({ onClose }) {
   const [selectedBusNumber, setSelectedBusNumber] = useState('');
-  const [selectedDirection, setSelectedDirection] = useState('1'); // '1' Gidiş, '2' Dönüş (Frontend için)
-  const [displayedRouteDetails, setDisplayedRouteDetails] = useState(null); // API'den gelen tüm detaylar
+  const [selectedDirection, setSelectedDirection] = useState('1'); // '1' 
+  const [displayedRouteDetails, setDisplayedRouteDetails] = useState(null); 
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Yüklenme durumu
+  const [isLoading, setIsLoading] = useState(false); 
 
   // API'den güzergah detaylarını çeken fonksiyon
   const fetchRouteDetails = useCallback(async () => {
@@ -82,7 +82,7 @@ function RouteDetailsPanel({ onClose }) {
         </button>
       </div>
 
-      <div className="stop-list-section"> {/* Kaydırma çubuğu için stil bu sınıfta */}
+      <div className="stop-list-section"> {/* Kaydırma çubuğu için stil */}
         <h4>
           {selectedBusNumber ? (
             `${displayedRouteDetails?.route_name || selectedBusNumber + ' Numaralı Hat'} Durakları (${selectedDirection === '1' ? 'Gidiş' : 'Dönüş'})`
@@ -102,9 +102,8 @@ function RouteDetailsPanel({ onClose }) {
             </div>
             <ul className="stop-list">
               {displayedRouteDetails.stops.map((stop) => (
-                // Durak numarası ve adı gösterilecek, saatler kaldırıldı
                 <li key={stop.id + "-" + stop.sequence} className="stop-item">
-                  {stop.sequence}. {stop.name}
+                  {stop.sequence}. {stop.name}  &nbsp; (ID:{stop.id})
                 </li>
               ))}
             </ul>

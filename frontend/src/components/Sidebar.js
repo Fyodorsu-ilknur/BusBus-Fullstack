@@ -2,31 +2,53 @@
 import React from 'react';
 import './Sidebar.css';
 
-function Sidebar({ onTogglePanel, onToggleRouteDetailsPanel, onToggleDepartureTimesPanel }) {
+// Sidebar bileşeni, isExpanded durumunu App.js'ten prop olarak alır
+function Sidebar({
+  onTogglePanel,
+  onToggleRouteDetailsPanel,
+  onToggleDepartureTimesPanel,
+  isExpanded // Sidebar'ın genişleme durumunu App.js'ten alacak
+}) {
   return (
-    <div className="sidebar">
-      {/* İlk ikon: Aktif Araçlar / Arama Sonuçları paneli */}
-      <div className="sidebar-item" onClick={onTogglePanel} title="Aktif Araçlar / Arama">
-        <span className="material-icons">grid_view</span> {/* Izgara ikonu */}
-      </div>
+    // Ana sidebar div'ine 'sidebar' sınıfı ve isExpanded durumuna göre 'expanded' sınıfı ekleniyor
+    <div className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
+      {/* İkonlar için liste yapısı */}
+      <ul className="sidebar-icons">
+        {/* Hamburger menü ikonu artık burada değil, Navbar içinde. */}
 
-      {/* İkinci ikon: Güzergah Detayları paneli */}
-      <div className="sidebar-item" onClick={onToggleRouteDetailsPanel} title="Güzergah Detayları">
-        <span className="material-icons">alt_route</span> {/* Okların ters yönlü olduğu ikon */}
-      </div>
+        {/* Aktif Araçlar / Arama ikonu */}
+        <li>
+          <button onClick={onTogglePanel} className="sidebar-item" title="Aktif Araçlar / Arama">
+            <span className="material-icons">grid_view</span>
+          </button>
+        </li>
 
-      {/* Üçüncü ikon: Kalkış Saatleri paneli */}
-      <div className="sidebar-item" onClick={onToggleDepartureTimesPanel} title="Kalkış Saatleri">
-        <span className="material-icons">schedule</span> {/* Saat veya kronometre ikonu */}
-      </div>
+        {/* Güzergah Detayları ikonu */}
+        <li>
+          <button onClick={onToggleRouteDetailsPanel} className="sidebar-item" title="Güzergah Detayları">
+            <span className="material-icons">alt_route</span>
+          </button>
+        </li>
 
-      {/* Diğer ikonlar (varsa) */}
-      <div className="sidebar-item" title="Favoriler">
-        <span className="material-icons">star</span>
-      </div>
-      <div className="sidebar-item" title="Analiz">
-        <span className="material-icons">insights</span>
-      </div>
+        {/* Kalkış Saatleri ikonu */}
+        <li>
+          <button onClick={onToggleDepartureTimesPanel} className="sidebar-item" title="Kalkış Saatleri">
+            <span className="material-icons">schedule</span>
+          </button>
+        </li>
+
+        {/* Diğer ikonlar */}
+        <li>
+          <button className="sidebar-item" title="Favoriler">
+            <span className="material-icons">star</span>
+          </button>
+        </li>
+        <li>
+          <button className="sidebar-item" title="Analiz">
+            <span className="material-icons">insights</span>
+          </button>
+        </li>
+      </ul>
     </div>
   );
 }

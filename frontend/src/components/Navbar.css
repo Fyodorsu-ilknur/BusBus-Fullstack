@@ -1,49 +1,108 @@
 /* frontend/src/components/Navbar.css */
-.navbar {
-  height: 60px;
-  background-color: #1f2937; 
-  color: #fafbfc;
+
+.navbar-container {
+    position: fixed; /* Ekranın üstünde sabit duracak */
+    top: 0;
+    left: 0;
+    right: 0; /* Ekranın sağ kenarına kadar uzan */
+    height: 50px; /* Navbar'ın dar yüksekliği */
+    background-color: var(--navbar-bg); /* CSS Değişkeni Kullanımı */
+    z-index: 102; /* En yüksek z-index'lerden biri, her şeyin üzerinde */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Hafif gölge */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* İçerikleri iki yana yasla */
+    padding: 0 20px;
+    color: var(--navbar-text); /* Metin rengi */
+}
+
+/* Navbar'ın sol tarafındaki hamburger ve logo/başlık için kapsayıcı */
+.navbar-left {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Sağa ve sola yasla */
-  padding: 0 30px;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  flex-shrink: 0; /* Küçülmesini engelle */
+  gap: 15px; /* Hamburger butonu ile logo/başlık arası boşluk */
 }
 
-.navbar-title {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.navbar-actions {
-  display: flex;
+/* Hamburger ikonu butonu stili */
+.hamburger-icon-button {
+  background: none; /* Arka plan yok */
+  border: none; /* Kenarlık yok */
+  color: var(--navbar-text); /* İkon rengi */
+  font-size: 28px; /* Hamburger ikonu boyutu */
+  cursor: pointer;
+  padding: 0; /* İç padding'i sıfırla */
+  margin: 0; /* Dış margin'i sıfırla */
+  display: flex; /* İçindeki ikonu ortalamak için */
   align-items: center;
+  justify-content: center;
+  height: 50px; /* Navbar yüksekliği ile hizala */
 }
 
-.navbar-button {
-  background-color: #5591f0;
-  color: rgb(241, 240, 244);
+.hamburger-icon-button:hover {
+  color: var(--navbar-hover-text); /* Hover rengi */
+}
+
+/* Navbar içindeki logo ve başlık için genel stil */
+.navbar-container .logo {
+    font-size: 1.2em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Pin ikonu ve metin arası boşluk */
+}
+
+.navbar-container .logo .material-icons {
+    font-size: 24px; /* Pin ikonu boyutu */
+}
+
+/* Sağdaki butonlar için genel kapsayıcı */
+.nav-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Sağdaki butonların genel stili (eğer button elementleri kullanılıyorsa) */
+.nav-buttons button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+.nav-buttons button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+/* Navbar içinde kullanılan Material Icons için stil */
+.nav-buttons .material-icons {
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--navbar-text);
+    transition: color 0.2s ease;
+}
+.nav-buttons .material-icons:hover {
+    color: var(--navbar-hover-text);
+}
+
+/* Tema değiştirme butonu stili */
+.theme-toggle-button {
+  background: none;
   border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
+  color: var(--navbar-text); /* Tema ikon rengi */
+  font-size: 24px; /* İkon boyutu */
   cursor: pointer;
-  margin-right: 20px;
-  font-weight: 500;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
 }
 
-.navbar-icon {
-  font-size: 24px;
-  color: #6b7280;
-  margin-right: 20px;
-  cursor: pointer;
-}
-
-.navbar-profile {
-  width: 32px;
-  height: 32px;
-  background-color: cornsilk;
-  border-radius: 50%;
-  cursor: pointer;
+.theme-toggle-button:hover {
+  color: var(--navbar-hover-text); /* Tema ikon hover rengi */
 }

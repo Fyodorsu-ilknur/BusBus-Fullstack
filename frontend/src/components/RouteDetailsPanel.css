@@ -1,15 +1,12 @@
 /* frontend/src/components/RouteDetailsPanel.css */
 
-/* Panelin genel stili App.css'teki .panel-wrapper tarafından yönetiliyor */
-/* .route-details-panel-wrapper { } */
-
 .route-details-panel {
     padding: 15px;
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: #f7f9fa; /* Panel arka plan rengi */
-    color: #333; /* Metin rengi */
+    background-color: var(--panel-bg); /* <-- Değişken kullanımı */
+    color: var(--panel-text); /* <-- Değişken kullanımı */
 }
 
 .panel-header {
@@ -22,20 +19,20 @@
 .panel-header h3 {
   margin: 0;
   font-size: 1.1em;
-  color: #333;
+  color: var(--panel-header-text); /* <-- Değişken kullanımı */
 }
 
 .close-button {
   background: none;
   border: none;
-  color: white;
+  color: var(--panel-text); /* <-- Değişken kullanımı */
   font-size: 1.2em;
   cursor: pointer;
   padding: 5px;
 }
 
 .close-button:hover {
-  color: #ff6b6b;
+  color: var(--error-text); /* Kırmızı tonu kullanabiliriz */
 }
 
 .input-group {
@@ -46,17 +43,17 @@
     display: block;
     margin-bottom: 5px;
     font-size: 0.9em;
-    color: #555;
+    color: var(--label-text); /* <-- Değişken kullanımı */
 }
 
 .bus-number-input {
     width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid #444;
+    border: 1px solid var(--input-border); /* <-- Değişken kullanımı */
     border-radius: 5px;
-    background-color: #333;
-    color: white;
+    background-color: var(--input-bg); /* <-- Değişken kullanımı */
+    color: var(--input-text); /* <-- Değişken kullanımı */
     font-size: 0.9em;
 }
 
@@ -64,45 +61,46 @@
     display: flex;
     justify-content: space-around;
     margin-bottom: 20px;
-   
 }
 
 .direction-button {
     flex: 1;
     padding: 10px;
     margin: 0 5px;
-    background-color: #4a4f57;
-    color: white;
-    border: 1px solid #555;
+    background-color: var(--list-item-bg); /* Varsayılan liste öğesi arka planı gibi */
+    color: var(--list-item-text); /* Varsayılan liste öğesi metni gibi */
+    border: 1px solid var(--input-border); /* Input kenarlığı gibi */
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .direction-button:hover {
-    background-color: #5a606a;
+    background-color: var(--list-item-selected-bg); /* Seçili liste öğesi arka planı gibi */
+    color: var(--list-item-selected-text); /* Seçili liste öğesi metni gibi */
 }
 
 .direction-button.active {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: var(--button-bg); /* Ana buton rengi gibi */
+    border-color: var(--button-border); /* Ana buton kenarlığı gibi */
+    color: var(--button-text); /* Ana buton metni gibi */
     font-weight: bold;
 }
 
 .stop-list-section {
     flex-grow: 1;
-    overflow-y: auto; /* Dikey kaydırma çubuğu eklendi */
-    padding-right: 5px; /* Kaydırma çubuğu için boşluk */
-        min-height: 0; 
-
+    overflow-y: auto;
+    padding-right: 5px;
+    min-height: 0;
+    /* border: 2px solid red; */ /* Debug için eklenmişse kaldır */
 }
 
 .stop-list-section h4 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 1em;
-    color: #333;
+    color: var(--panel-header-text); /* <-- Değişken kullanımı */
 }
 
 .stop-list {
@@ -112,48 +110,47 @@
 }
 
 .stop-item {
-    background-color: #3a3f47;
+    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
     padding: 8px 12px;
     margin-bottom: 5px;
     border-radius: 3px;
     font-size: 0.9em;
-    color: #ccc;
+    color: var(--list-item-text); /* <-- Değişken kullanımı */
 }
 
 .route-summary {
     margin-bottom: 15px;
     font-size: 0.95em;
-    color: #ddd;
+    color: var(--panel-text); /* <-- Değişken kullanımı */
     padding: 10px;
-    background-color: #3a3f47;
+    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
     border-radius: 5px;
 }
 
 .departure-group {
     margin-bottom: 20px;
     padding: 10px;
-    background-color: #3a3f47;
+    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
     border-radius: 5px;
 }
 
 .departure-group h5 {
     margin-top: 0;
-    color: #333;
-    font-size: 0.9em;
-    border-bottom: 1px solid #ddd;
+    color: var(--panel-header-text); /* <-- Değişken kullanımı */
+    border-bottom: 1px solid var(--panel-border); /* <-- Değişken kullanımı */
     padding-bottom: 5px;
     margin-bottom: 10px;
 }
 
 .error-message {
-    color: #ff6b6b;
+    color: var(--error-text); /* <-- Değişken kullanımı */
     font-size: 0.9em;
     text-align: center;
     margin-top: 15px;
 }
 
 .info-message {
-    color: #bbb;
+    color: var(--info-text); /* <-- Değişken kullanımı */
     font-size: 0.9em;
     text-align: center;
     margin-top: 15px;
