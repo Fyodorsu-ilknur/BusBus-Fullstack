@@ -12,18 +12,19 @@
   box-shadow: 2px 0 5px rgba(0,0,0,0.2);
   overflow-x: hidden;
 
-  /* Masaüstü için konumlandırma App.css tarafından yönetiliyor */
-  position: fixed; /* Masaüstünde sabit olacak */
+  /* Masaüstünde varsayılan olarak sidebar'ı gizle */
+  position: fixed;
   top: var(--navbar-height);
   left: 0;
   height: calc(100vh - var(--navbar-height));
-  transform: translateX(-100%); /* Masaüstünde her zaman görünür */
-  transition: transform 0.3s ease-in-out;
+  transform: translateX(-100%); /* Varsayılan olarak ekran dışına kaydır (gizle) */
+  transition: transform 0.3s ease-in-out; /* Animasyon ekle */
 }
 
-/* Masaüstü Sidebar genişlediğinde (ekstra stil gerekirse) */
+/* KESİN DÜZELTME BURADA: Masaüstü Sidebar genişlediğinde görünür olmasını sağla */
 .sidebar.expanded {
-    /* Örneğin: ikonların yanında metin gösterme veya genişliği artırma */
+    transform: translateX(0); /* Sidebar açıkken ekran içine kaydır (görünür yap) */
+    /* İsteğe bağlı olarak ikonların yanında metin gösterme veya genişliği artırma gibi ek stiller buraya gelebilir. */
 }
 
 /* Sidebar ikonları için liste (ul.sidebar-icons) */

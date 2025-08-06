@@ -26,11 +26,9 @@ function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [currentAnimatedStop, setCurrentAnimatedStop] = useState(null);
   const [theme, setTheme] = useState('light');
-  // YENİ: Mobil görünüm durumunu takip eden state (768px altı mobil kabul edildi)
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768); // Hala bu state'i tutuyoruz, çünkü bazı mantıklar için kullanılabilir.
 
   useEffect(() => {
-    // Ekran boyutu değişimini dinle ve isMobileView'i güncelle
     const handleResize = () => {
       setIsMobileView(window.innerWidth <= 768);
     };
@@ -250,129 +248,69 @@ function App() {
   }, []);
 
   return (
-    <div className={`app-layout ${isSidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'} ${theme}-theme`}>
+    <div className={`app-layout ${isSidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'} ${theme}-theme ${isMobileView ? 'mobile-view' : 'desktop-view'}`}>
       <Navbar onToggleSidebarExpansion={toggleSidebarExpansion} onToggleTheme={toggleTheme} currentTheme={theme} />
 
-      {/* Masaüstü Düzeni */}
-      {!isMobileView && (
-        <>
-          <Sidebar
-            onTogglePanel={togglePanel}
-            onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
-            onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
-            isExpanded={isSidebarExpanded}
+      {/* Sidebar her zaman doğrudan app-layout'un altında render edilir. */}
+      {/* Konumlandırması ve görünürlüğü tamamen CSS tarafından yönetilecek. */}
+      <Sidebar
+          onTogglePanel={togglePanel}
+          onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
+          onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
+          isExpanded={isSidebarExpanded}
+      />
+
+      {/* Main Container, hem masaüstü hem mobil için genel layout kapsayıcısı */}
+      {/* isMobileView'e göre doğrudan JSX ayırımı yapılmayacak, bu CSS'e bırakılacak */}
+      <div className="main-container">
+        <div className="content-area">
+          {/* Harita */}
+          <Map
+            vehicles={vehicles}
+            onVehicleClick={handleVehicleClick}
+            selectedVehicle={selectedItem}
+            stops={stops}
+            routes={routes}
+            selectedRoute={isPanelOpen ? selectedRoute : null}
+            selectedStop={selectedStop}
+            mapCenter={mapCenter}
+            onCurrentStopChange={handleCurrentStopChange}
+            displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
+            startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
+            endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
           />
-          <div className={`main-container ${isSidebarExpanded ? 'sidebar-expanded-padding' : 'sidebar-collapsed-padding'}`}>
-            <div className="content-area">
-              <Map
-                vehicles={vehicles}
+
+          {/* Paneller (Masaüstü ve Mobil için ortak konumlandırma ve görünürlük) */}
+          {isPanelOpen && (
+            <div className="panel-wrapper open">
+              <VehicleList
+                items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
                 onVehicleClick={handleVehicleClick}
                 selectedVehicle={selectedItem}
-                stops={stops}
-                routes={routes}
-                selectedRoute={isPanelOpen ? selectedRoute : null}
-                selectedStop={selectedStop}
-                mapCenter={mapCenter}
-                onCurrentStopChange={handleCurrentStopChange}
-                displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
-                startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
-                endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
+                onClose={closePanel}
+                onSearch={handleSearch}
+                routesForSelectedStop={routesForSelectedStop}
               />
-              {/* Masaüstü Panelleri */}
-              {isPanelOpen && (
-                <div className="panel-wrapper open">
-                  <VehicleList
-                    items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
-                    onVehicleClick={handleVehicleClick}
-                    selectedVehicle={selectedItem}
-                    onClose={closePanel}
-                    onSearch={handleSearch}
-                    routesForSelectedStop={routesForSelectedStop}
-                  />
-                </div>
-              )}
-              {isRouteDetailsPanelOpen && (
-                <div className="panel-wrapper open">
-                   <RouteDetailsPanel onClose={closeRouteDetailsPanel} />
-                </div>
-              )}
-              {isDepartureTimesPanelOpen && (
-                <div className="panel-wrapper open">
-                  <DepartureTimesPanel onClose={closeDepartureTimesPanel} />
-                </div>
-              )}
-              {isPanelOpen && selectedRoute && (
-                <RouteProgressPanel
-                  selectedRoute={selectedRoute}
-                  currentStop={currentAnimatedStop}
-                />
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Mobil Düzeni */}
-      {isMobileView && (
-        <div className="mobile-main-container"> {/* Yeni mobil ana kapsayıcı */}
-          <div className="mobile-map-area"> {/* Mobil harita alanı */}
-            <Map
-              vehicles={vehicles}
-              onVehicleClick={handleVehicleClick}
-              selectedVehicle={selectedItem}
-              stops={stops}
-              routes={routes}
-              selectedRoute={isPanelOpen ? selectedRoute : null}
-              selectedStop={selectedStop}
-              mapCenter={mapCenter}
-              onCurrentStopChange={handleCurrentStopChange}
-              displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
-              startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
-              endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
-            />
-          </div>
-
-          {/* Mobil Alt Panel Alanı: Sidebar ve Paneller buraya gelecek */}
-          {isSidebarExpanded && ( // Sadece sidebar açıkken alt panelleri göster
-            <div className="mobile-bottom-panel-area">
-                <Sidebar
-                    onTogglePanel={togglePanel}
-                    onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
-                    onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
-                    isExpanded={isSidebarExpanded}
-                />
-                {isPanelOpen && (
-                    <div className="panel-wrapper open">
-                      <VehicleList
-                        items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
-                        onVehicleClick={handleVehicleClick}
-                        selectedVehicle={selectedItem}
-                        onClose={closePanel}
-                        onSearch={handleSearch}
-                        routesForSelectedStop={routesForSelectedStop}
-                      />
-                    </div>
-                )}
-                {isRouteDetailsPanelOpen && (
-                    <div className="panel-wrapper open">
-                       <RouteDetailsPanel onClose={closeRouteDetailsPanel} />
-                    </div>
-                )}
-                {isDepartureTimesPanelOpen && (
-                    <div className="panel-wrapper open">
-                      <DepartureTimesPanel onClose={closeDepartureTimesPanel} />
-                    </div>
-                )}
-                {isPanelOpen && selectedRoute && ( // RouteProgressPanel de bir panel olarak ele alınır
-                    <RouteProgressPanel
-                      selectedRoute={selectedRoute}
-                      currentStop={currentAnimatedStop}
-                    />
-                )}
             </div>
           )}
+          {isRouteDetailsPanelOpen && (
+            <div className="panel-wrapper open">
+               <RouteDetailsPanel onClose={closeRouteDetailsPanel} />
+            </div>
+          )}
+          {isDepartureTimesPanelOpen && (
+            <div className="panel-wrapper open">
+              <DepartureTimesPanel onClose={closeDepartureTimesPanel} />
+            </div>
+          )}
+          {isPanelOpen && selectedRoute && (
+            <RouteProgressPanel
+              selectedRoute={selectedRoute}
+              currentStop={currentAnimatedStop}
+            />
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

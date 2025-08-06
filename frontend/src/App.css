@@ -105,16 +105,40 @@ body {
 
 /* Masaüstü (769px ve üzeri) için Varsayılan Düzen */
 .app-layout {
-  display: flex; /* Navbar hariç ana içeriği yatayda hizala */
-  flex-direction: row; /* Sidebar sol, main-container sağ */
+  display: flex;
+  flex-direction: row; /* Navbar, Sidebar ve Main Container yatayda */
   min-height: 100vh;
   background-color: var(--main-bg);
 }
 
-/* Masaüstü: Sidebar'ın sağındaki alanı kaplayan ana içerik */
+/* Sidebar bileşeni doğrudan app-layout altında olduğu için burada CSS'ini ayarlayacağız */
+.sidebar {
+    position: fixed; /* Ekranın solunda sabit duracak */
+    top: var(--navbar-height);
+    left: 0;
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--navbar-height));
+    background-color: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    box-sizing: border-box;
+    z-index: 100; /* Panellerden ve haritadan yüksek */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    overflow-x: hidden;
+    transform: translateX(-100%); /* Varsayılan olarak gizli (hem masaüstü hem mobil) */
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar.expanded {
+    transform: translateX(0); /* Açıkken görünür yap */
+}
+
+/* main-container: Sidebar'ın sağındaki alanı kaplayan ana içerik */
 .main-container {
   display: flex;
-  flex-direction: column; /* Harita üst, masaüstü panelleri alt */
+  flex-direction: column; /* Masaüstünde: Harita üstte, paneller altta */
   flex-grow: 1; /* Kalan tüm alanı kapla */
   height: 100vh; /* Ekran yüksekliği kadar */
   box-sizing: border-box;
@@ -122,52 +146,36 @@ body {
   padding-left: 0; /* Başlangıçta soldan boşluk yok */
   transition: padding-left 0.3s ease-in-out; /* Sidebar açılıp kapanırken padding animasyonu */
   overflow: hidden; /* İçeriğin taşmasını engelle */
-  position: relative; /* Panellerin fixed konumlandırılması için */
+  position: relative; /* Paneller için referans noktası */
 }
 
-/* Sidebar açıkken main-container'ın padding-left'ini yönet */
+/* Masaüstü: Sidebar açıkken main-container'ın padding-left'ini yönet */
+/* Bu kural, .app-layout'a 'sidebar-expanded' sınıfı eklendiğinde devreye girer */
 .app-layout.sidebar-expanded .main-container {
   padding-left: var(--sidebar-width); /* Sidebar'ın açık genişliği kadar boşluk */
 }
 
-.content-area { /* Masaüstünde harita ve panelleri içeren kapsayıcı */
+
+.content-area { /* Hem harita hem panelleri içeren kapsayıcı */
   display: flex;
   flex-grow: 1;
   overflow: hidden;
+  position: relative; /* Paneller için relative konteyner */
+  flex-direction: row; /* Masaüstünde paneller ve harita yan yana */
 }
 
-/* Masaüstü Sidebar (App.js'te koşullu olarak render edilir) */
-.sidebar {
-  position: fixed; /* Ekranın solunda sabit duracak */
-  top: var(--navbar-height);
-  left: 0;
-  height: calc(100vh - var(--navbar-height));
-  width: var(--sidebar-width);
-  background-color: var(--sidebar-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  box-sizing: border-box;
-  z-index: 100;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-  transform: translateX(0); /* Masaüstünde her zaman görünür */
-  overflow-x: hidden;
-  transition: transform 0.3s ease-in-out;
-}
-
-/* Masaüstü Panelleri (App.js'te koşullu olarak render edilir) */
+/* Paneller için genel wrapper (hem masaüstü hem mobil için tek kural bloğu) */
 .panel-wrapper {
-    position: fixed;
-    top: var(--navbar-height);
-    left: var(--sidebar-width);
+    position: fixed; /* Ekranın belirli bir yerine sabit kalsın */
+    top: var(--navbar-height); /* Navbar altından başla */
+    left: var(--sidebar-width); /* Sidebar'ın sağında başla */
     width: 250px;
     height: calc(100vh - var(--navbar-height));
     background-color: var(--panel-bg);
     box-shadow: 3px 0px 15px rgba(0,0,0,0.2);
-    transform: translateX(-100%); /* Masaüstünde başlangıçta gizli */
+    transform: translateX(-100%); /* Başlangıçta gizli (sidebar'dan sonra görünmez) */
     transition: transform 0.3s ease-in-out;
-    z-index: 50;
+    z-index: 50; /* Harita üzerinde, sidebar'dan düşük */
     display: flex;
     flex-direction: column;
     color: var(--panel-text);
@@ -175,7 +183,7 @@ body {
 }
 
 .panel-wrapper.open {
-    transform: translateX(0); /* Masaüstünde açıkken görünür */
+    transform: translateX(0); /* Açıkken görünür */
 }
 
 /* map-container: Harita için ayrılan alan */
@@ -192,88 +200,70 @@ body {
     /* Navbar yüksekliğini mobilde ayarla */
     :root {
         --navbar-height: 45px;
-        --sidebar-width: 60px;
+        --sidebar-width: 60px; /* Sidebar genişliğini koru */
     }
 
     .app-layout {
-        flex-direction: column; /* Dikey bölme: Navbar üstte, mobil ana kapsayıcı altta */
+        flex-direction: column; /* Dikey bölme: Navbar üstte, ana içerik altta */
         height: 100vh;
     }
 
-    /* Masaüstü Sidebar ve Panellerini mobilde gizle (App.js'teki conditional rendering ile de olur) */
-    .app-layout .sidebar { display: none; }
-    .app-layout .panel-wrapper { display: none; } /* Masaüstü panellerini gizle */
-
-    /* Mobil için ana kapsayıcı (Navbar'ın altındaki tüm alan) */
-    .mobile-main-container {
-        height: calc(100vh - var(--navbar-height)); /* Navbar'ın altından kalan tüm dikey alanı kapla */
-        display: flex;
-        flex-direction: column; /* Dikey bölme: Harita üstte, alt panel alanı altta */
-        flex-grow: 1;
-        overflow: hidden; /* İçeriğin taşmasını engelle */
+    /* main-container: Mobil için (Navbar'ın altındaki tüm alan) */
+    .main-container {
+        padding-top: var(--navbar-height); /* Navbar yüksekliği kadar üstten boşluk */
+        padding-left: 0; /* Mobil görünümde soldan padding yok */
+        height: calc(100vh - var(--navbar-height)); /* Kalan tüm dikey alanı kapla */
+        flex-direction: column; /* Harita üstte, paneller altta */
     }
 
-    /* Mobil Harita Alanı (Üst %50) */
-    .mobile-map-area {
-        height: 50%; /* mobile-main-container'ın %50'si */
-        width: 100%;
-        flex-shrink: 0; /* Haritanın küçülmesini engelle */
-        position: relative; /* Harita popupları için */
-        overflow: hidden;
+    /* content-area: Paneller ve harita burada dikey olarak bölünecek */
+    .content-area {
+        flex-direction: column; /* Harita üstte, paneller altta */
+        height: 100%; /* main-container'ın kalan yüksekliğini kapla */
+        position: relative; /* Paneller için referans noktası */
     }
 
-    /* mobile-map-area içindeki map-container harita alanını tamamen doldurmalı */
-    .mobile-map-area .map-container {
-        height: 100%;
-        width: 100%;
+    /* Paneller için genel wrapper (mobil görünümde ekranın alt yarısını kaplayacak) */
+    .panel-wrapper {
+        position: absolute; /* content-area'ya göre konumlandırılacak */
+        top: 50%; /* Haritanın hemen altından başla */
+        left: 0;
+        width: 100%;    /* content-area'nın tam genişliğini kaplasın */
+        height: 50%; /* content-area'nın yarısını kapla */
+        transform: translateY(100%); /* Varsayılan olarak ekranın altına doğru gizle */
+        transition: transform 0.3s ease-in-out;
+        z-index: 10; /* Harita üzerinde (z-index'i düşük kalmalı) */
+        box-shadow: 0 -3px 15px rgba(0,0,0,0.2); /* Üstten gölge */
     }
 
-    /* Mobil Alt Panel Alanı: Sidebar ve panellerin yan yana durduğu alan (Alt %50) */
-    .mobile-bottom-panel-area {
-        height: 50%; /* mobile-main-container'ın %50'si */
-        width: 100%;
-        flex-shrink: 0; /* Küçülmesini engelle */
-        display: flex; /* Sidebar ve panelleri yan yana hizala */
-        overflow-x: auto; /* Yatayda kaydırmaya izin ver */
-        overflow-y: hidden; /* Dikey kaydırmayı engelle */
-        background-color: var(--panel-bg); /* Alt alanın arka planı */
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.2); /* Üstten gölge */
+    .panel-wrapper.open {
+        transform: translateY(0); /* Açıkken kendi konumuna (bottom 50%) kaydır */
     }
 
-    /* Mobil Sidebar (mobile-bottom-panel-area içinde render edilir) */
-    /* Masaüstü sidebar'ından farklı bir stil olmadığı için App.css'e taşıdık */
-    .mobile-bottom-panel-area .sidebar {
-        display: flex; /* Yeniden görünür yap */
-        position: static; /* Fixed konumlandırmayı iptal et */
-        top: auto; left: auto; height: 100%; /* mobile-bottom-panel-area'nın yüksekliğini kapla */
-        width: var(--sidebar-width); /* Sidebar genişliğini koru */
-        transform: translateX(0); /* Animasyonu iptal et */
-        transition: none;
-        z-index: auto; /* Z-index'i otomatikye bırak */
-        box-shadow: none; /* Gölgeyi iptal et */
-        flex-shrink: 0; /* Sidebar'ın küçülmesini engelle (flexbox için) */
-        background-color: var(--sidebar-bg); /* Arka planı koru */
-        padding-top: 10px; /* Üstten boşluk */
+    /* Haritanın mobil görünümde ekranın üst yarısını kaplaması */
+    .map-container {
+        flex-grow: 1; /* content-area'da kalan alanı kapla */
+        height: 50%; /* content-area'nın üst yarısını kapla */
+        /* Eğer Map doğrudan content-area'nın ilk elemanı ise, bu doğru çalışır */
     }
 
-    /* Mobil Paneller (mobile-bottom-panel-area içinde render edilir) */
-    .mobile-bottom-panel-area .panel-wrapper {
-        display: flex; /* Yeniden görünür yap */
-        position: static; /* Fixed konumlandırmayı iptal et */
-        top: auto; left: auto; height: 100%; /* mobile-bottom-panel-area'nın yüksekliğini kapla */
-        width: 280px; /* Panelin sabit genişliği (mobil için uygun) */
-        transform: translateX(0); /* Animasyonu iptal et */
-        transition: none;
-        z-index: auto; /* Z-index'i otomatikye bırak */
-        box-shadow: none; /* Gölgeyi iptal et */
-        border-left: 1px solid var(--panel-border); /* Panelleri ayırmak için kenarlık */
-        flex-shrink: 0; /* Panelin küçülmesini engelle, yatayda scroll oluşsun */
-        background-color: var(--panel-bg);
-        overflow-y: auto; /* Panel içeriği kendi içinde dikey kaydırılabilir olsun */
+    /* Navbar içindeki bazı elementler için düzenleme */
+    .navbar-container .nav-buttons button {
+        padding: 6px 10px; /* Buton padding'ini küçült */
+        font-size: 0.8em; /* Buton yazısını küçült */
     }
 
-    /* Masaüstü için kullanılan .sidebar-expanded .main-container padding'ini mobilde sıfırla */
-    .app-layout.sidebar-expanded .main-container {
-        padding-left: 0px;
+    /* Navbar'daki "Submit to get the template" butonu gibi uzun metinli butonları GİZLE */
+    .navbar-container .nav-buttons button:nth-of-type(1) { /* İlk button (Submit to get the template) */
+        display: none; /* Mobil ekranda tamamen gizle */
+    }
+
+    .navbar-container .logo {
+        font-size: 1em; /* Logoyu küçült */
+        gap: 5px;
+    }
+
+    .navbar-container .logo .material-icons {
+        font-size: 20px; /* Logo ikonunu küçült */
     }
 }
