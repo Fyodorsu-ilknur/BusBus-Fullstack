@@ -1,68 +1,63 @@
 /* frontend/src/components/Navbar.css */
 
 .navbar-container {
-    position: fixed; /* Ekranın üstünde sabit duracak */
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0; /* Ekranın sağ kenarına kadar uzan */
-    height: 50px; /* Navbar'ın dar yüksekliği */
-    background-color: var(--navbar-bg); /* CSS Değişkeni Kullanımı */
-    z-index: 102; /* En yüksek z-index'lerden biri, her şeyin üzerinde */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Hafif gölge */
+    right: 0;
+    height: var(--navbar-height); /* Değişken kullanımı */
+    background-color: var(--navbar-bg);
+    z-index: 102;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     display: flex;
     align-items: center;
-    justify-content: space-between; /* İçerikleri iki yana yasla */
+    justify-content: space-between;
     padding: 0 20px;
-    color: var(--navbar-text); /* Metin rengi */
+    color: var(--navbar-text);
 }
 
-/* Navbar'ın sol tarafındaki hamburger ve logo/başlık için kapsayıcı */
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 15px; /* Hamburger butonu ile logo/başlık arası boşluk */
+  gap: 15px;
 }
 
-/* Hamburger ikonu butonu stili */
 .hamburger-icon-button {
-  background: none; /* Arka plan yok */
-  border: none; /* Kenarlık yok */
-  color: var(--navbar-text); /* İkon rengi */
-  font-size: 28px; /* Hamburger ikonu boyutu */
+  background: none;
+  border: none;
+  color: var(--navbar-text);
+  font-size: 28px;
   cursor: pointer;
-  padding: 0; /* İç padding'i sıfırla */
-  margin: 0; /* Dış margin'i sıfırla */
-  display: flex; /* İçindeki ikonu ortalamak için */
+  padding: 0;
+  margin: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 50px; /* Navbar yüksekliği ile hizala */
+  height: var(--navbar-height); /* Değişken kullanımı */
 }
 
 .hamburger-icon-button:hover {
-  color: var(--navbar-hover-text); /* Hover rengi */
+  color: var(--navbar-hover-text);
 }
 
-/* Navbar içindeki logo ve başlık için genel stil */
 .navbar-container .logo {
     font-size: 1.2em;
     font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 10px; /* Pin ikonu ve metin arası boşluk */
+    gap: 10px;
 }
 
 .navbar-container .logo .material-icons {
-    font-size: 24px; /* Pin ikonu boyutu */
+    font-size: 24px;
 }
 
-/* Sağdaki butonlar için genel kapsayıcı */
 .nav-buttons {
     display: flex;
     gap: 15px;
     align-items: center;
 }
 
-/* Sağdaki butonların genel stili (eğer button elementleri kullanılıyorsa) */
 .nav-buttons button {
     background-color: var(--button-bg);
     color: var(--button-text);
@@ -78,7 +73,6 @@
     background-color: var(--button-hover-bg);
 }
 
-/* Navbar içinde kullanılan Material Icons için stil */
 .nav-buttons .material-icons {
     font-size: 24px;
     cursor: pointer;
@@ -89,12 +83,11 @@
     color: var(--navbar-hover-text);
 }
 
-/* Tema değiştirme butonu stili */
 .theme-toggle-button {
   background: none;
   border: none;
-  color: var(--navbar-text); /* Tema ikon rengi */
-  font-size: 24px; /* İkon boyutu */
+  color: var(--navbar-text);
+  font-size: 24px;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -104,5 +97,101 @@
 }
 
 .theme-toggle-button:hover {
-  color: var(--navbar-hover-text); /* Tema ikon hover rengi */
+  color: var(--navbar-hover-text);
+}
+
+
+/* --- RESPONSIVE DÜZENLEMELER (iPhone 12 ve benzeri küçük ekranlar için) --- */
+@media (max-width: 768px) {
+    .navbar-container {
+        height: var(--navbar-height); /* Mobilde navbar yüksekliğini değişken üzerinden al */
+        padding: 0 12px;
+    }
+
+    .navbar-left {
+        gap: 10px;
+    }
+
+    .hamburger-icon-button {
+        font-size: 24px;
+        height: var(--navbar-height);
+    }
+
+    .navbar-container .logo {
+        font-size: 1em;
+        gap: 6px;
+    }
+
+    .navbar-container .logo .material-icons {
+        font-size: 20px;
+    }
+
+    .nav-buttons {
+        gap: 8px;
+    }
+
+    .nav-buttons button {
+        padding: 6px 10px;
+        font-size: 0.8em;
+        border-radius: 4px;
+    }
+
+    .nav-buttons button:first-child {
+        display: none;
+    }
+
+    .nav-buttons .material-icons {
+        font-size: 20px;
+    }
+
+    .theme-toggle-button {
+        font-size: 20px;
+    }
+}
+
+/* Çok küçük ekranlar için ek düzenlemeler (iPhone SE gibi) */
+@media (max-width: 480px) {
+    .navbar-container {
+        height: var(--navbar-height);
+        padding: 0 8px;
+    }
+
+    .navbar-left {
+        gap: 8px;
+    }
+
+    .hamburger-icon-button {
+        font-size: 22px;
+        height: var(--navbar-height);
+    }
+
+    .navbar-container .logo {
+        font-size: 0.9em;
+        gap: 4px;
+    }
+
+    .navbar-container .logo .material-icons {
+        font-size: 18px;
+    }
+
+    .nav-buttons {
+        gap: 6px;
+    }
+
+    .nav-buttons button {
+        padding: 4px 8px;
+        font-size: 0.75em;
+    }
+
+    .nav-buttons .material-icons {
+        font-size: 18px;
+    }
+
+    .theme-toggle-button {
+        font-size: 18px;
+    }
+
+    .nav-buttons button:nth-child(2) {
+        display: none;
+    }
 }

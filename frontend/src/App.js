@@ -14,8 +14,7 @@ function App() {
   const [stops, setStops] = useState([]);
   const [routes, setRoutes] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
-  // MEVCUT PANEL STATE İSİMLERİ KORUNDU
-  const [isPanelOpen, setIsPanelOpen] = useState(false); // VehicleList (Aktif Araçlar / Arama) paneli
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false);
   const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,8 +25,20 @@ function App() {
   const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [currentAnimatedStop, setCurrentAnimatedStop] = useState(null);
-  const [theme, setTheme] = useState('light'); // Tema durumu ('light' veya 'dark')
+  const [theme, setTheme] = useState('light');
+  // YENİ: Mobil görünüm durumunu takip eden state (768px altı mobil kabul edildi)
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
 
+  useEffect(() => {
+    // Ekran boyutu değişimini dinle ve isMobileView'i güncelle
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/routes')
@@ -179,7 +190,6 @@ function App() {
     }
   };
 
-  // HER PANEL İÇİN AYRI KAPATMA FONKSİYONLARI (X BUTONU İÇİN) - önceki güncellememde eklenmişti ve çalışıyor
   const closePanel = useCallback(() => {
     setIsPanelOpen(false);
   }, []);
@@ -192,129 +202,177 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
   }, []);
 
-  // SİDEBAR İKONLARINA TIKLANDIĞINDA PANELLERİ TOGGLE (AÇ/KAPAT) EDEN VE DİĞERLERİNİ KAPATAN FONKSİYONLAR - önceki güncellememde eklenmişti ve çalışıyor
   const togglePanel = useCallback(() => {
-    setIsPanelOpen(prev => !prev); // Kendi durumunu toggle et
-    setIsRouteDetailsPanelOpen(false); // Diğer panelleri kapat
-    setIsDepartureTimesPanelOpen(false); // Diğer panelleri kapat
-    setIsSidebarExpanded(true); // İkon tıklandığında sidebar'ın açık olduğundan emin ol
+    setIsPanelOpen(prev => !prev);
+    setIsRouteDetailsPanelOpen(false);
+    setIsDepartureTimesPanelOpen(false);
+    setIsSidebarExpanded(true); // Panel açıldığında sidebar'ın da açık olduğundan emin ol
     setSelectedRoute(null);
     setCurrentAnimatedStop(null);
   }, []);
 
   const toggleRouteDetailsPanel = useCallback(() => {
-    setIsRouteDetailsPanelOpen(prev => !prev); // Kendi durumunu toggle et
-    setIsPanelOpen(false); // Diğer panelleri kapat
-    setIsDepartureTimesPanelOpen(false); // Diğer panelleri kapat
-    setIsSidebarExpanded(true); // İkon tıklandığında sidebar'ın açık olduğundan emin ol
+    setIsRouteDetailsPanelOpen(prev => !prev);
+    setIsPanelOpen(false);
+    setIsDepartureTimesPanelOpen(false);
+    setIsSidebarExpanded(true); // Panel açıldığında sidebar'ın da açık olduğundan emin ol
     setSelectedRoute(null);
     setCurrentAnimatedStop(null);
   }, []);
 
   const toggleDepartureTimesPanel = useCallback(() => {
-    setIsDepartureTimesPanelOpen(prev => !prev); // Kendi durumunu toggle et
-    setIsPanelOpen(false); // Diğer panelleri kapat
-    setIsRouteDetailsPanelOpen(false); // Diğer panelleri kapat
-    setIsSidebarExpanded(true); // İkon tıklandığında sidebar'ın açık olduğundan emin ol
+    setIsDepartureTimesPanelOpen(prev => !prev);
+    setIsPanelOpen(false);
+    setIsRouteDetailsPanelOpen(false);
+    setIsSidebarExpanded(true); // Panel açıldığında sidebar'ın da açık olduğundan emin ol
     setSelectedRoute(null);
     setCurrentAnimatedStop(null);
   }, []);
 
-  // *** İĞRENÇ BEYAZ FAZLALIK PANELİN ÇÖZÜMÜ BURADA! ***
-  // Hamburger menü sidebar'ı açıp kapatırken, TÜM panelleri koşulsuz olarak kapatır.
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
-      const newExpandedState = !prev; // Sidebar'ın yeni durumunu hesapla
-      // BU SATIRLAR, HAMBURGER MENÜYE TIKLANDIĞINDA FAZLADAN PANELİ KAPATIR:
+      const newExpandedState = !prev;
       setIsPanelOpen(false);
       setIsRouteDetailsPanelOpen(false);
       setIsDepartureTimesPanelOpen(false);
-      // Diğer durumları da sıfırlıyoruz ki animasyonlar veya seçili öğeler etkilenmesin
       setSelectedRoute(null);
       setCurrentAnimatedStop(null);
-      return newExpandedState; // Sidebar'ın durumunu güncelle
+      return newExpandedState;
     });
   }, []);
 
-  // Tema değiştirme fonksiyonu
   const toggleTheme = useCallback(() => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   }, []);
-
 
   const handleCurrentStopChange = useCallback((stop) => {
     setCurrentAnimatedStop(stop);
   }, []);
 
   return (
-    // app-layout'a tema sınıfı eklendi
     <div className={`app-layout ${isSidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'} ${theme}-theme`}>
-      {/* Navbar'a tema değiştirme prop'u verildi */}
       <Navbar onToggleSidebarExpansion={toggleSidebarExpansion} onToggleTheme={toggleTheme} currentTheme={theme} />
 
-      <Sidebar
-        onTogglePanel={togglePanel}
-        onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
-        onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
-        isExpanded={isSidebarExpanded}
-      />
-
-      <div className={`main-container ${isSidebarExpanded ? 'sidebar-expanded-padding' : 'sidebar-collapsed-padding'}`}>
-        <div className="content-area">
-          {/* Panel görünürlük durumlarını kendi state'leri ile kontrol et */}
-          {isPanelOpen && (
-            <div className="panel-wrapper open">
-              <VehicleList
-                items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
+      {/* Masaüstü Düzeni */}
+      {!isMobileView && (
+        <>
+          <Sidebar
+            onTogglePanel={togglePanel}
+            onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
+            onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
+            isExpanded={isSidebarExpanded}
+          />
+          <div className={`main-container ${isSidebarExpanded ? 'sidebar-expanded-padding' : 'sidebar-collapsed-padding'}`}>
+            <div className="content-area">
+              <Map
+                vehicles={vehicles}
                 onVehicleClick={handleVehicleClick}
                 selectedVehicle={selectedItem}
-                onClose={closePanel} // Doğru kapatma fonksiyonu
-                onSearch={handleSearch}
-                routesForSelectedStop={routesForSelectedStop}
+                stops={stops}
+                routes={routes}
+                selectedRoute={isPanelOpen ? selectedRoute : null}
+                selectedStop={selectedStop}
+                mapCenter={mapCenter}
+                onCurrentStopChange={handleCurrentStopChange}
+                displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
+                startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
+                endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
               />
+              {/* Masaüstü Panelleri */}
+              {isPanelOpen && (
+                <div className="panel-wrapper open">
+                  <VehicleList
+                    items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
+                    onVehicleClick={handleVehicleClick}
+                    selectedVehicle={selectedItem}
+                    onClose={closePanel}
+                    onSearch={handleSearch}
+                    routesForSelectedStop={routesForSelectedStop}
+                  />
+                </div>
+              )}
+              {isRouteDetailsPanelOpen && (
+                <div className="panel-wrapper open">
+                   <RouteDetailsPanel onClose={closeRouteDetailsPanel} />
+                </div>
+              )}
+              {isDepartureTimesPanelOpen && (
+                <div className="panel-wrapper open">
+                  <DepartureTimesPanel onClose={closeDepartureTimesPanel} />
+                </div>
+              )}
+              {isPanelOpen && selectedRoute && (
+                <RouteProgressPanel
+                  selectedRoute={selectedRoute}
+                  currentStop={currentAnimatedStop}
+                />
+              )}
             </div>
-          )}
+          </div>
+        </>
+      )}
 
-          {isRouteDetailsPanelOpen && (
-            <div className="panel-wrapper open">
-               <RouteDetailsPanel
-                  onClose={closeRouteDetailsPanel} // Doğru kapatma fonksiyonu
-               />
-            </div>
-          )}
-
-          {isDepartureTimesPanelOpen && (
-            <div className="panel-wrapper open">
-              <DepartureTimesPanel
-                onClose={closeDepartureTimesPanel} // Doğru kapatma fonksiyonu
-              />
-            </div>
-          )}
-
-          {/* RouteProgressPanel'i sadece 'Aktif Araçlar' paneli açık VE bir hat seçili olduğunda göster */}
-          {isPanelOpen && selectedRoute && (
-            <RouteProgressPanel
-              selectedRoute={selectedRoute}
-              currentStop={currentAnimatedStop}
+      {/* Mobil Düzeni */}
+      {isMobileView && (
+        <div className="mobile-main-container"> {/* Yeni mobil ana kapsayıcı */}
+          <div className="mobile-map-area"> {/* Mobil harita alanı */}
+            <Map
+              vehicles={vehicles}
+              onVehicleClick={handleVehicleClick}
+              selectedVehicle={selectedItem}
+              stops={stops}
+              routes={routes}
+              selectedRoute={isPanelOpen ? selectedRoute : null}
+              selectedStop={selectedStop}
+              mapCenter={mapCenter}
+              onCurrentStopChange={handleCurrentStopChange}
+              displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
+              startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
+              endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
             />
-          )}
+          </div>
 
-          <Map
-            vehicles={vehicles}
-            onVehicleClick={handleVehicleClick}
-            selectedVehicle={selectedItem}
-            stops={stops}
-            routes={routes}
-            selectedRoute={isPanelOpen ? selectedRoute : null}
-            selectedStop={selectedStop}
-            mapCenter={mapCenter}
-            onCurrentStopChange={handleCurrentStopChange}
-            displayStartEndMarkers={isRouteDetailsPanelOpen || isDepartureTimesPanelOpen}
-            startPointInfo={selectedRoute ? {name: selectedRoute.start_point, lat: selectedRoute.stops[0]?.lat, lng: selectedRoute.stops[0]?.lng} : null}
-            endPointInfo={selectedRoute ? {name: selectedRoute.end_point, lat: selectedRoute.stops[selectedRoute.stops.length-1]?.lat, lng: selectedRoute.stops[selectedRoute.stops.length-1]?.lng} : null}
-          />
+          {/* Mobil Alt Panel Alanı: Sidebar ve Paneller buraya gelecek */}
+          {isSidebarExpanded && ( // Sadece sidebar açıkken alt panelleri göster
+            <div className="mobile-bottom-panel-area">
+                <Sidebar
+                    onTogglePanel={togglePanel}
+                    onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
+                    onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
+                    isExpanded={isSidebarExpanded}
+                />
+                {isPanelOpen && (
+                    <div className="panel-wrapper open">
+                      <VehicleList
+                        items={filteredItems.length > 0 ? filteredItems : Object.values(routes)}
+                        onVehicleClick={handleVehicleClick}
+                        selectedVehicle={selectedItem}
+                        onClose={closePanel}
+                        onSearch={handleSearch}
+                        routesForSelectedStop={routesForSelectedStop}
+                      />
+                    </div>
+                )}
+                {isRouteDetailsPanelOpen && (
+                    <div className="panel-wrapper open">
+                       <RouteDetailsPanel onClose={closeRouteDetailsPanel} />
+                    </div>
+                )}
+                {isDepartureTimesPanelOpen && (
+                    <div className="panel-wrapper open">
+                      <DepartureTimesPanel onClose={closeDepartureTimesPanel} />
+                    </div>
+                )}
+                {isPanelOpen && selectedRoute && ( // RouteProgressPanel de bir panel olarak ele alınır
+                    <RouteProgressPanel
+                      selectedRoute={selectedRoute}
+                      currentStop={currentAnimatedStop}
+                    />
+                )}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

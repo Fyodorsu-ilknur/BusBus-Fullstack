@@ -1,69 +1,71 @@
 /* frontend/src/components/Sidebar.css */
 
 .sidebar {
-  position: fixed; /* Ekranın solunda sabit duracak */
-  top: 50px;       /* <-- Navbar'ın yüksekliği kadar aşağıdan başla */
-  left: 0;         /* Başlangıçta 0'da olacak ama transform ile gizlenecek */
-  height: calc(100vh - 50px); /* <-- Navbar'ın altından ekranın sonuna kadar uzan */
-  width: 60px; /* <-- Başlangıçta ve açıkken 60px genişliğinde olacak */
-  background-color: var(--sidebar-bg); /* CSS Değişkeni Kullanımı */
+  width: var(--sidebar-width); /* Sidebar genişliği için değişken kullanımı */
+  background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   align-items: center; /* İçindeki ikonları yatayda ortala */
-  padding-top: 20px; /* Üstten boşluk */
+  padding-top: 20px;
   box-sizing: border-box;
-  z-index: 100; /* Haritanın ve panellerin üzerinde olsun, Navbar'dan düşük */
-  box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Hafif gölge */
-  transition: transform 0.3s ease-in-out; /* <-- Açılma/kapanma animasyonu için */
-  transform: translateX(-100%); /* <-- Başlangıçta tamamen gizle (kendi genişliği kadar sola kaydır) */
-  overflow-x: hidden; /* İçeriğin taşmasını engelle */
+  z-index: 100;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  overflow-x: hidden;
+
+  /* Masaüstü için konumlandırma App.css tarafından yönetiliyor */
+  position: fixed; /* Masaüstünde sabit olacak */
+  top: var(--navbar-height);
+  left: 0;
+  height: calc(100vh - var(--navbar-height));
+  transform: translateX(-100%); /* Masaüstünde her zaman görünür */
+  transition: transform 0.3s ease-in-out;
 }
 
-/* Sidebar genişlediğinde (açık hali) */
+/* Masaüstü Sidebar genişlediğinde (ekstra stil gerekirse) */
 .sidebar.expanded {
-    transform: translateX(0); /* <-- Açıldığında görünür olsun */
+    /* Örneğin: ikonların yanında metin gösterme veya genişliği artırma */
 }
 
 /* Sidebar ikonları için liste (ul.sidebar-icons) */
 .sidebar-icons {
-    list-style: none; /* Liste işaretlerini kaldır */
-    padding: 0; /* Varsayılan padding'i kaldır */
-    margin: 0; /* Varsayılan margin'i kaldır */
-    width: 100%; /* Sidebar'ın tüm genişliğini kapla */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Liste öğelerini yatayda ortala */
-    padding-top: 10px; /* İlk ikon için üstten biraz boşluk */
+    align-items: center;
+    padding-top: 10px;
 }
 
 /* Her bir sidebar öğesi (li içindeki button.sidebar-item) */
 .sidebar-item {
-  background: none; /* Butonun varsayılan arka planını kaldır */
-  border: none; /* Butonun varsayılan kenarlığını kaldır */
-  color: var(--sidebar-item-text); /* CSS Değişkeni Kullanımı */
-  font-size: 28px; /* Material Icons için font-size (span içindeki icon boyutu) */
+  background: none;
+  border: none;
+  color: var(--sidebar-item-text);
+  font-size: 28px;
   cursor: pointer;
-  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Geçiş efektleri */
-  display: flex; /* İçeriğini (span) ortalamak için flexbox kullan */
-  justify-content: center; /* Yatayda ortala */
-  align-items: center; /* Dikeyde ortala */
-  width: 100%; /* Butonun tüm liste öğesi genişliğini kaplaması için */
-  height: 40px; /* Belirli bir yükseklik verilebilir */
-  text-decoration: none; /* Linkler için alt çizgi olmaması */
-  padding: 0; /* Butonun iç padding'ini sıfırla */
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  text-decoration: none;
+  padding: 0;
 }
 
 .sidebar-item:hover {
-  color: var(--sidebar-item-hover-text); /* CSS Değişkeni Kullanımı */
-  background-color: var(--sidebar-item-hover-bg); /* CSS Değişkeni Kullanımı */
+  color: var(--sidebar-item-hover-text);
+  background-color: var(--sidebar-item-hover-bg);
 }
 
 .sidebar-item.active {
-  color: var(--sidebar-item-active-text); /* CSS Değişkeni Kullanımı */
-  border-left: 3px solid var(--sidebar-item-active-text); /* CSS Değişkeni Kullanımı */
+  color: var(--sidebar-item-active-text);
+  border-left: 3px solid var(--sidebar-item-active-text);
 }
 
-/* Material Icons için genel stil (zaten doğruydu, değişmedi) */
+/* Material Icons için genel stil */
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
