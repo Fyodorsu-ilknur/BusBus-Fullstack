@@ -53,36 +53,57 @@ app.get('/api/routes', async (req, res) => {
     }
 });
 
- 
+// API Endpoint: Tüm durakları döndürür (veya arama terimine göre filtreler, ancak artık arama Frontend'de)
+// Bu endpoint artık 'district' sütununu istemiyor ve LIMIT'i kaldırarak tüm durakları çekiyor
+
+// backend/server.js (sadece ilgili kısım)
+
+// ... (diğer kodlar) ...
+
+// API Endpoint: Durakları sayfalama ile döndürür (GÜNCELLENDİ)
 app.get('/api/stops', async (req, res) => {
-    const searchTerm = req.query.search || '';
+    // limit ve offset query parametrelerini alıyoruz
+    // Varsayılan limit 100, varsayılan offset 0
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+
     try {
-        let query = `SELECT stop_id, stop_name, stop_lat, stop_lon FROM stops`;
-        const params = [];
-        if (searchTerm) {
-            query += ` WHERE stop_name ILIKE $1 OR stop_id ILIKE $1`; // ILIKE büyük/küçük harf duyarsız arama
-            params.push(`%${searchTerm}%`);
-        }
-        query += ` ORDER BY stop_name ASC LIMIT 50`; // Arama sonuçlarını sırala ve limit 
+        // Duraklar tablosundan stop_id, stop_name, stop_lat, stop_lon sütunlarını seçiyoruz
+        // ORDER BY ile sıralayıp, LIMIT ve OFFSET ile sayfalama yapıyoruz
+        let query = `SELECT stop_id, stop_name, stop_lat, stop_lon FROM stops ORDER BY stop_name ASC LIMIT $1 OFFSET $2`;
+        const params = [limit, offset];
 
         const result = await pool.query(query, params);
+
         const formattedStops = result.rows.map(row => ({
             id: row.stop_id,
             name: row.stop_name,
             lat: parseFloat(row.stop_lat),
             lng: parseFloat(row.stop_lon),
-           
-            district: '' 
+            district: '' // Veritabanında olmasa bile frontend'in beklediği format için boş döndürüyoruz
         }));
-        res.json(formattedStops);
+
+        // Toplam durak sayısını da döndürüyoruz (daha fazla veri olup olmadığını anlamak için)
+        // Bu sorgu ayrı çalıştığı için, çok büyük tablolarda dikkatli olmak gerekir.
+        // Ancak genellikle bu kadar büyük tablolar için bile COUNT hızlıdır.
+        const totalCountResult = await pool.query('SELECT COUNT(*) FROM stops');
+        const totalStops = parseInt(totalCountResult.rows[0].count);
+
+        res.json({
+            stops: formattedStops,
+            total: totalStops,
+            hasMore: (offset + formattedStops.length) < totalStops // Daha fazla veri olup olmadığını belirtir
+        });
+
     } catch (err) {
         console.error('Durak verisi alınırken hata:', err.stack);
         res.status(500).json({ error: 'Durak verisi alınamadı.' });
     }
 });
 
+// ... (diğer kodlar) ...
 
-// API EndpointBelirli bir hattın güzergah detaylarını döndürür
+// API Endpoint: Belirli bir hattın güzergah detaylarını döndürür
 app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
     const { routeNumber, direction } = req.params;
     const pgDirection = direction === '1' ? 0 : 1;
@@ -122,7 +143,7 @@ app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
             lat: parseFloat(row.stop_lat),
             lng: parseFloat(row.stop_lon),
             sequence: row.stop_sequence,
-            
+            // district: '' // Burada da yoktu, eklemeye gerek yok
         }));
 
         let routeCoordinates = [];
@@ -223,8 +244,6 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
         const donusDepartures = [];
 
         departureTimesResult.rows.forEach(row => {
-                        console.log("Processing row for departure times:", row);
-
             const departure = {
                 trip_id: row.trip_id,
                 departure_time: row.departure_time,
@@ -251,31 +270,26 @@ app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
     }
 
 });
-// API Endpoint Belirli bir duraktan geçen hatları döndürür
+
+// API Endpoint: Belirli bir duraktan geçen hatları döndürür (DÜZELTİLDİ)
 app.get('/api/stop-routes/:stopId', async (req, res) => {
     const { stopId } = req.params;
     try {
-        // stop_times tablosunda bu durağı içeren trip_id'leri bul
-        const tripIdsResult = await pool.query(
-            `SELECT DISTINCT trip_id FROM stop_times WHERE stop_id = $1`,
+        // stop_times, trips ve routes tablolarını JOIN ederek
+        // doğrudan duraktan geçen rotaların bilgilerini çekiyoruz.
+        const routesResult = await pool.query(
+            `SELECT DISTINCT r.route_id, r.route_short_name, r.route_long_name
+            FROM stop_times st
+            JOIN trips t ON st.trip_id = t.trip_id
+            JOIN routes r ON t.route_id = r.route_id
+            WHERE st.stop_id = $1
+            ORDER BY r.route_short_name ASC`,
             [stopId]
         );
 
-        if (tripIdsResult.rows.length === 0) {
+        if (routesResult.rows.length === 0) {
             return res.json([]); // Bu duraktan geçen hat yoksa boş dizi döndürür
         }
-
-        const routeIds = tripIdsResult.rows.map(row => row.trip_id); 
-
-        // Aynı route_id'ye sahip birden fazla trip olabilir, DISTINCT kullanıyoruz.
-        const routesResult = await pool.query(
-            `SELECT DISTINCT r.route_id, r.route_short_name, r.route_long_name
-            FROM trips t
-            JOIN routes r ON t.route_id = r.route_id
-            WHERE t.trip_id = ANY($1::text[])
-            ORDER BY r.route_short_name ASC`,
-            [routeIds] // trip_id dizisini parametre olarak gönder
-        );
 
         const formattedRoutes = routesResult.rows.map(row => ({
             id: row.route_id,

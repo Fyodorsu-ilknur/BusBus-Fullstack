@@ -101,31 +101,3 @@
   margin-top: 20px;
 }
 
-/* Duraktan geçen hatlar stili */
-.routes-from-stop {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--input-border); /* Ayrım çizgisi */
-}
-
-.routes-from-stop h5 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 0.9em;
-    color: var(--panel-header-text); /* Veya istediğin bir renk */
-}
-
-.routes-from-stop ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.routes-from-stop li {
-    background-color: var(--list-item-bg); /* Hafif farklı bir arka plan */
-    padding: 5px 8px;
-    margin-bottom: 3px;
-    border-radius: 3px;
-    font-size: 0.85em;
-    color: var(--list-item-text);
-}
