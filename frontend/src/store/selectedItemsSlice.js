@@ -5,7 +5,9 @@ const selectedItemsSlice = createSlice({
   name: 'selectedItems',
   initialState: {
     selectedStopIds: [],
-    allStops: [] // Bu satırı ekleyin
+    allStops: [],
+    selectedRouteIds: [], // <-- YENİ STATE EKLENDİ
+    allRoutes: {} // <-- YENİ STATE EKLENDİ (routes objesi, App.js'ten buraya taşıyacağız)
   },
   reducers: {
     toggleSelectedStop: (state, action) => {
@@ -19,12 +21,34 @@ const selectedItemsSlice = createSlice({
     clearSelectedStops: (state) => {
       state.selectedStopIds = [];
     },
-    // Bu action'ı ekleyin
     setAllStops: (state, action) => {
       state.allStops = action.payload;
+    },
+    // YENİ REDUCER'lar: Otobüs Hatları için
+    toggleSelectedRoute: (state, action) => { // Bir rota ID'sini seçer/seçimi kaldırır
+        const routeId = action.payload;
+        if (state.selectedRouteIds.includes(routeId)) {
+            state.selectedRouteIds = state.selectedRouteIds.filter(id => id !== routeId);
+        } else {
+            state.selectedRouteIds.push(routeId);
+        }
+    },
+    clearSelectedRoutes: (state) => { // Tüm rota seçimlerini temizler
+        state.selectedRouteIds = [];
+    },
+    setAllRoutes: (state, action) => { // Tüm rota verisini Redux'a kaydeder
+        state.allRoutes = action.payload;
     }
   }
 });
 
-export const { toggleSelectedStop, clearSelectedStops, setAllStops } = selectedItemsSlice.actions;
+export const { 
+    toggleSelectedStop, 
+    clearSelectedStops, 
+    setAllStops,
+    toggleSelectedRoute, // <-- Export edildi
+    clearSelectedRoutes, // <-- Export edildi
+    setAllRoutes // <-- Export edildi
+} = selectedItemsSlice.actions;
+
 export default selectedItemsSlice.reducer;

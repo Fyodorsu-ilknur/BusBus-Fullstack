@@ -8,7 +8,7 @@ import { getDistance } from 'geolib';
 import './Map.css';
 
 const locationIcon = require('../assets/location.png');
-const busIcon = require('../assets/bus_icon.png');
+const busIcon = require('../assets/bus_icon.png'); 
 
 const SIMULATED_BUS_SPEED_KMH = 30;
 const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
@@ -17,16 +17,19 @@ function MapComponent({
   vehicles,
   onVehicleClick,
   selectedVehicle,
-  stops, // Not directly used for rendering individual stop markers anymore from this prop
-  routes,
-  selectedRoute,
-  selectedStop, // Could be null when deselected
+  // stops prop'u kaldırıldı, artık Redux'taki allStops kullanılıyor
+  selectedRoute, // Tekli animasyonlu güzergah için
+  selectedStop, 
   mapCenter,
   zoomLevel = 13,
   onCurrentStopChange,
   displayStartEndMarkers,
   startPointInfo,
-  endPointInfo
+  endPointInfo,
+  currentAnimatedStop,
+  // YENİ PROP'lar: Çoklu rota çizimi için
+  selectedRouteIds, // Redux'tan gelen ID'ler
+  allRoutes // Redux'tan gelen tüm rota objeleri
 }) {
   const mapRef = useRef();
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -36,6 +39,9 @@ function MapComponent({
   const [currentDistanceToDestination, setCurrentDistanceToDestination] = useState(null);
   const [currentTimeToDestination, setCurrentTimeToDestination] = useState(null);
   const [displayStopsOnRoute, setDisplayStopsOnRoute] = useState({ current: null, next: null });
+  
+  // YENİ STATE: Seçili rotaların koordinat verilerini tutacak
+  const [selectedRoutesData, setSelectedRoutesData] = useState({});
 
   const selectedStops = useSelector(state => state.selectedItems?.selectedStopIds || []);
   const allStops = useSelector(state => state.selectedItems?.allStops || []);
@@ -46,8 +52,49 @@ function MapComponent({
     setMapLoaded(true);
   }, []);
 
+  // YENİ EFFECT: Seçili rotalar değiştiğinde API'den koordinatları çek
   useEffect(() => {
-    // Ensure mapCenter is a valid array of numbers before flying
+    if (!selectedRouteIds || selectedRouteIds.length === 0) {
+      setSelectedRoutesData({});
+      return;
+    }
+
+    const fetchRouteData = async () => {
+      const newRoutesData = {};
+      
+      for (const routeId of selectedRouteIds) {
+        const route = allRoutes[routeId];
+        if (route && route.route_number) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/route-details/${route.route_number}/1`);
+            if (response.ok) {
+              const data = await response.json();
+              newRoutesData[routeId] = {
+                ...route,
+                directions: {
+                  '1': data.coordinates,
+                  '2': []
+                },
+                stops: data.stops,
+                start_point: data.start_point,
+                end_point: data.end_point
+              };
+            } else {
+              console.error(`Rota detayları çekilemedi: ${route.route_number}`, response.status);
+            }
+          } catch (error) {
+            console.error(`Rota detayları çekilirken hata: ${route.route_number}`, error);
+          }
+        }
+      }
+      
+      setSelectedRoutesData(newRoutesData);
+    };
+
+    fetchRouteData();
+  }, [selectedRouteIds, allRoutes]);
+
+  useEffect(() => {
     if (mapCenter && Array.isArray(mapCenter) && mapCenter.length === 2 && typeof mapCenter[0] === 'number' && typeof mapCenter[1] === 'number' && mapLoaded) {
       if (mapRef.current) {
         mapRef.current.flyTo({
@@ -59,38 +106,35 @@ function MapComponent({
     }
   }, [mapCenter, zoomLevel, mapLoaded]);
 
-  // Otobüs animasyonu, kalan mesafe ve süre hesaplaması, DURAK GÖRÜNTÜLEME için useEffect
   useEffect(() => {
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
       animationIntervalRef.current = null;
     }
 
+    // Sadece selectedRoute var ve geçerli directions varsa animasyonu başlat
     if (mapLoaded && selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
       const pathCoordinates = selectedRoute.directions['1'];
       const routeStops = selectedRoute.stops;
 
-      // Ensure destinationPoint coordinates are valid numbers
       const lastCoord = pathCoordinates[pathCoordinates.length - 1];
       const destinationPoint = (lastCoord && typeof lastCoord[0] === 'number' && typeof lastCoord[1] === 'number')
         ? { lat: lastCoord[0], lng: lastCoord[1] }
         : null;
 
       setCurrentPathIndex(0);
-      // Ensure first coordinate is valid
       const firstCoord = pathCoordinates[0];
       if (firstCoord && typeof firstCoord[0] === 'number' && typeof firstCoord[1] === 'number') {
         setAnimatedBusPosition({ lat: firstCoord[0], lng: firstCoord[1] });
       } else {
-        setAnimatedBusPosition(null); // Hide bus if coordinates are invalid
+        setAnimatedBusPosition(null);
       }
       
       setDisplayStopsOnRoute({ current: null, next: null });
-      if (onCurrentStopChange) { // Send null initially
+      if (onCurrentStopChange) {
         onCurrentStopChange(null);
       }
 
-      // Distance and time calculations
       if (destinationPoint && firstCoord) {
         try {
           const initialDistance = getDistance(
@@ -120,25 +164,23 @@ function MapComponent({
           if (nextIndex >= pathCoordinates.length) {
             clearInterval(animationIntervalRef.current);
             animationIntervalRef.current = null;
-            if (destinationPoint) { // Null check
+            if (destinationPoint) {
                 setAnimatedBusPosition({ lat: destinationPoint.lat, lng: destinationPoint.lng });
             }
-            setCurrentDistanceToDestination(0); // Reset when animation finishes
+            setCurrentDistanceToDestination(0);
             setCurrentTimeToDestination(0);
             const finalStop = routeStops[routeStops.length - 1] || null;
             setDisplayStopsOnRoute({ current: finalStop, next: null });
-            if (onCurrentStopChange) { // Notify final stop
+            if (onCurrentStopChange) {
                 onCurrentStopChange(finalStop);
             }
             return prevIndex;
           }
 
           const nextCoord = pathCoordinates[nextIndex];
-          // Ensure nextCoord exists and its coordinates are numbers
           if (nextCoord && typeof nextCoord[0] === 'number' && typeof nextCoord[1] === 'number') {
             setAnimatedBusPosition({ lat: nextCoord[0], lng: nextCoord[1] });
           } else {
-            // If nextCoord is invalid, stop animation
             clearInterval(animationIntervalRef.current);
             animationIntervalRef.current = null;
             console.error("Invalid coordinate detected during animation:", nextCoord);
@@ -148,8 +190,7 @@ function MapComponent({
             return prevIndex;
           }
           
-          // Remaining distance and time calculations
-          if (destinationPoint && nextCoord) { // Null check
+          if (destinationPoint && nextCoord) {
             try {
               const remainingDist = getDistance(
                 { latitude: nextCoord[0], longitude: nextCoord[1] },
@@ -182,7 +223,7 @@ function MapComponent({
               }
             }
             setDisplayStopsOnRoute({ current, next });
-            if (onCurrentStopChange) { // Notify current stop at each animation step
+            if (onCurrentStopChange) {
                 onCurrentStopChange(current);
             }
           }
@@ -215,7 +256,6 @@ function MapComponent({
     };
   }, [selectedRoute, mapLoaded, onCurrentStopChange]);
 
-
   const formatTime = (totalSeconds) => {
     if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
     if (totalSeconds < 1) return 'Vardı';
@@ -230,8 +270,8 @@ function MapComponent({
     }
   };
 
-
   const routeGeoJSON = React.useMemo(() => {
+    // Bu useMemo sadece tekli selectedRoute için rota çizgisi oluşturur
     if (!selectedRoute || !selectedRoute.directions || !selectedRoute.directions['1'] || selectedRoute.directions['1'].length === 0) {
       return null;
     }
@@ -259,12 +299,42 @@ function MapComponent({
       return null;
     }
     const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
-    // Ensure coordinates exist and are numbers
     return (lastCoord && typeof lastCoord[0] === 'number' && typeof lastCoord[1] === 'number')
         ? { lat: lastCoord[0], lng: lastCoord[1] }
         : null;
   }, [selectedRoute]);
 
+  // YENİ: Çoklu seçilen rotalar için GeoJSON oluşturma
+  const multipleRoutesGeoJSON = React.useMemo(() => {
+    const features = [];
+    
+    Object.keys(selectedRoutesData).forEach(routeId => {
+      const routeData = selectedRoutesData[routeId];
+      // Rotanın varlığını ve directions verisinin geçerliliğini kontrol et
+      if (routeData && routeData.directions && routeData.directions['1'] && routeData.directions['1'].length > 0) {
+        // Animasyonlu tekli rotadan farklı olsun diye kontrol et
+        // Eğer bu rota aynı zamanda selectedRoute (animasyonlu olan) ise çizme.
+        if (!selectedRoute || selectedRoute.route_number !== routeData.route_number) { 
+          features.push({
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: routeData.directions['1'].map(coord => [coord[1], coord[0]])
+            },
+            properties: {
+              routeId: routeData.route_number, // Hangi rota olduğunu belirtmek için
+              direction: 'gidis-multiple' // Farklı bir ID kullanabiliriz
+            }
+          });
+        }
+      }
+    });
+
+    return {
+      type: 'FeatureCollection',
+      features: features
+    };
+  }, [selectedRoutesData, selectedRoute]);
 
   return (
     <Map
@@ -278,11 +348,11 @@ function MapComponent({
       mapStyle={MAP_STYLE}
       onLoad={onMapLoad}
     >
-      {/* Route line is drawn only if selectedRoute exists */}
+      {/* Güzergah çizgisi sadece selectedRoute varsa çizilir (tekli animasyonlu rota) */}
       {mapLoaded && selectedRoute && routeGeoJSON && (
         <Source id="route-data" type="geojson" data={routeGeoJSON}>
           <Layer
-            id="route-gidis"
+            id="route-gidis" // Tekli rota için ID
             type="line"
             filter={['==', 'direction', 'gidis']}
             layout={{ 'line-join': 'round', 'line-cap': 'round' }}
@@ -291,8 +361,20 @@ function MapComponent({
         </Source>
       )}
 
-      {/* Stop Marker (for selected stop from search panel) */}
-      {/* Ensure selectedStop exists and its lat/lng are numbers */}
+      {/* YENİ: Çoklu seçilen rotaların çizgileri */}
+      {mapLoaded && multipleRoutesGeoJSON && multipleRoutesGeoJSON.features.length > 0 && (
+        <Source id="multiple-routes-data" type="geojson" data={multipleRoutesGeoJSON}>
+          <Layer
+            id="multiple-routes-gidis" // Çoklu rotalar için ID
+            type="line"
+            filter={['==', 'direction', 'gidis-multiple']}
+            layout={{ 'line-join': 'round', 'line-cap': 'round' }}
+            paint={{ 'line-color': 'green', 'line-width': 3, 'line-opacity': 0.6 }} // Farklı renk ve incelik
+          />
+        </Source>
+      )}
+
+      {/* Durak Marker (seçili durak varsa - arama panelinden seçilen durak) */}
       {mapLoaded && selectedStop && typeof selectedStop.lat === 'number' && typeof selectedStop.lng === 'number' && (
         <Marker
           longitude={selectedStop.lng}
@@ -307,11 +389,10 @@ function MapComponent({
         </Marker>
       )}
 
-      {/* ALL STOP MARKERS ON THE ROUTE - ONLY if selectedRoute exists */}
+      {/* GÜZERGAH ÜZERİNDEKİ TÜM DURAK MARKERLARI - SADECE selectedRoute varsa */}
       {mapLoaded && selectedRoute?.stops && selectedRoute.stops.map((stop) => {
         const isSelected = selectedStops.includes(stop.id);
         return (
-          // Ensure stop exists and its lat/lng are numbers
           stop && typeof stop.lat === 'number' && typeof stop.lng === 'number' && (
             <Marker
               key={stop.id + "-" + stop.sequence}
@@ -319,11 +400,10 @@ function MapComponent({
               latitude={stop.lat}
               anchor="center"
             >
-              {/* Special style for selected stops, default for normal stops */}
               <div style={{
                 width: isSelected ? '18px' : '12px',
                 height: isSelected ? '18px' : '12px',
-                backgroundColor: isSelected ? '#FFD700' : 'red', // Gold for selected
+                backgroundColor: isSelected ? '#FFD700' : 'red',
                 borderRadius: '50%',
                 border: isSelected ? '3px solid #FF6B35' : '2px solid white',
                 boxShadow: isSelected ? '0 0 15px rgba(255, 215, 0, 0.8)' : '0 0 5px rgba(0,0,0,0.5)',
@@ -334,13 +414,11 @@ function MapComponent({
         );
       })}
 
-      {/* ADDITIONAL MARKERS FOR SELECTED STOPS (selected outside of route) */}
+      {/* SEÇİLİ DURAKLAR İÇİN EK MARKERLAR (Güzergah dışından seçilen duraklar) */}
       {mapLoaded && selectedStops.map(stopId => {
         const stop = allStops.find(s => s.id === stopId);
-        // Don't show this marker if the stop is already shown on the route
         const isOnSelectedRoute = selectedRoute?.stops?.some(routeStop => routeStop.id === stopId);
         
-        // Ensure stop exists and its lat/lng are numbers
         if (stop && !isOnSelectedRoute && typeof stop.lat === 'number' && typeof stop.lng === 'number') {
           return (
             <Marker
@@ -352,20 +430,19 @@ function MapComponent({
               <div style={{
                 width: '20px',
                 height: '20px',
-                backgroundColor: '#00FF7F', // Light green
+                backgroundColor: '#00FF7F',
                 borderRadius: '50%',
                 border: '3px solid #008B8B',
                 boxShadow: '0 0 20px rgba(0, 255, 127, 0.9)',
                 animation: 'pulse 1.5s infinite'
-              }} title={stop.name + ' '}></div>
+              }} title={stop.name + ' (Manuel Seçim)'}></div>
             </Marker>
           );
         }
         return null;
       })}
 
-      {/* Route Info Overlay */}
-      {/* start_point and end_point are strings, no need for complex checks here */}
+      {/* Güzergah Başlangıç Noktası bilgilendirme pop up */}
       {mapLoaded && selectedRoute?.start_point && selectedRoute?.end_point && (
         <div className="route-info-overlay">
           <div className="route-info-box">
@@ -374,9 +451,8 @@ function MapComponent({
         </div>
       )}
 
-      {/* Bus Markers (Real-time buses - if used) */}
+      {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler - Eğer kullanılıyorsa) */}
       {mapLoaded && vehicles.map((vehicle) => (
-        // Ensure vehicle and its lat/lng are numbers
         vehicle && typeof vehicle.lat === 'number' && typeof vehicle.lng === 'number' && (
             <Marker
             key={vehicle.id}
@@ -394,8 +470,7 @@ function MapComponent({
         )
       ))}
 
-      {/* Animated Bus Marker and Pop-up - ONLY if selectedRoute exists */}
-      {/* Ensure animatedBusPosition exists and its lat/lng are numbers */}
+      {/* Animasyonlu Otobüs Marker'ı ve Pop-up - SADECE selectedRoute varsa */}
       {mapLoaded && animatedBusPosition && typeof animatedBusPosition.lat === 'number' && typeof animatedBusPosition.lng === 'number' && selectedRoute && (
         <Marker
           longitude={animatedBusPosition.lng}
@@ -407,19 +482,21 @@ function MapComponent({
             alt="Animated Bus"
             style={{ width: '40px', height: '40px' }}
           />
-          {/* Remaining distance, speed, and time pop-up */}
+          {/* Varışa kalan mesafe, hız ve süre pop-up'ı */}
           {currentDistanceToDestination !== null && currentTimeToDestination !== null && (
             <div className="bus-popup">
               <div>Kalan: {(currentDistanceToDestination / 1000).toFixed(2)} km</div>
               <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/s</div>
               <div>Süre: {formatTime(currentTimeToDestination)}</div>
+              {currentAnimatedStop?.name && (
+                <div>Durak: {currentAnimatedStop.name}</div>
+              )}
             </div>
           )}
         </Marker>
       )}
 
-      {/* Route End Point Marker - ONLY if selectedRoute exists */}
-      {/* Ensure routeEndPoint exists and its lat/lng are numbers */}
+      {/* Güzergah Bitiş Noktası Marker'ı - SADECE selectedRoute varsa */}
       {mapLoaded && routeEndPoint && typeof routeEndPoint.lat === 'number' && typeof routeEndPoint.lng === 'number' && selectedRoute && (
         <Marker
           longitude={routeEndPoint.lng}
@@ -434,11 +511,10 @@ function MapComponent({
         </Marker>
       )}
 
-      {/* START AND END STOP MARKERS (if displayStartEndMarkers prop is true) */}
+      {/* BAŞLANGIÇ VE BİTİŞ DURAK MARKERLARI (displayStartEndMarkers prop'u true ise) */}
       {mapLoaded && displayStartEndMarkers && selectedRoute?.stops && selectedRoute.stops.length > 0 && (
         <>
-          {/* Start Stop Marker */}
-          {/* Ensure startPointInfo exists and its lat/lng are numbers */}
+          {/* Başlangıç Durağı Marker */}
           {startPointInfo && typeof startPointInfo.lat === 'number' && typeof startPointInfo.lng === 'number' && (
             <Marker
               longitude={startPointInfo.lng}
@@ -458,8 +534,7 @@ function MapComponent({
             </Marker>
           )}
 
-          {/* End Stop Marker */}
-          {/* Ensure endPointInfo exists and its lat/lng are numbers */}
+          {/* Bitiş Durağı Marker */}
           {endPointInfo && typeof endPointInfo.lat === 'number' && typeof endPointInfo.lng === 'number' && (
             <Marker
               longitude={endPointInfo.lng}

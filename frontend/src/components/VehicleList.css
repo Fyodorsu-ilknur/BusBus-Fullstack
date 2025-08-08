@@ -101,3 +101,89 @@
   margin-top: 20px;
 }
 
+/* frontend/src/components/VehicleList.css */
+
+/* ... (Mevcut CSS kodları) ... */
+
+/* Güzergah Takip Checkbox Stilleri */
+.route-progress-checkbox-container {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--input-border); /* Ayrım çizgisi */
+}
+
+.route-progress-checkbox-container .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--list-item-text);
+}
+
+.route-progress-checkbox {
+    margin-right: 8px; /* Checkbox ve metin arası boşluk */
+    transform: scale(1.2); /* Checkbox'ı biraz büyüt */
+    cursor: pointer;
+}
+
+/* frontend/src/components/VehicleList.css */
+
+/* ... (Mevcut CSS kodları) ... */
+
+/* Yeni: Çoklu Rota Seçim Kontrolleri */
+.route-selection-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 5px; /* İç boşluk */
+    border-bottom: 1px solid var(--input-border);
+    padding-bottom: 10px;
+}
+
+.selected-route-count {
+    font-size: 0.9em;
+    color: var(--panel-text);
+    font-weight: bold;
+}
+
+.clear-all-routes-button {
+    background-color: var(--button-bg); /* Mavi olsun */
+    color: var(--button-text);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+}
+
+.clear-all-routes-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+/* Yeni: Hat listesi item'larındaki checkbox için stiller */
+.vehicle-list-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none; /* Metnin seçilmesini engelle */
+    font-size: 0.9em; /* Otobüs numarası metniyle uyumlu */
+    width: 100%; /* Label'ın tüm alanı kaplamasını sağla */
+    padding-right: 5px; /* Sağdan boşluk */
+}
+
+.vehicle-list-checkbox {
+    margin-right: 8px;
+    transform: scale(1.1); /* Biraz daha büyük olsun */
+    flex-shrink: 0; /* Küçülmesini engelle */
+}
+
+/* Kendi checkmark stiliniz varsa buraya eklenebilir
+   Ancak mevcut checkmark sınıfınız zaten genel stilleri sağlayabilir. */
+/* .vehicle-list-checkbox + .checkmark { ... } */
+
+.vehicle-list-checkbox:checked + .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
