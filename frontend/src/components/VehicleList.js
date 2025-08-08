@@ -2,18 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import './VehicleList.css';
 
-function VehicleList({ 
-  items, 
-  onVehicleClick, 
+function VehicleList({
+  items,
+  onVehicleClick,
   selectedVehicle,
-  onClose, 
-  onSearch, 
-  isRouteProgressPanelActive, 
+  onClose,
+  onSearch,
+  isRouteProgressPanelActive,
   onToggleRouteProgressPanelActive,
   // YENİ PROP'lar
   selectedRouteIds, // Redux'tan gelen seçili rota ID'leri
   onToggleSelectedRoute, // Redux action'ını çağırmak için
-  onClearSelectedRoutes // Tüm rota seçimlerini temizlemek için
+  onClearSelectedRoutes, // Tüm rota seçimlerini temizlemek için
+  onSelectAllRoutes, // "Tümünü Seç" için
+  // YENİ PROP'lar: Gidiş/Dönüş Butonu için
+  selectedRoute, // Animasyonlu güzergah takip edilen tekli rota
+  currentDirection, // Mevcut yön ('1' gidiş, '2' dönüş)
+  onToggleDirection // Yönü değiştirmek için App.js'ten gelen callback
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,12 +40,11 @@ function VehicleList({
   };
 
   const handleItemClick = (item) => {
-    if (!item || !item.route_number) { 
+    if (!item || !item.route_number) {
         console.warn("Geçersiz veya eksik item bilgisi alındı:", item);
         return;
     }
 
-    // Eğer tıklanan öğe zaten seçili olan öğe ise seçimi kaldır (kapat)
     if (selectedVehicle?.id === item.id) {
       onVehicleClick(null);
       if (isRouteProgressPanelActive) {
@@ -54,17 +58,21 @@ function VehicleList({
     }
   };
 
-  // Checkbox'a tıklanınca tetiklenecek fonksiyon
   const handleRouteCheckboxChange = (e, routeId) => {
     e.stopPropagation(); // li'nin click olayını engelle
-    // e.preventDefault(); // Checkbox'ın varsayılan işaretleme davranışını engelleme
-    onToggleSelectedRoute(routeId); // Redux action'ını çağır
+    onToggleSelectedRoute(routeId);
   };
 
   const handleToggleRouteProgress = (e) => {
     e.stopPropagation(); // li'nin click olayını engelle
-    e.preventDefault(); // Checkbox'ın varsayılan davranışını engelle
-    onToggleRouteProgressPanelActive(); 
+    onToggleRouteProgressPanelActive();
+  };
+
+  const handleToggleDirectionClick = (e) => {
+    e.stopPropagation(); // li'nin click olayını engelle
+    if (onToggleDirection) {
+        onToggleDirection(); // App.js'teki yön değiştirme callback'ini çağır
+    }
   };
 
   return (
@@ -80,12 +88,17 @@ function VehicleList({
         value={searchTerm}
         onChange={handleSearchChange}
       />
-      <div className="route-selection-controls"> {/* Yeni kontrol div'i */}
+      <div className="route-selection-controls">
         <span className="selected-route-count">
             {selectedRouteIds.length} hat seçili
         </span>
+        {selectedRouteIds.length < items.length && items.length > 0 && (
+            <button onClick={onSelectAllRoutes} className="control-button select-all-routes-button">
+                Tümünü Seç
+            </button>
+        )}
         {selectedRouteIds.length > 0 && (
-            <button onClick={onClearSelectedRoutes} className="clear-all-routes-button"> {/* Yeni buton */}
+            <button onClick={onClearSelectedRoutes} className="control-button clear-all-routes-button">
                 Tüm Seçili Hatları Temizle
             </button>
         )}
@@ -93,39 +106,62 @@ function VehicleList({
       <ul className="list-items">
         {items.length > 0 ? (
           items.map((item) => (
-            item && item.route_number ? ( 
+            item && item.route_number ? (
               <li
-                key={item.id} 
+                key={item.id}
                 className={`vehicle-item ${selectedVehicle?.id === item.id ? 'selected' : ''}`}
-                onClick={() => handleItemClick(item)} 
+                onClick={() => handleItemClick(item)}
               >
-                <div className="item-title">
-                    <label className="route-checkbox-label" onClick={(e) => e.stopPropagation()}> {/* Label'ı dışa taşıdık */}
-                        <input
-                            type="checkbox"
-                            checked={selectedRouteIds.includes(item.id)} // Redux'tan gelen seçili ID'lere göre
-                            onChange={(e) => handleRouteCheckboxChange(e, item.id)} // Yeni handler
-                            className="vehicle-list-checkbox"
-                        />
-                        <span className="checkmark"></span>
-                        Otobüs Numarası: <strong>{item.route_number}</strong>
-                    </label>
-                </div>
-
-                {selectedVehicle?.id === item.id && ( 
-                  <div className="item-details">
-                    <div>Hat Güzergahı: {item.route_name || 'Bilgi Yok'}</div>
-                    <div className="route-progress-checkbox-container">
-                        <label className="checkbox-label" onClick={(e) => e.stopPropagation()}> {/* Bu da li click'i engellesin */}
+                <div className="item-title" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                        <label className="route-checkbox-label" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                             <input
                                 type="checkbox"
-                                checked={isRouteProgressPanelActive} 
-                                onChange={handleToggleRouteProgress} 
-                                className="route-progress-checkbox"
+                                checked={selectedRouteIds.includes(item.id)}
+                                onChange={(e) => handleRouteCheckboxChange(e, item.id)}
+                                className="vehicle-list-checkbox"
                             />
-                            Güzergah Takip İçin Tıklayın
+                            <div className="route-summary-text">
+                                <strong>Hat No: {item.route_number}</strong>
+                                {item.route_name && <span className="route-name-short"> ({item.route_name})</span>}
+                                <br />
+                                <span className="route-points-display">{item.start_point} &rarr; {item.end_point}</span>
+                            </div>
                         </label>
                     </div>
+                    <button className="expand-toggle-button" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}>
+                        <span className="material-icons">
+                            {selectedVehicle?.id === item.id ? 'expand_less' : 'expand_more'}
+                        </span>
+                    </button>
+                </div>
+
+
+                {selectedVehicle?.id === item.id && (
+                  <div className="item-details">
+                    <div className="route-progress-checkbox-container">
+                        <label className="checkbox-label" onClick={(e) => e.stopPropagation()}> 
+                            <input
+                                type="checkbox"
+                                checked={isRouteProgressPanelActive}
+                                onChange={handleToggleRouteProgress}
+                                className="route-progress-checkbox"
+                            />
+                            <span className="route-progress-text">Güzergah Takip İçin Tıklayın</span>
+                        </label>
+                    </div>
+                    {/* YENİ EKLENECEK: Gidiş/Dönüş Butonu */}
+                    {/* Sadece animasyonlu takip için seçili olan tek rota ve dönüş güzergahı varsa göster */}
+                    {selectedRoute?.id === item.id && selectedRoute?.directions?.['2']?.length > 0 && isRouteProgressPanelActive && (
+                        <div className="direction-toggle-container">
+                            <button
+                                className="direction-button control-button" // control-button sınıfı da eklendi
+                                onClick={handleToggleDirectionClick}
+                            >
+                                Yön: {currentDirection === '1' ? 'Gidiş' : 'Dönüş'}
+                            </button>
+                        </div>
+                    )}
                   </div>
                 )}
               </li>

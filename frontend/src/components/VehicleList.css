@@ -55,14 +55,27 @@
   padding-right: 5px; /* Kaydırma çubuğu için boşluk */
 }
 
+.vehicle-item-content {
+  display: flex;
+  align-items: center;
+  flex: 1; /* Metin kısmı alanı kaplasın */
+  min-width: 0; /* Taşmayı engelle */
+}
+
 .vehicle-item {
   background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
-  padding: 8px 12px;
+  padding: 2px 4px;
+   display: flex;
   margin-bottom: 5px;
-  border-radius: 3px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
   color: var(--list-item-text); /* <-- Değişken kullanımı */
+   align-items: center; 
+     justify-content: space-between; /* Checkbox/text ve ok ikonunu iki uca yaslamak için */
+     position: relative; /* Expand butonu için */
+  overflow: hidden; /* Taşmaları engellemek için */
+
 }
 
 .vehicle-item:hover {
@@ -75,11 +88,16 @@
   color: var(--list-item-selected-text); /* <-- Değişken kullanımı */
   font-weight: bold;
   border: 1px solid var(--list-item-selected-text); /* Seçili öğe için belirgin kenarlık */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
 }
 
 .item-title {
   font-size: 0.9em;
   margin-bottom: 5px;
+   display: flex;
+  align-items: center;
+
 }
 
 .item-title strong {
@@ -174,7 +192,7 @@
 }
 
 .vehicle-list-checkbox {
-    margin-right: 8px;
+    margin-right: 9px;
     transform: scale(1.1); /* Biraz daha büyük olsun */
     flex-shrink: 0; /* Küçülmesini engelle */
 }
@@ -186,4 +204,77 @@
 .vehicle-list-checkbox:checked + .checkmark {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+}
+.route-summary-text {
+  /* Hat no ve güzergah bilgisinin yan yana gelmesi için stil */
+flex-shrink: 1;
+white-space: normal;
+overflow: hidden;
+ text-overflow: ellipsis; /* Taşarsa üç nokta ekle */
+  line-height: 1.2; /* Satır yüksekliğini ayarla */
+}
+.route-name-short {
+  font-size: 0.9em; /* Hat adının biraz daha küçük görünmesi için */
+  color: #666; /* Daha soluk bir renk */
+}
+
+.route-points-display {
+  font-size: 0.85em; /* Başlangıç-bitiş noktaları için biraz daha küçük font */
+  color: #777; /* Daha da soluk */
+}
+.expand-toggle-button {
+  background: none;
+  border: none;
+  color: var(--panel-header-text); /* Renk ayarı */
+  font-size: 28px; /* İkon boyutu */
+  cursor: pointer;
+  padding: 5px;
+  margin-left: auto; /* Sağ tarafa yaslamak için */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.expand-toggle-button:hover {
+    color: var(--button-bg); /* Hover rengi */
+}
+
+/* .item-details için geçiş efekti (opsiyonel) */
+.item-details {
+  /* display: none; veya height: 0; ile gizleniyorsa */
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+  /* Eğer display: none kullanıyorsanız bu transition çalışmaz */
+}
+
+/* Eğer .vehicle-item.selected olduğunda item-details açılıyorsa */
+.vehicle-item.selected .item-details {
+  max-height: 100px; /* Yeterli bir değer, içeriğe göre ayarlayın */
+  /* display: block; */ /* Eğer gizlemek için display: none kullanıyorsanız */
+}
+
+/* Mevcut .item-details'ten Hat Güzergahı satırını kaldırdığımız için,
+   eğer sadece checkbox kaldıysa ve tasarımı bozuyorsa,
+   .route-progress-checkbox-container'a da stil vermek gerekebilir. */
+.route-progress-checkbox-container {
+    padding-top: 5px; /* Detaylar açıldığında yukarıdan boşluk */
+}
+
+.select-all-routes-button {
+  /* Daha önceki önerilerimden bir stil burada olabilir */
+  background-color: var(--button-bg); /* Örneğin, ana buton renginizi kullanın */
+  color: var(--button-text);
+  border: none;
+  padding: 5px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85em;
+  margin-left: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.select-all-routes-button:hover {
+  background-color: var(--button-hover-bg);
 }

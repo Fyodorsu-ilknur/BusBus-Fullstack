@@ -6,8 +6,8 @@ const selectedItemsSlice = createSlice({
   initialState: {
     selectedStopIds: [],
     allStops: [],
-    selectedRouteIds: [], // <-- YENİ STATE EKLENDİ
-    allRoutes: {} // <-- YENİ STATE EKLENDİ (routes objesi, App.js'ten buraya taşıyacağız)
+    selectedRouteIds: [],
+    allRoutes: {} // Başlangıçta boş bir obje, App.js dolduracak
   },
   reducers: {
     toggleSelectedStop: (state, action) => {
@@ -24,8 +24,8 @@ const selectedItemsSlice = createSlice({
     setAllStops: (state, action) => {
       state.allStops = action.payload;
     },
-    // YENİ REDUCER'lar: Otobüs Hatları için
-    toggleSelectedRoute: (state, action) => { // Bir rota ID'sini seçer/seçimi kaldırır
+    // Otobüs Hatları için reducer'lar
+    toggleSelectedRoute: (state, action) => {
         const routeId = action.payload;
         if (state.selectedRouteIds.includes(routeId)) {
             state.selectedRouteIds = state.selectedRouteIds.filter(id => id !== routeId);
@@ -33,22 +33,29 @@ const selectedItemsSlice = createSlice({
             state.selectedRouteIds.push(routeId);
         }
     },
-    clearSelectedRoutes: (state) => { // Tüm rota seçimlerini temizler
+    clearSelectedRoutes: (state) => {
         state.selectedRouteIds = [];
     },
-    setAllRoutes: (state, action) => { // Tüm rota verisini Redux'a kaydeder
+    selectAllRoutes: (state) => {
+      // allRoutes objesindeki tüm rota ID'lerini al ve selectedRouteIds'a ata
+      state.selectedRouteIds = Object.keys(state.allRoutes);
+    },
+    setAllRoutes: (state, action) => {
+        // App.js'ten gelen veri zaten obje formatında (id'leri key olarak) olduğu varsayılır.
+        // Bu reducer'ın işi sadece state'i payload ile güncellemektir.
         state.allRoutes = action.payload;
     }
   }
 });
 
-export const { 
-    toggleSelectedStop, 
-    clearSelectedStops, 
+export const {
+    toggleSelectedStop,
+    clearSelectedStops,
     setAllStops,
-    toggleSelectedRoute, // <-- Export edildi
-    clearSelectedRoutes, // <-- Export edildi
-    setAllRoutes // <-- Export edildi
+    toggleSelectedRoute,
+    clearSelectedRoutes,
+    selectAllRoutes, // Bu kesinlikle export edilmeli
+    setAllRoutes
 } = selectedItemsSlice.actions;
 
 export default selectedItemsSlice.reducer;

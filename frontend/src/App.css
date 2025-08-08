@@ -169,7 +169,7 @@ body {
     position: fixed; /* Ekranın belirli bir yerine sabit kalsın */
     top: var(--navbar-height); /* Navbar altından başla */
     left: var(--sidebar-width); /* Sidebar'ın sağında başla */
-    width: 250px;
+    width: 400px;
     height: calc(100vh - var(--navbar-height));
     background-color: var(--panel-bg);
     box-shadow: 3px 0px 15px rgba(0,0,0,0.2);

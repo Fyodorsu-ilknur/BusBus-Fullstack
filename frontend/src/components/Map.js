@@ -8,18 +8,41 @@ import { getDistance } from 'geolib';
 import './Map.css';
 
 const locationIcon = require('../assets/location.png');
-const busIcon = require('../assets/bus_icon.png'); 
+const busIcon = require('../assets/bus_icon.png');
 
 const SIMULATED_BUS_SPEED_KMH = 30;
 const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
+
+// Rotalar için renk paleti
+const ROUTE_COLORS = [
+  '#FF0000', // Kırmızı
+  '#00FF00', // Yeşil
+  '#0000FF', // Mavi
+  '#FFD700', // Altın Sarısı
+  '#FF69B4', // Hot Pink
+  '#00CED1', // Dark Turquoise
+  '#FF4500', // Orange Red
+  '#9370DB', // Medium Purple
+  '#32CD32', // Lime Green
+  '#FF1493', // Deep Pink
+  '#00FA9A', // Medium Spring Green
+  '#1E90FF', // Dodger Blue
+  '#FF8C00', // Dark Orange
+  '#DA70D6', // Orchid
+  '#00FFFF', // Cyan
+  '#FFB6C1', // Light Pink
+  '#98FB98', // Pale Green
+  '#87CEEB', // Sky Blue
+  '#DDA0DD', // Plum
+  '#F0E68C'  // Khaki
+];
 
 function MapComponent({
   vehicles,
   onVehicleClick,
   selectedVehicle,
-  // stops prop'u kaldırıldı, artık Redux'taki allStops kullanılıyor
   selectedRoute, // Tekli animasyonlu güzergah için
-  selectedStop, 
+  selectedStop,
   mapCenter,
   zoomLevel = 13,
   onCurrentStopChange,
@@ -32,6 +55,10 @@ function MapComponent({
   allRoutes // Redux'tan gelen tüm rota objeleri
 }) {
   const mapRef = useRef();
+
+  const popupRef = useRef(null); // Yeni eklenen satır
+
+
   const [mapLoaded, setMapLoaded] = useState(false);
   const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
@@ -39,9 +66,13 @@ function MapComponent({
   const [currentDistanceToDestination, setCurrentDistanceToDestination] = useState(null);
   const [currentTimeToDestination, setCurrentTimeToDestination] = useState(null);
   const [displayStopsOnRoute, setDisplayStopsOnRoute] = useState({ current: null, next: null });
-  
+
   // YENİ STATE: Seçili rotaların koordinat verilerini tutacak
   const [selectedRoutesData, setSelectedRoutesData] = useState({});
+
+  // YENİ STATE: Popup görünümü için
+  const [routePopup, setRoutePopup] = useState(null);
+  const [hoveredRoute, setHoveredRoute] = useState(null);
 
   const selectedStops = useSelector(state => state.selectedItems?.selectedStopIds || []);
   const allStops = useSelector(state => state.selectedItems?.allStops || []);
@@ -52,6 +83,23 @@ function MapComponent({
     setMapLoaded(true);
   }, []);
 
+  // Rota rengini almak için yardımcı fonksiyon
+  const getRouteColor = (routeIndex) => {
+    return ROUTE_COLORS[routeIndex % ROUTE_COLORS.length];
+  };
+
+    useEffect(() => {
+    if (popupRef.current && routePopup) {
+      // Pop-up elementi varsa ve routePopup aktifse
+      popupRef.current.style.setProperty('--popup-bg-color', routePopup.color);
+      popupRef.current.style.left = `${routePopup.x}px`;
+      popupRef.current.style.top = `${routePopup.y}px`;
+    }
+  }, [routePopup]); // routePopup değiştiğinde bu effect çalışsın
+  
+  
+  
+  
   // YENİ EFFECT: Seçili rotalar değiştiğinde API'den koordinatları çek
   useEffect(() => {
     if (!selectedRouteIds || selectedRouteIds.length === 0) {
@@ -61,7 +109,7 @@ function MapComponent({
 
     const fetchRouteData = async () => {
       const newRoutesData = {};
-      
+
       for (const routeId of selectedRouteIds) {
         const route = allRoutes[routeId];
         if (route && route.route_number) {
@@ -87,7 +135,7 @@ function MapComponent({
           }
         }
       }
-      
+
       setSelectedRoutesData(newRoutesData);
     };
 
@@ -129,7 +177,7 @@ function MapComponent({
       } else {
         setAnimatedBusPosition(null);
       }
-      
+
       setDisplayStopsOnRoute({ current: null, next: null });
       if (onCurrentStopChange) {
         onCurrentStopChange(null);
@@ -165,14 +213,14 @@ function MapComponent({
             clearInterval(animationIntervalRef.current);
             animationIntervalRef.current = null;
             if (destinationPoint) {
-                setAnimatedBusPosition({ lat: destinationPoint.lat, lng: destinationPoint.lng });
+              setAnimatedBusPosition({ lat: destinationPoint.lat, lng: destinationPoint.lng });
             }
             setCurrentDistanceToDestination(0);
             setCurrentTimeToDestination(0);
             const finalStop = routeStops[routeStops.length - 1] || null;
             setDisplayStopsOnRoute({ current: finalStop, next: null });
             if (onCurrentStopChange) {
-                onCurrentStopChange(finalStop);
+              onCurrentStopChange(finalStop);
             }
             return prevIndex;
           }
@@ -189,7 +237,7 @@ function MapComponent({
             setCurrentTimeToDestination(null);
             return prevIndex;
           }
-          
+
           if (destinationPoint && nextCoord) {
             try {
               const remainingDist = getDistance(
@@ -224,7 +272,7 @@ function MapComponent({
             }
             setDisplayStopsOnRoute({ current, next });
             if (onCurrentStopChange) {
-                onCurrentStopChange(current);
+              onCurrentStopChange(current);
             }
           }
           return nextIndex;
@@ -264,9 +312,9 @@ function MapComponent({
     const seconds = Math.round(totalSeconds % 60);
 
     if (minutes > 0) {
-        return `${minutes} dk ${seconds} sn`;
+      return `${minutes} dk ${seconds} sn`;
     } else {
-        return `${seconds} sn`;
+      return `${seconds} sn`;
     }
   };
 
@@ -284,7 +332,8 @@ function MapComponent({
         coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]])
       },
       properties: {
-        direction: 'gidis'
+        direction: 'gidis',
+        routeNumber: selectedRoute.route_number
       }
     });
 
@@ -300,41 +349,95 @@ function MapComponent({
     }
     const lastCoord = selectedRoute.directions['1'][selectedRoute.directions['1'].length - 1];
     return (lastCoord && typeof lastCoord[0] === 'number' && typeof lastCoord[1] === 'number')
-        ? { lat: lastCoord[0], lng: lastCoord[1] }
-        : null;
+      ? { lat: lastCoord[0], lng: lastCoord[1] }
+      : null;
   }, [selectedRoute]);
 
-  // YENİ: Çoklu seçilen rotalar için GeoJSON oluşturma
-  const multipleRoutesGeoJSON = React.useMemo(() => {
-    const features = [];
-    
-    Object.keys(selectedRoutesData).forEach(routeId => {
+  // YENİ: Çoklu seçilen rotalar için GeoJSON oluşturma (Her rota ayrı kaynak olacak)
+  const multipleRoutesData = React.useMemo(() => {
+    const routesData = [];
+
+    Object.keys(selectedRoutesData).forEach((routeId, index) => {
       const routeData = selectedRoutesData[routeId];
       // Rotanın varlığını ve directions verisinin geçerliliğini kontrol et
       if (routeData && routeData.directions && routeData.directions['1'] && routeData.directions['1'].length > 0) {
         // Animasyonlu tekli rotadan farklı olsun diye kontrol et
-        // Eğer bu rota aynı zamanda selectedRoute (animasyonlu olan) ise çizme.
-        if (!selectedRoute || selectedRoute.route_number !== routeData.route_number) { 
-          features.push({
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates: routeData.directions['1'].map(coord => [coord[1], coord[0]])
-            },
-            properties: {
-              routeId: routeData.route_number, // Hangi rota olduğunu belirtmek için
-              direction: 'gidis-multiple' // Farklı bir ID kullanabiliriz
+        if (!selectedRoute || selectedRoute.route_number !== routeData.route_number) {
+          routesData.push({
+            id: `route-${routeId}`,
+            color: getRouteColor(index),
+            routeNumber: routeData.route_number,
+            geoJSON: {
+              type: 'FeatureCollection',
+              features: [{
+                type: 'Feature',
+                geometry: {
+                  type: 'LineString',
+                  coordinates: routeData.directions['1'].map(coord => [coord[1], coord[0]])
+                },
+                properties: {
+                  routeId: routeData.route_number,
+                  routeName: `${routeData.route_number} No'lu Hat`,
+                  color: getRouteColor(index)
+                }
+              }]
             }
           });
         }
       }
     });
 
-    return {
-      type: 'FeatureCollection',
-      features: features
-    };
+    return routesData;
   }, [selectedRoutesData, selectedRoute]);
+
+  // Mouse hover olayları
+  const onMouseMove = useCallback((event) => {
+    const features = mapRef.current?.queryRenderedFeatures(event.point, {
+      layers: multipleRoutesData.map(route => `route-layer-${route.id}`)
+    });
+
+    if (features && features.length > 0) {
+      const feature = features[0];
+      const routeId = feature.properties.routeId;
+
+      if (hoveredRoute !== routeId) {
+        setHoveredRoute(routeId);
+        mapRef.current.getCanvas().style.cursor = 'pointer';
+      }
+    } else {
+      if (hoveredRoute !== null) {
+        setHoveredRoute(null);
+        mapRef.current.getCanvas().style.cursor = '';
+      }
+    }
+  }, [multipleRoutesData, hoveredRoute]);
+
+  // Harita tıklama olayını işleme
+  const onMapClick = useCallback((event) => {
+    // Tıklanan nokta rota üzerinde mi kontrol et
+    const features = mapRef.current?.queryRenderedFeatures(event.point, {
+      layers: multipleRoutesData.map(route => `route-layer-${route.id}`)
+    });
+
+    if (features && features.length > 0) {
+      const feature = features[0];
+      const { routeId, routeName, color } = feature.properties;
+
+      // Ekran koordinatlarını al
+      const canvas = mapRef.current.getCanvasContainer();
+      const rect = canvas.getBoundingClientRect();
+
+      setRoutePopup({
+        x: event.point.x,
+        y: event.point.y,
+        routeId,
+        routeName,
+        color
+      });
+    } else {
+      setRoutePopup(null);
+    }
+  }, [multipleRoutesData]);
 
   return (
     <Map
@@ -347,6 +450,9 @@ function MapComponent({
       style={{ width: '100%', height: '100%' }}
       mapStyle={MAP_STYLE}
       onLoad={onMapLoad}
+      onClick={onMapClick}
+      onMouseMove={onMouseMove}
+      interactiveLayerIds={multipleRoutesData.map(route => `route-layer-${route.id}`)}
     >
       {/* Güzergah çizgisi sadece selectedRoute varsa çizilir (tekli animasyonlu rota) */}
       {mapLoaded && selectedRoute && routeGeoJSON && (
@@ -356,22 +462,51 @@ function MapComponent({
             type="line"
             filter={['==', 'direction', 'gidis']}
             layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-            paint={{ 'line-color': 'blue', 'line-width': 5, 'line-opacity': 0.7 }}
+            paint={{ 'line-color': '#0066CC', 'line-width': 5, 'line-opacity': 0.8 }}
           />
         </Source>
       )}
 
-      {/* YENİ: Çoklu seçilen rotaların çizgileri */}
-      {mapLoaded && multipleRoutesGeoJSON && multipleRoutesGeoJSON.features.length > 0 && (
-        <Source id="multiple-routes-data" type="geojson" data={multipleRoutesGeoJSON}>
+      {/* YENİ: Çoklu seçilen rotaların çizgileri - Her rota ayrı source/layer */}
+      {mapLoaded && multipleRoutesData.map((routeData) => (
+        <Source
+          key={routeData.id}
+          id={`source-${routeData.id}`}
+          type="geojson"
+          data={routeData.geoJSON}
+        >
           <Layer
-            id="multiple-routes-gidis" // Çoklu rotalar için ID
+            id={`route-layer-${routeData.id}`}
             type="line"
-            filter={['==', 'direction', 'gidis-multiple']}
             layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-            paint={{ 'line-color': 'green', 'line-width': 3, 'line-opacity': 0.6 }} // Farklı renk ve incelik
+            paint={{
+              'line-color': routeData.color,
+              'line-width': hoveredRoute === routeData.routeNumber ? 6 : 4,
+              'line-opacity': hoveredRoute === routeData.routeNumber ? 1.0 : 0.8
+            }}
           />
         </Source>
+      ))}
+
+      {/* Rota Pop-up */}
+      {routePopup && (
+        <div
+        ref={popupRef}
+          className="route-popup"
+          style={{
+            position: 'absolute',
+             transform: 'translate(-50%, -100%)',
+
+             /*
+            left: `${routePopup.x}px`,
+            top: `${routePopup.y}px`,
+            transform: 'translate(-50%, -100%)',
+            '--popup-bg-color': routePopup.color
+          } as React.CSSProperties & { '--popup-bg-color': string }}*/ 
+          }}
+        >
+          {routePopup.routeName}
+        </div> 
       )}
 
       {/* Durak Marker (seçili durak varsa - arama panelinden seçilen durak) */}
@@ -418,7 +553,7 @@ function MapComponent({
       {mapLoaded && selectedStops.map(stopId => {
         const stop = allStops.find(s => s.id === stopId);
         const isOnSelectedRoute = selectedRoute?.stops?.some(routeStop => routeStop.id === stopId);
-        
+
         if (stop && !isOnSelectedRoute && typeof stop.lat === 'number' && typeof stop.lng === 'number') {
           return (
             <Marker
@@ -454,19 +589,19 @@ function MapComponent({
       {/* Otobüs Marker'ları (Gerçek zamanlı otobüsler - Eğer kullanılıyorsa) */}
       {mapLoaded && vehicles.map((vehicle) => (
         vehicle && typeof vehicle.lat === 'number' && typeof vehicle.lng === 'number' && (
-            <Marker
+          <Marker
             key={vehicle.id}
             longitude={vehicle.lng}
             latitude={vehicle.lat}
             anchor="center"
-            >
+          >
             <img
-                src={locationIcon}
-                alt="Otobüs"
-                style={{ width: '30px', height: '30px', cursor: 'pointer' }}
-                onClick={() => onVehicleClick(vehicle)}
+              src={locationIcon}
+              alt="Otobüs"
+              style={{ width: '30px', height: '30px', cursor: 'pointer' }}
+              onClick={() => onVehicleClick(vehicle)}
             />
-            </Marker>
+          </Marker>
         )
       ))}
 
