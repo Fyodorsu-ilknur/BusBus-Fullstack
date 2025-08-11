@@ -24,6 +24,13 @@ const selectedItemsSlice = createSlice({
     setAllStops: (state, action) => {
       state.allStops = action.payload;
     },
+    selectAllStops: (state) => {
+      // allStops dizisindeki tüm durak ID'lerini al ve selectedStopIds'a ata
+      state.selectedStopIds = state.allStops.map(stop => stop.id);
+    },
+    setSelectedStopIds: (state, action) => {
+      state.selectedStopIds = action.payload;
+    },
     // Otobüs Hatları için reducer'lar
     toggleSelectedRoute: (state, action) => {
         const routeId = action.payload;
@@ -52,9 +59,11 @@ export const {
     toggleSelectedStop,
     clearSelectedStops,
     setAllStops,
+    selectAllStops, // Bu artık doğru şekilde tanımlandı
+    setSelectedStopIds, // Yeni eklenen action
     toggleSelectedRoute,
     clearSelectedRoutes,
-    selectAllRoutes, // Bu kesinlikle export edilmeli
+    selectAllRoutes,
     setAllRoutes
 } = selectedItemsSlice.actions;
 

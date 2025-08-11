@@ -1,40 +1,42 @@
 /* frontend/src/App.css */
 
+/* frontend/src/App.css */
+
 /* Tema Değişkenleri Tanımları */
 :root {
   /* Genel layout için ortak değişkenler */
-  --navbar-height: 50px; /* Navbar yüksekliğini değişken olarak tanımla */
-  --sidebar-width: 60px; /* Sidebar genişliğini değişken olarak tanımla */
+  --navbar-height: 50px;
+  --sidebar-width: 60px;
 
   /* Light Theme Varsayılanları */
   --main-bg: #f9fafb;
-  --main-text: #333;
+  --main-text: #333; /* Ana metin rengi: Siyah/Koyu Gri */
 
   --navbar-bg: #282c34;
   --navbar-text: white;
   --navbar-hover-text: #61dafb;
 
   --sidebar-bg: #111827;
-  --sidebar-item-text: #9ca3af;
+  --sidebar-item-text: #9ca3af; /* Sidebar ikonları için (koyu gri) */
   --sidebar-item-hover-bg: #1f2937;
   --sidebar-item-hover-text: #ffffff;
   --sidebar-item-active-text: #317df6;
 
   --panel-bg: #f7f9fa;
-  --panel-text: #333;
-  --panel-header-text: #333;
+  --panel-text: #333; /* Panel içindeki metin: Siyah/Koyu Gri */
+  --panel-header-text: #333; /* Panel başlık metni: Siyah/Koyu Gri */
   --panel-border: #eee;
 
   --input-bg: #ffffff;
   --input-text: #333;
   --input-border: #ccc;
-  --label-text: #555;
+  --label-text: #555; /* Label metin rengi: Koyu gri */
 
   --list-item-bg: #f0f0f0;
-  --list-item-text: #333;
+  --list-item-text: #333; /* Liste öğesi metni: Siyah/Koyu Gri */
   --list-item-border: #eee;
-  --list-item-selected-bg: #e0e7ff; /* Açık mavi vurgu */
-  --list-item-selected-text: #333; /* Vurgulanan öğe metni */
+  --list-item-selected-bg: #e0e7ff;
+  --list-item-selected-text: #333; /* Seçili liste öğesi metni: Siyah/Koyu Gri */
 
   --button-bg: #007bff;
   --button-text: white;
@@ -42,13 +44,20 @@
   --button-border: #007bff;
 
   --error-text: #ff6b6b;
-  --info-text: #666;
+  --info-text: #666; /* Bilgi metinleri: Orta gri */
+
+
+  /* YENİ: V işareti ve Hat metinleri için tema değişkenleri */
+  --route-text-primary-color: #333; /* Hat No. rengi (Light: Siyah) */
+  --route-text-secondary-color: #666; /* Güzergah bilgisi rengi (Light: Orta Gri) */
+   --search-input-text-color: #333; /* Light temada koyu gri */
+  --search-input-placeholder-color: #777; /* Light temada placeholder daha soluk gri */
 }
 
 /* Dark Theme Overrides */
 .dark-theme {
   --main-bg: #1a1a2e;
-  --main-text: #e0e0e0;
+  --main-text: #e0e0e0; /* Ana metin rengi: Beyaz */
 
   --navbar-bg: #0f0f1d;
   --navbar-text: #f0f0f0;
@@ -61,8 +70,8 @@
   --sidebar-item-active-text: #61dafb;
 
   --panel-bg: #2a2a3e;
-  --panel-text: #e0e0e0;
-  --panel-header-text: #a0dfff;
+  --panel-text: #e0e0e0; /* Panel içindeki metin: Beyaz */
+  --panel-header-text: #a0dfff; /* Panel başlık metni: Açık mavi */
   --panel-border: #444;
 
   --input-bg: #3a3a4e;
@@ -71,10 +80,10 @@
   --label-text: #b0b0b0;
 
   --list-item-bg: #33334f;
-  --list-item-text: #e0e0e0;
+  --list-item-text: #e0e0e0; /* Liste öğesi metni: Beyaz */
   --list-item-border: #4a4a60;
   --list-item-selected-bg: #4a4a60;
-  --list-item-selected-text: #ffffff;
+  --list-item-selected-text: #ffffff; /* Seçili liste öğesi metni: Beyaz */
 
   --button-bg: #0056b3;
   --button-text: white;
@@ -82,7 +91,13 @@
   --button-border: #0056b3;
 
   --error-text: #ff9999;
-  --info-text: #b0b0b0;
+  --info-text: #b0b0b0; /* Bilgi metinleri: Açık gri */
+
+  /* YENİ: V işareti ve Hat metinleri için tema değişkenleri */
+  --route-text-primary-color: #f0f0f0; /* Hat No. rengi (Dark: Beyaz) */
+  --route-text-secondary-color: #b0b0b0; /* Güzergah bilgisi rengi (Dark: Açık Gri) */
+   --search-input-text-color: #f0f0f0; /* Dark temada beyaz */
+  --search-input-placeholder-color: #b0b0b0; /* Dark temada placeholder açık gri */
 }
 
 /* Genel Element Stilleri */

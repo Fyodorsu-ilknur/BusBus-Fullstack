@@ -47,12 +47,12 @@ function Sidebar({
         
         {/* Diğer ikonlar */}
         <li>
-          <button className="sidebar-item" title="Favoriler">
+          <button className="sidebar-item" title="Favori Hatlar ve Duraklar">
             <span className="material-icons">star</span>
           </button>
         </li>
         <li>
-          <button className="sidebar-item" title="Analiz">
+          <button className="sidebar-item" title="Nasıl Giderim ?">
             <span className="material-icons">insights</span>
           </button>
         </li>

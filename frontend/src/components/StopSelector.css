@@ -45,18 +45,34 @@
 }
 
 .search-container {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--secondary-text-color);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
-  color: var(--text-color);
+  color: var(--search-input-text-color);
   font-size: 0.9rem;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: var(--search-input-placeholder-color);
 }
 
 .search-input:focus {
@@ -65,82 +81,158 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-.selected-info {
+.info-and-clear-button {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.info-and-clear-button .selected-info-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .selected-count {
-  font-size: 0.9rem;
-  color: var(--secondary-text-color);
-  font-weight: 500;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 0;
 }
 
-.clear-all-button {
-  background: var(--danger-color);
+.listed-count {
+  color: var(--secondary-text-color);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.action-buttons-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.select-all-button, .clear-selection-button {
+  background: var(--primary-color);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
 }
 
-.clear-all-button:hover {
+.select-all-button:hover, .clear-selection-button:hover {
+  background: var(--button-hover-bg);
+}
+
+.clear-selection-button {
+  background: var(--danger-color);
+}
+
+.clear-selection-button:hover {
   background: var(--danger-hover-color);
 }
 
 .stops-list {
   flex: 1;
-  overflow-y: auto; /* <-- Bu satırı geri ekledik */
+  overflow-y: auto;
   padding: 0.5rem;
 }
 
-.loading, .no-results {
+.loading, .no-stops {
   text-align: center;
   padding: 2rem;
   color: var(--secondary-text-color);
   font-style: italic;
 }
 
-.stop-item {
+.loading-more {
+  text-align: center;
+  padding: 1rem;
+  color: var(--secondary-text-color);
+  font-style: italic;
+}
+
+/* Durak öğesi wrapper */
+.stop-item-wrapper {
   margin-bottom: 0.5rem;
+}
+
+.stop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
   border-radius: 8px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  background-color: var(--panel-background);
+  border: 1px solid transparent;
+  cursor: pointer;
 }
 
 .stop-item:hover {
   background-color: var(--hover-background);
+  border-color: var(--border-color);
 }
 
 .stop-item.selected {
   background-color: var(--selected-background);
-  border: 1px solid var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
 }
 
-.stop-checkbox {
+.stop-item.expanded {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+}
+
+/* Checkbox label */
+.stop-checkbox-label {
   display: flex;
   align-items: center;
-  padding: 0.75rem;
   cursor: pointer;
   user-select: none;
-  width: 100%;
+  flex-grow: 1;
+  min-width: 0;
+  gap: 0.75rem;
 }
 
-.stop-checkbox input[type="checkbox"] {
+/* Gizli checkbox */
+.stop-list-checkbox {
   display: none;
 }
 
+/* Custom checkbox görünümü */
+.checkmark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
 
-
-.stop-checkbox input[type="checkbox"]:checked + .checkmark {
+.stop-checkbox-label input[type="checkbox"]:checked + .checkmark {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
 }
 
-.stop-checkbox input[type="checkbox"]:checked + .checkmark::after {
+.stop-checkbox-label input[type="checkbox"]:checked + .checkmark::after {
   content: '✓';
   position: absolute;
   top: 50%;
@@ -151,23 +243,178 @@
   font-weight: bold;
 }
 
-.stop-info {
-  flex: 1;
+/* Durak bilgi alanı */
+.stop-info-display {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   min-width: 0;
 }
 
-.stop-name {
-  font-weight: 500;
-  font-size: 0.95rem;
-  color: var(--text-color);
-  margin-bottom: 0.25rem;
-  word-wrap: break-word;
+.stop-name-container {
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.stop-details {
+.stop-name-container:hover {
+  color: var(--primary-color);
+}
+
+.stop-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  margin-bottom: 0.2rem;
+  word-wrap: break-word;
+  display: block;
+}
+
+.stop-details-text {
   font-size: 0.8rem;
   color: var(--secondary-text-color);
   word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Genişletme butonu */
+.expand-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--secondary-text-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.expand-button:hover {
+  background-color: var(--hover-background);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Hat listesi paneli */
+.stop-routes-panel {
+  background-color: var(--selected-background);
+  border: 1px solid var(--primary-color);
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 1rem;
+  margin-top: -1px;
+}
+
+.stop-routes-panel h5 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: var(--header-text-color);
+  font-weight: 600;
+}
+
+.routes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+
+
+ .routes-from-stop-in-panel {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color); /* Mevcut ayrım çizgisini koruyalım */
+    padding-left: 1rem;
+    padding-right: 1rem; /* Sağdan da boşluk ekleyelim */
+    padding-bottom: 10px; /* Alttan da boşluk ekleyelim */
+    background-color: var(--selected-background); /* Arka plan rengini seçili öğe rengi gibi yapabiliriz */
+    
+    border: 1px solid var(--text-color); /* KRİTİK: İnce siyah/koyu gri çizgi */
+    border-radius: 8px; /* Köşeleri yuvarlayalım */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif bir gölge */
+    box-sizing: border-box; /* Padding ve border genişliğe dahil olsun */
+
+  }
+
+/* Panelin etrafına siyah çerçeve */
+.routes-from-stop-in-panel {
+  border: 1px solid #d6c2c2;
+  border-radius: 4px;
+  padding: 6px;
+  margin-top: 6px;
+  background-color: #fffcfc; /* Arka plan beyaz */
+}
+
+/* Otobüs numaralarının çerçevesi */
+.routes-from-stop-in-panel .route-number {
+  display: inline-block;
+  min-width: 28px;
+  padding: 2px 6px;
+  border: 1px solid #a09b9b;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 6px;
+  background-color: #f5f5f5; /* Hafif gri arka plan */
+}
+
+
+
+
+/* Eğer buradaki başlık (h5) siyah olacaksa: */
+.routes-from-stop-in-panel h5 {
+    margin-top: 0;
+    margin-bottom: 0.75rem; /* Başlık ile liste arası boşluk */
+    font-size: 0.9rem;
+    color: var(--text-color); /* Temel metin rengini kullanır */
+    font-weight: 600;
+}
+
+
+.route-item {
+  background-color: var(--hover-background);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.route-item:hover {
+  background-color: var(--border-color);
+}
+
+.route-number {
+  font-weight: bold;
+  color: var(--primary-color);
+  min-width: 50px;
+}
+
+.route-name {
+  flex-grow: 1;
+  font-size: 0.8rem;
+  color: var(--secondary-text-color);
+}
+
+.no-routes, .loading-routes {
+  text-align: center;
+  padding: 1rem;
+  color: var(--secondary-text-color);
+  font-style: italic;
+  font-size: 0.85rem;
 }
 
 /* CSS Variables - Dark/Light theme uyumluluğu için */
@@ -182,8 +429,11 @@
   --hover-background: #f3f4f6;
   --selected-background: #eff6ff;
   --primary-color: #3b82f6;
+  --button-hover-bg: #2563eb;
   --danger-color: #ef4444;
   --danger-hover-color: #dc2626;
+  --search-input-text-color: #333;
+  --search-input-placeholder-color: #777;
 }
 
 .dark-theme {
@@ -197,8 +447,11 @@
   --hover-background: #374151;
   --selected-background: #1e3a8a;
   --primary-color: #60a5fa;
+  --button-hover-bg: #3b82f6;
   --danger-color: #f87171;
   --danger-hover-color: #ef4444;
+  --search-input-text-color: #f0f0f0;
+  --search-input-placeholder-color: #b0b0b0;
 }
 
 /* Scrollbar styling */
@@ -219,170 +472,18 @@
   background: var(--secondary-text-color);
 }
 
-/* Duraktan geçen hatlar stili (StopSelector paneli içindeki için) */
-.routes-from-stop-in-panel {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color); /* Ayrım çizgisi */
-    padding-left: 1rem; /* İçeriden boşluk */
-}
-
-.routes-from-stop-in-panel h5 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 0.9em;
-    color: var(--header-text-color);
-}
-
-.routes-from-stop-in-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.routes-from-stop-in-panel li {
-    background-color: var(--hover-background); /* Hafif farklı bir arka plan */
-    padding: 5px 8px;
-    margin-bottom: 3px;
-    border-radius: 3px;
-    font-size: 0.85em;
-    color: var(--text-color);
-}
-
-.stop-item.active-details {
-  background-color: var(--selected-background); /* Detayları açık olan durak için arka plan */
-  border: 1px solid var(--primary-color);
-}
-
-/* frontend/src/components/StopSelector.css */
-.stop-selector-controls {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.search-container {
-  margin-bottom: 0.75rem; /* Arama kutusunun altındaki boşluğu azalttık */
-}
-
-.search-input {
-  width: calc(100% - 20px); /* Gerekirse genişliği ayarla */
-  max-width: 300px; /* Arama kutucuğunu küçülttük */
-  padding: 0.6rem; /* Padding'i azalttık */
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--input-background);
-  color: var(--text-color);
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-}
-
-
-/* Yeni düzen için div */
-.info-and-clear-button {
-    display: flex;
-    flex-direction: column; /* İçindeki öğeler dikey sıralansın */
-    align-items: flex-start; /* Sola hizala */
-    gap: 0.5rem; /* Öğeler arasında boşluk */
-    margin-top: 0.5rem; /* Arama kutusundan boşluk */
-}
-
-.selected-info-text {
-    display: flex;
-    flex-direction: column; /* Seçili ve listelenen metinleri alt alta koy */
-    font-size: 0.9rem;
-    color: var(--secondary-text-color);
-    font-weight: 500;
-}
-
-.selected-count {
-    /* Eski stili koru veya ihtiyaca göre ayarla */
-    color: var(--text-color); /* Daha belirgin renk */
-    font-weight: bold;
-    margin-bottom: 0.2rem; /* Metinler arası boşluk */
-}
-
-.listed-count {
-    color: var(--secondary-text-color);
-    font-style: italic;
-    font-size: 0.85rem;
-}
-
-
-.clear-all-button {
-  /* Renk ve şekil değişiklikleri */
-  background: var(--primary-color); /* Kırmızı yerine mavi */
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem; /* Dikdörtgen hale getirdik */
-  border-radius: 6px; /* Köşeleri yuvarladık */
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  width: 100%; /* Kendi satırında tam genişlikte */
-  max-width: 200px; /* İsteğe bağlı olarak genişliğini sınırlayabiliriz */
-  text-align: center;
-  align-self: center; /* Ortalamak için */
-  margin-top: 0.75rem; /* Üstteki metinlerden boşluk */
-}
-
-.clear-all-button:hover {
-  background: var(--button-hover-bg); /* Mavi hover rengi */
-}
-
-.clear-all-button:disabled {
-  background: var(--secondary-text-color);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-
-/* ... (diğer CSS kodları) ... */
-
-
-/* Daha Fazla Göster Butonu Stilleri */
-.load-more-container {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 0.5rem;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--panel-background);
-}
-
-.load-more-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  width: 100%;
-  max-width: 250px; /* Buton genişliğini sınırlayabiliriz */
-}
-
-.load-more-button:hover:not(:disabled) {
-  background-color: var(--button-hover-bg); /* primary-color'ın hover hali */
-}
-
-.load-more-button:disabled {
-  background-color: var(--secondary-text-color); /* Gri tonu */
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* Yüklü durak sayısının stilini iyileştirelim */
-.selected-count {
-  font-size: 0.9rem;
-  color: var(--secondary-text-color);
-  font-weight: 500;
-  white-space: nowrap; /* Metnin tek satırda kalmasını sağlar */
-}
-
-/* Yükleniyor mesajı için stil */
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: var(--secondary-text-color);
-  font-style: italic;
+/* Animasyonlar */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
 }

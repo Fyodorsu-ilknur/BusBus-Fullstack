@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { getDistance } from 'geolib';
 
 import './Map.css';
-
+  
 const locationIcon = require('../assets/location.png');
 const busIcon = require('../assets/bus_icon.png');
 
@@ -37,6 +37,9 @@ const ROUTE_COLORS = [
   '#F0E68C'  // Khaki
 ];
 
+const LIGHT_MAP_STYLE_URL = 'https://api.maptiler.com/maps/basic/style.json?key=xOQhMUZleM9cojouQ0fu';
+const DARK_MAP_STYLE_URL = 'https://api.maptiler.com/maps/streets-v2-dark/style.json?key=xOQhMUZleM9cojouQ0fu';
+
 function MapComponent({
   vehicles,
   onVehicleClick,
@@ -51,8 +54,10 @@ function MapComponent({
   endPointInfo,
   currentAnimatedStop,
   // YENİ PROP'lar: Çoklu rota çizimi için
+  currentDirection,
   selectedRouteIds, // Redux'tan gelen ID'ler
-  allRoutes // Redux'tan gelen tüm rota objeleri
+  allRoutes, // Redux'tan gelen tüm rota objeleri
+  theme
 }) {
   const mapRef = useRef();
 
@@ -77,11 +82,18 @@ function MapComponent({
   const selectedStops = useSelector(state => state.selectedItems?.selectedStopIds || []);
   const allStops = useSelector(state => state.selectedItems?.allStops || []);
 
-  const MAP_STYLE = 'https://api.maptiler.com/maps/basic/style.json?key=xOQhMUZleM9cojouQ0fu';
+
 
   const onMapLoad = useCallback(() => {
     setMapLoaded(true);
   }, []);
+
+   useEffect(() => {
+    if (mapLoaded && mapRef.current) {
+      const newStyleUrl = theme === 'dark' ? DARK_MAP_STYLE_URL : LIGHT_MAP_STYLE_URL;
+      // Haritanın stilini güncelliyoruz
+mapRef.current.getMap().setStyle(newStyleUrl);    }
+  }, [theme, mapLoaded]); 
 
   // Rota rengini almak için yardımcı fonksiyon
   const getRouteColor = (routeIndex) => {
@@ -161,8 +173,9 @@ function MapComponent({
     }
 
     // Sadece selectedRoute var ve geçerli directions varsa animasyonu başlat
-    if (mapLoaded && selectedRoute?.directions?.['1'] && selectedRoute.directions['1'].length > 0) {
-      const pathCoordinates = selectedRoute.directions['1'];
+    if (mapLoaded && selectedRoute?.directions && selectedRoute.directions[currentDirection] && selectedRoute.directions[currentDirection].length > 0)
+       {
+      const pathCoordinates = selectedRoute.directions[currentDirection];
       const routeStops = selectedRoute.stops;
 
       const lastCoord = pathCoordinates[pathCoordinates.length - 1];
@@ -302,7 +315,7 @@ function MapComponent({
         onCurrentStopChange(null);
       }
     };
-  }, [selectedRoute, mapLoaded, onCurrentStopChange]);
+  }, [selectedRoute, mapLoaded, onCurrentStopChange,currentDirection]);
 
   const formatTime = (totalSeconds) => {
     if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
@@ -320,7 +333,9 @@ function MapComponent({
 
   const routeGeoJSON = React.useMemo(() => {
     // Bu useMemo sadece tekli selectedRoute için rota çizgisi oluşturur
-    if (!selectedRoute || !selectedRoute.directions || !selectedRoute.directions['1'] || selectedRoute.directions['1'].length === 0) {
+        // currentDirection'a göre doğru yönün koordinatlarını alıyoruz
+
+    if (!selectedRoute || !selectedRoute.directions || !selectedRoute.directions[currentDirection] || selectedRoute.directions[currentDirection].length === 0) {
       return null;
     }
 
@@ -329,10 +344,10 @@ function MapComponent({
       type: 'Feature',
       geometry: {
         type: 'LineString',
-        coordinates: selectedRoute.directions['1'].map(coord => [coord[1], coord[0]])
+        coordinates: selectedRoute.directions[currentDirection].map(coord => [coord[1], coord[0]])
       },
       properties: {
-        direction: 'gidis',
+        direction: currentDirection === '1' ? 'gidis' : 'donus',
         routeNumber: selectedRoute.route_number
       }
     });
@@ -341,7 +356,7 @@ function MapComponent({
       type: 'FeatureCollection',
       features: features
     };
-  }, [selectedRoute]);
+  }, [selectedRoute, currentDirection]);
 
   const routeEndPoint = React.useMemo(() => {
     if (!selectedRoute?.directions?.['1'] || selectedRoute.directions['1'].length === 0) {
@@ -448,8 +463,8 @@ function MapComponent({
         zoom: 12
       }}
       style={{ width: '100%', height: '100%' }}
-      mapStyle={MAP_STYLE}
       onLoad={onMapLoad}
+      mapStyle={theme === 'dark' ? DARK_MAP_STYLE_URL : LIGHT_MAP_STYLE_URL} 
       onClick={onMapClick}
       onMouseMove={onMouseMove}
       interactiveLayerIds={multipleRoutesData.map(route => `route-layer-${route.id}`)}
@@ -458,9 +473,8 @@ function MapComponent({
       {mapLoaded && selectedRoute && routeGeoJSON && (
         <Source id="route-data" type="geojson" data={routeGeoJSON}>
           <Layer
-            id="route-gidis" // Tekli rota için ID
+            id="animated-route-line" 
             type="line"
-            filter={['==', 'direction', 'gidis']}
             layout={{ 'line-join': 'round', 'line-cap': 'round' }}
             paint={{ 'line-color': '#0066CC', 'line-width': 5, 'line-opacity': 0.8 }}
           />
@@ -570,7 +584,7 @@ function MapComponent({
                 border: '3px solid #008B8B',
                 boxShadow: '0 0 20px rgba(0, 255, 127, 0.9)',
                 animation: 'pulse 1.5s infinite'
-              }} title={stop.name + ' (Manuel Seçim)'}></div>
+              }} title={stop.name + ' '}></div>
             </Marker>
           );
         }

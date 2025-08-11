@@ -18,11 +18,11 @@ function VehicleList({
   // YENİ PROP'lar: Gidiş/Dönüş Butonu için
   selectedRoute, // Animasyonlu güzergah takip edilen tekli rota
   currentDirection, // Mevcut yön ('1' gidiş, '2' dönüş)
-  onToggleDirection // Yönü değiştirmek için App.js'ten gelen callback
+  onToggleDirection, // Yönü değiştirmek için App.js'ten gelen callback
+  theme // <-- Theme prop'u VehicleList'e geliyor, bu doğru
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // selectedVehicle değiştiğinde detay panelini aç/kapat
   useEffect(() => {
     if (!selectedVehicle && isRouteProgressPanelActive) {
       onToggleRouteProgressPanelActive(false);
@@ -71,7 +71,7 @@ function VehicleList({
   const handleToggleDirectionClick = (e) => {
     e.stopPropagation(); // li'nin click olayını engelle
     if (onToggleDirection) {
-        onToggleDirection(); // App.js'teki yön değiştirme callback'ini çağır
+        onToggleDirection();
     }
   };
 
@@ -130,7 +130,11 @@ function VehicleList({
                         </label>
                     </div>
                     <button className="expand-toggle-button" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}>
-                        <span className="material-icons">
+                        <span
+                            className="material-icons"
+                            // KRİTİK DÜZELTME: style prop'u doğru yere ve doğru formatta yerleştirildi
+                            style={{ color: theme === 'dark' ? '#f0f0f0' : '#a79e9eff' }}
+                        >
                             {selectedVehicle?.id === item.id ? 'expand_less' : 'expand_more'}
                         </span>
                     </button>
@@ -140,7 +144,7 @@ function VehicleList({
                 {selectedVehicle?.id === item.id && (
                   <div className="item-details">
                     <div className="route-progress-checkbox-container">
-                        <label className="checkbox-label" onClick={(e) => e.stopPropagation()}> 
+                        <label className="checkbox-label" onClick={(e) => e.stopPropagation()}>
                             <input
                                 type="checkbox"
                                 checked={isRouteProgressPanelActive}
@@ -150,12 +154,11 @@ function VehicleList({
                             <span className="route-progress-text">Güzergah Takip İçin Tıklayın</span>
                         </label>
                     </div>
-                    {/* YENİ EKLENECEK: Gidiş/Dönüş Butonu */}
-                    {/* Sadece animasyonlu takip için seçili olan tek rota ve dönüş güzergahı varsa göster */}
-                    {selectedRoute?.id === item.id && selectedRoute?.directions?.['2']?.length > 0 && isRouteProgressPanelActive && (
+                    {/* Gidiş/Dönüş Butonu */}
+                    {selectedRoute?.id === item.id && selectedRoute?.directions?.['2']?.length > 0 &&  (
                         <div className="direction-toggle-container">
                             <button
-                                className="direction-button control-button" // control-button sınıfı da eklendi
+                                className="direction-button control-button"
                                 onClick={handleToggleDirectionClick}
                             >
                                 Yön: {currentDirection === '1' ? 'Gidiş' : 'Dönüş'}

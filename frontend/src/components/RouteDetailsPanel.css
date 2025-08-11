@@ -64,16 +64,6 @@
 }
 
 .direction-button {
-    flex: 1;
-    padding: 10px;
-    margin: 0 5px;
-    background-color: var(--list-item-bg); /* Varsayılan liste öğesi arka planı gibi */
-    color: var(--list-item-text); /* Varsayılan liste öğesi metni gibi */
-    border: 1px solid var(--input-border); /* Input kenarlığı gibi */
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .direction-button:hover {

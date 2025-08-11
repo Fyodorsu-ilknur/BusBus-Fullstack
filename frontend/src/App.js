@@ -2,8 +2,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
-// setAllRoutes, clearSelectedRoutes, toggleSelectedRoute ve selectAllRoutes action'larını import ediyoruz
-import { setAllRoutes, clearSelectedRoutes, toggleSelectedRoute, selectAllRoutes } from './store/selectedItemsSlice';
+// TÜM GEREKLİ REDUX AKSİYONLARI BURADA DOĞRU ŞEKİLDE İMPORT EDİLMİŞTİR
+import {
+  setAllRoutes,
+  clearSelectedRoutes,
+  toggleSelectedRoute,
+  selectAllRoutes,
+  toggleSelectedStop,   // <-- BURADA OLMALI VE OLDUĞUNDAN EMİN OLALIM
+  clearSelectedStops,
+  setAllStops,
+  selectAllStops
+} from './store/selectedItemsSlice';
 
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -20,6 +29,7 @@ function App() {
   const allRoutes = useSelector(state => state.selectedItems.allRoutes);
   const selectedRouteIds = useSelector(state => state.selectedItems.selectedRouteIds);
   const allStops = useSelector(state => state.selectedItems.allStops);
+  const selectedStopIds = useSelector(state => state.selectedItems.selectedStopIds); // SelectedStopIds useSelector ile doğru alınıyor
 
 const handleToggleSelectedRoute = useCallback((routeId) => {
   dispatch(toggleSelectedRoute(routeId));
@@ -29,10 +39,23 @@ const handleClearSelectedRoutes = useCallback(() => {
   dispatch(clearSelectedRoutes());
 }, [dispatch]);
 
-// YENİ CALLBACK: Tüm rotaları seçmek için
 const handleSelectAllRoutes = useCallback(() => {
   dispatch(selectAllRoutes());
 }, [dispatch]);
+
+// DURAK İŞLEMLERİ İÇİN CALLBACK'LER
+const handleSelectAllStops = useCallback(() => {
+  dispatch(selectAllStops());
+}, [dispatch]);
+
+const handleClearSelectedStops = useCallback(() => {
+  dispatch(clearSelectedStops());
+}, [dispatch]);
+
+const handleToggleSelectedStop = useCallback((stopId) => {
+  dispatch(toggleSelectedStop(stopId)); // <-- BU ÇAĞRI İÇİN toggleSelectedStop İMPORT EDİLMİŞ OLMALI
+}, [dispatch]);
+
 
   const [vehicles, setVehicles] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -52,11 +75,9 @@ const handleSelectAllRoutes = useCallback(() => {
   const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [isRouteProgressPanelActive, setIsRouteProgressPanelActive] = useState(false);
 
-  // YENİ STATE: Güzergah yönünü takip etmek için ('1' gidiş, '2' dönüş)
-  const [currentDirection, setCurrentDirection] = useState('1'); // <-- YENİ STATE
+  const [currentDirection, setCurrentDirection] = useState('1');
 
-  // YENİ CALLBACK: Yönü değiştirmek için
-  const handleToggleDirection = useCallback(() => { // <-- YENİ CALLBACK
+  const handleToggleDirection = useCallback(() => {
     setCurrentDirection(prevDir => prevDir === '1' ? '2' : '1');
   }, []);
 
@@ -136,24 +157,23 @@ const handleSelectAllRoutes = useCallback(() => {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    setCurrentDirection('1'); // <-- YENİ: Bir araç seçildiğinde yönü gidişe sıfırla
+    setCurrentDirection('1');
 
     if (item?.route_number) {
         try {
-            // API'den rota detaylarını çekerken her iki yönü de isteyelim
-            const response1 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/1`); // Gidiş
+            const response1 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/1`);
             const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
 
-            const response2 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/2`); // Dönüş
+            const response2 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/2`);
             const data2 = response2.ok ? await response2.json() : { coordinates: [], stops: [] };
 
             const fullRouteData = {
                 ...item,
                 directions: {
-                    '1': data1.coordinates || [], // Gidiş koordinatları
-                    '2': data2.coordinates || []  // Dönüş koordinatları
+                    '1': data1.coordinates || [],
+                    '2': data2.coordinates || []
                 },
-                stops: data1.stops || [], // Duraklar sadece gidiş için yeterli olabilir
+                stops: data1.stops || [],
                 start_point: data1.start_point || item.start_point,
                 end_point: data1.end_point || item.end_point,
                 center: data1.coordinates && data1.coordinates.length > 0 ? data1.coordinates[0] : [38.419, 27.128]
@@ -183,7 +203,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const closeRouteDetailsPanel = useCallback(() => {
@@ -194,7 +214,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const closeDepartureTimesPanel = useCallback(() => {
@@ -205,7 +225,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const closeStopSelectorPanel = useCallback(() => {
@@ -215,8 +235,9 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setSelectedRoute(null);
     setIsRouteProgressPanelActive(false);
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
-  }, []);
+    setCurrentDirection('1');
+    dispatch(clearSelectedStops()); // Durak paneli kapanınca seçili durakları temizle
+  }, [dispatch]);
 
   const togglePanel = useCallback(() => {
     setIsPanelOpen(prev => !prev);
@@ -231,7 +252,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const toggleRouteDetailsPanel = useCallback(() => {
@@ -247,7 +268,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const toggleDepartureTimesPanel = useCallback(() => {
@@ -263,7 +284,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const toggleStopSelectorPanel = useCallback(() => {
@@ -278,7 +299,7 @@ const handleSelectAllRoutes = useCallback(() => {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
-    setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+    setCurrentDirection('1');
   }, [dispatch]);
 
   const toggleSidebarExpansion = useCallback(() => {
@@ -296,7 +317,7 @@ const handleSelectAllRoutes = useCallback(() => {
         setCurrentAnimatedStop(null);
         setIsRouteProgressPanelActive(false);
         dispatch(clearSelectedRoutes());
-        setCurrentDirection('1'); // <-- YÖNÜ SIFIRLA
+        setCurrentDirection('1');
       }
       return newExpandedState;
     });
@@ -352,7 +373,9 @@ const handleSelectAllRoutes = useCallback(() => {
             currentAnimatedStop={currentAnimatedStop}
             selectedRouteIds={selectedRouteIds}
             allRoutes={allRoutes}
-            currentDirection={currentDirection} 
+            currentDirection={currentDirection}
+            theme={theme}
+            key={theme}
           />
 
           {isPanelOpen && (
@@ -370,9 +393,9 @@ const handleSelectAllRoutes = useCallback(() => {
                 onToggleSelectedRoute={handleToggleSelectedRoute}
                 onClearSelectedRoutes={handleClearSelectedRoutes}
                 onSelectAllRoutes={handleSelectAllRoutes}
-                selectedRoute={selectedRoute} 
-                currentDirection={currentDirection} 
-                onToggleDirection={handleToggleDirection} 
+                selectedRoute={selectedRoute}
+                currentDirection={currentDirection}
+                onToggleDirection={handleToggleDirection}
               />
             </div>
           )}
@@ -394,6 +417,11 @@ const handleSelectAllRoutes = useCallback(() => {
               <StopSelector
                 onClose={closeStopSelectorPanel}
                 onStopSelectForMap={handleStopSelectForMap}
+                allStops={allStops}
+                selectedStopIds={selectedStopIds}
+                onToggleSelectedStop={handleToggleSelectedStop}
+                onClearSelectedStops={handleClearSelectedStops}
+                onSelectAllStops={handleSelectAllStops}
               />
             </div>
           )}

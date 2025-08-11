@@ -15,7 +15,7 @@ function Navbar({ onToggleSidebarExpansion, onToggleTheme, currentTheme }) {
         {/* Logo ve Başlık */}
         <div className="logo">
           <span className="material-icons">location_on</span> {/* Pin ikonu */}
-          <span>Fleet Management</span>
+          <span>Fleet Management | İZbus</span>
         </div>
       </div>
 
@@ -28,7 +28,6 @@ function Navbar({ onToggleSidebarExpansion, onToggleTheme, currentTheme }) {
           </span>
         </button>
 
-        <button>Submit to get the template</button>
         <span className="material-icons">notifications</span>
         <span className="material-icons">account_circle</span>
       </div>
