@@ -1,14 +1,13 @@
-// frontend/src/components/DepartureTimesPanel.js
 import React, { useState, useEffect, useCallback } from 'react';
-import './RouteDetailsPanel.css'; // Stil aynı kalabilir
+import './RouteDetailsPanel.css'; 
 
 function DepartureTimesPanel({ onClose }) {
   const [selectedBusNumber, setSelectedBusNumber] = useState('');
-  const [selectedDay, setSelectedDay] = useState('monday'); // Varsayılan gün
-  const [departureData, setDepartureData] = useState(null); // API'den gelen gidiş/dönüş ayrılmış veri
+  const [selectedDay, setSelectedDay] = useState('monday'); 
+  const [departureData, setDepartureData] = useState(null); 
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [displayDirection, setDisplayDirection] = useState('gidis'); // <-- Yeni state: 'gidis' veya 'donus'
+  const [displayDirection, setDisplayDirection] = useState('gidis'); 
 
   const daysOfWeek = [
     { key: 'monday', label: 'Pazartesi' },
@@ -39,11 +38,10 @@ function DepartureTimesPanel({ onClose }) {
         setDepartureData(null);
       } else {
         setDepartureData(data);
-        // Eğer data içinde gidis seferleri yoksa ve donus seferleri varsa otomatik olarak donus'e geç
         if (data.gidis.length === 0 && data.donus.length > 0) {
             setDisplayDirection('donus');
         } else {
-            setDisplayDirection('gidis'); // Varsayılan olarak gidiş göster
+            setDisplayDirection('gidis'); 
         }
       }
     } catch (error) {
@@ -68,7 +66,7 @@ function DepartureTimesPanel({ onClose }) {
   };
 
   return (
-    <div className="route-details-panel"> {/* Aynı stil dosyasını kullanıyoruz */}
+    <div className="route-details-panel"> 
       <div className="panel-header">
         <h3>Kalkış Saatleri</h3>
         <button onClick={onClose} className="close-button">X</button>
@@ -92,7 +90,7 @@ function DepartureTimesPanel({ onClose }) {
           id="daySelect"
           value={selectedDay}
           onChange={handleDayChange}
-          className="bus-number-input" // Aynı input stilini kullanabiliriz
+          className="bus-number-input" 
         >
           {daysOfWeek.map(day => (
             <option key={day.key} value={day.key}>{day.label}</option>
@@ -100,7 +98,6 @@ function DepartureTimesPanel({ onClose }) {
         </select>
       </div>
 
-      {/* Gidiş/Dönüş butonları eklendi */}
       <div className="direction-toggle">
         <button
           className={`direction-button ${displayDirection === 'gidis' ? 'active' : ''}`}
@@ -116,7 +113,7 @@ function DepartureTimesPanel({ onClose }) {
         </button>
       </div>
 
-      <div className="stop-list-section"> {/* Kaydırma çubuğu için stil bu sınıfta */}
+      <div className="stop-list-section"> 
         <h4>
           {selectedBusNumber ? (
             `${selectedBusNumber} Numaralı Hat Kalkış Saatleri (${daysOfWeek.find(d => d.key === selectedDay)?.label})`
@@ -130,7 +127,6 @@ function DepartureTimesPanel({ onClose }) {
 
         {departureData ? (
           <>
-            {/* Gidiş seferlerini sadece displayDirection 'gidis' ise göster */}
             {displayDirection === 'gidis' && departureData.gidis.length > 0 && (
               <div className="departure-group">
                 <h5>Gidiş Seferleri</h5>
@@ -144,7 +140,6 @@ function DepartureTimesPanel({ onClose }) {
               </div>
             )}
 
-            {/* Dönüş seferlerini sadece displayDirection 'donus' ise göster */}
             {displayDirection === 'donus' && departureData.donus.length > 0 && (
               <div className="departure-group">
                 <h5>Dönüş Seferleri</h5>
@@ -158,7 +153,7 @@ function DepartureTimesPanel({ onClose }) {
               </div>
             )}
 
-            {/* Hiçbir yönde veri yoksa veya seçili yönde veri yoksa bilgi mesajı */}
+            {/*  bilgi mesajı */}
             {(
                 (displayDirection === 'gidis' && departureData.gidis.length === 0) ||
                 (displayDirection === 'donus' && departureData.donus.length === 0)

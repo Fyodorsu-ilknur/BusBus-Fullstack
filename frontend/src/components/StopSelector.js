@@ -1,23 +1,22 @@
-// frontend/src/components/StopSelector.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAllStops, toggleSelectedStop, clearSelectedStops, selectAllStops } from '../store/selectedItemsSlice'; // Gerekli tüm Redux action'ları import edildi
-import { FaSearch, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa'; // react-icons importları
+import { setAllStops, toggleSelectedStop, clearSelectedStops, selectAllStops } from '../store/selectedItemsSlice'; 
+import { FaSearch, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa'; 
 
 import './StopSelector.css';
 
 const StopSelector = ({
   onClose,
   onStopSelectForMap,
-  allStops,          // App.js'ten geliyor
-  selectedStopIds,   // App.js'ten geliyor
-  onToggleSelectedStop, // App.js'ten geliyor
-  onClearSelectedStops, // App.js'ten geliyor
-  onSelectAllStops    // App.js'ten geliyor
+  allStops,          
+  selectedStopIds,   
+  onToggleSelectedStop, 
+  onClearSelectedStops, 
+  onSelectAllStops    
 }) => {
   const dispatch = useDispatch();
 
-  const [allLoadedStops, setAllLoadedStops] = useState([]); // API'den çekilen tüm duraklar (paginasyon için)
+  const [allLoadedStops, setAllLoadedStops] = useState([]); 
   const [filteredStops, setFilteredStops] = useState([]); // Arama ve filtreleme için
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,10 +27,10 @@ const StopSelector = ({
   const [stopsPerPage] = useState(50);
   const [hasMoreStops, setHasMoreStops] = useState(true);
 
-  const [expandedStopId, setExpandedStopId] = useState(null); // Detayları açık olan durağın ID'si
-  const [stopRoutes, setStopRoutes] = useState({}); // Duraktan geçen hatların verisi
+  const [expandedStopId, setExpandedStopId] = useState(null); 
+  const [stopRoutes, setStopRoutes] = useState({}); 
 
-  // API'den durakları çekme fonksiyonu
+  // APIden durkları çekme 
   const fetchStops = useCallback(async (pageToLoad) => {
     if (pageToLoad === 0 && searchTerm === '') {
         setLoading(true);
@@ -67,10 +66,9 @@ const StopSelector = ({
     }
   }, [dispatch, stopsPerPage, searchTerm, setAllStops]);
 
-  // Detay panelinde duraktan geçen hatları çekme fonksiyonu
   const fetchStopRoutes = useCallback(async (stopId) => {
     if (stopRoutes[stopId]) {
-      return; // Zaten çekilmişse tekrar çekme
+      return; 
     }
 
     try {
@@ -101,20 +99,19 @@ const StopSelector = ({
     }
   }, [stopRoutes]);
 
-  // İlk yüklemede ve sayfa değiştiğinde durakları çekme
+  // İlk yüklemde bide sayfa değştiğinde durkları çekme
   useEffect(() => {
     if (currentPage === 0 && allStops.length === 0 && searchTerm === '') {
       fetchStops(0);
     }
   }, [currentPage, allStops.length, searchTerm, fetchStops]);
 
-  // Arama terimi veya allStops değiştiğinde filtreleme
   useEffect(() => {
     if (searchTerm.trim() === '') {
-      setFilteredStops(allStops); // Arama boşsa, Redux'taki tüm durakları göster
+      setFilteredStops(allStops); // Arama boşsa Reduxaki tüm durakları göstr
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
-      const filtered = allStops.filter(stop => // allStops prop'u üzerinde filtreleme
+      const filtered = allStops.filter(stop => 
         (stop.name && stop.name.toLowerCase().includes(lowerCaseSearchTerm)) ||
         (stop.id && stop.id.toString().includes(lowerCaseSearchTerm))
       );
@@ -122,38 +119,32 @@ const StopSelector = ({
     }
   }, [searchTerm, allStops]);
 
-  // Checkbox ile durak seçimi veya seçimi kaldırma
   const toggleStopSelection = (stopId, event) => {
-    event.stopPropagation(); // Expand/collapse olayını tetiklemeyi önler
+    event.stopPropagation(); 
     
-    onToggleSelectedStop(stopId); // App.js'ten gelen toggle callback'i çağırıyoruz
+    onToggleSelectedStop(stopId); 
 
-    // Harita üzerinde odaklama
     const isCurrentlySelected = selectedStopIds.includes(stopId);
-    if (!isCurrentlySelected && onStopSelectForMap) { // Yeni seçildiyse haritada göster
+    if (!isCurrentlySelected && onStopSelectForMap) { 
         const selectedStop = allStops.find(stop => stop.id === stopId);
         if (selectedStop) {
             onStopSelectForMap(selectedStop);
         }
-    } else if (isCurrentlySelected && onStopSelectForMap && selectedStopIds.length === 1) { // Son seçili durak kaldırılıyorsa harita seçimini sıfırla
+    } else if (isCurrentlySelected && onStopSelectForMap && selectedStopIds.length === 1) { 
         onStopSelectForMap(null);
     }
   };
 
-  // Tüm seçili durakları temizleme
   const handleClearAll = () => {
-    onClearSelectedStops(); // App.js'ten gelen callback'i çağır
-    onStopSelectForMap(null); // Harita seçimini de temizle
+    onClearSelectedStops(); 
+    onStopSelectForMap(null); 
   };
 
-  // Arama kutusu değiştiğinde
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setExpandedStopId(null); // Arama yaparken detayları kapat
-    // onStopSelectForMap(null); // Harita odağını sıfırlama (isteğe bağlı)
+    setExpandedStopId(null); // Arama yapaken detyları kapat
   };
 
-  // KRİTİK: handleScroll fonksiyonu buraya EKLENİYOR
   const handleScroll = (e) => {
     const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
     if (bottom && hasMoreStops && !isLoadingMore) {
@@ -163,19 +154,18 @@ const StopSelector = ({
     }
   };
 
-  // Durak adına tıklandığında haritada odaklama (genişletme/daraltma da burada)
   const handleStopNameClick = useCallback(async (stop) => {
-    onStopSelectForMap(stop); // Haritada durağı seç
+    onStopSelectForMap(stop); 
 
-    if (expandedStopId === stop.id) { // Eğer zaten genişletilmişse kapat
+    if (expandedStopId === stop.id) { 
       setExpandedStopId(null);
-    } else { // Değilse genişlet ve hatları çek
+    } else { 
       setExpandedStopId(stop.id);
       await fetchStopRoutes(stop.id);
     }
   }, [onStopSelectForMap, expandedStopId, fetchStopRoutes]);
 
-  // Listede daha fazla durak yükleme
+  // daha fazla durak yükleme
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMoreStops) {
       const nextPage = currentPage + 1;
@@ -184,21 +174,19 @@ const StopSelector = ({
     }
   };
 
-  // Detayları genişletme/daraltma butonu handler'ı
   const toggleStopExpansion = async (stopId, event) => {
-    event.stopPropagation(); // Checkbox veya stop item'ın kendi tıklamasını engelle
+    event.stopPropagation(); 
 
     if (expandedStopId === stopId) {
       setExpandedStopId(null);
     } else {
       setExpandedStopId(stopId);
-      await fetchStopRoutes(stopId); // Hatları çekme
+      await fetchStopRoutes(stopId); 
     }
   };
 
-  // "Tüm Durakları Seç" butonuna tıklama handler'ı
   const handleSelectAllStopsClick = () => {
-    onSelectAllStops(); // App.js'ten gelen callback'i çağır
+    onSelectAllStops(); 
   };
 
 
@@ -268,7 +256,6 @@ const StopSelector = ({
                 <div
                   className={`stop-item ${selectedStopIds.includes(stop.id) ? 'selected' : ''}`}
                 >
-                  {/* Checkbox ve Bilgi Kısmı */}
                   <label className="stop-checkbox-label">
                       <input
                         type="checkbox"
@@ -278,7 +265,7 @@ const StopSelector = ({
                       />
                       <span className="checkmark"></span>
                       
-                      {/* Durak Bilgisi - Tıklanabilir kısım */}
+                      {/* Durak Bilgisi Tıklnabilir kısım */}
                       <div className="stop-info-display">
                           <div className="stop-name-container" onClick={() => handleStopNameClick(stop)}>
                             <span className="stop-name">{stop.name}</span>
@@ -287,7 +274,6 @@ const StopSelector = ({
                       </div>
                   </label>
                   
-                  {/* Genişletme/Daraltma Butonu */}
                   <button
                     className="expand-button"
                     onClick={(e) => toggleStopExpansion(stop.id, e)}
@@ -297,7 +283,7 @@ const StopSelector = ({
                   </button>
                 </div>
 
-                {/* Hat Detay Paneli */}
+                {/* Hat Detay */}
                 {expandedStopId === stop.id && (
                   <div className="routes-from-stop-in-panel">
                     <h5>Bu duraktan geçen hatlar:</h5>

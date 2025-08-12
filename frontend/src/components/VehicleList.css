@@ -1,18 +1,16 @@
-/* frontend/src/components/VehicleList.css */
 
-/* control-button sınıfı - Bu, tüm butonlarınızın ortak görünümünü sağlar */
 .control-button {
-  background-color: var(--button-bg); /* Mavi arkaplan */
-  color: var(--button-text); /* Beyaz metin */
-  border: none; /* Kenarlık yok */
-  padding: 6px 10px; /* Ortak padding */
-  border-radius: 5px; /* Köşe yuvarlaklığı */
+  background-color: var(--button-bg); 
+  color: var(--button-text); 
+  border: none; 
+  padding: 6px 10px; 
+  border-radius: 5px; 
   cursor: pointer;
-  font-size: 0.8em; /* Ortak font boyutu */
-  margin-left: 8px; /* Ortak sol boşluk */
+  font-size: 0.8em; 
+  margin-left: 8px; 
   transition: background-color 0.2s ease, transform 0.1s ease;
-  white-space: nowrap; /* Metnin tek satırda kalmasını sağlar */
-  font-weight: bold; /* Metin kalınlığı */ /* Bu da eklenebilir */
+  white-space: nowrap; 
+  font-weight: bold; 
 }
 
 .control-button:hover {
@@ -33,7 +31,7 @@
   flex-direction: column;
   flex-grow: 1;
   background-color: var(--panel-bg);
-  color: var(--panel-text); /* Temel panel metin rengini kullanır */
+  color: var(--panel-text); 
 }
 
 .list-header {
@@ -46,13 +44,13 @@
 .list-header h2 {
   margin: 0;
   font-size: 1.1em;
-  color: var(--panel-header-text); /* Panel başlık metin rengini kullanır */
+  color: var(--panel-header-text); 
 }
 
 .close-button {
   background: none;
   border: none;
-  color: var(--panel-text); /* Panel metin rengini kullanır */
+  color: var(--panel-text); 
   font-size: 1.2em;
   cursor: pointer;
   padding: 5px;
@@ -82,9 +80,7 @@
   padding-right: 5px;
 }
 
-/* ... vehicle-item-content (aynı kalacak) ... */
 
-/* Vehicle Item (Her bir Hat Öğesi) */
 .vehicle-item {
   background-color: var(--list-item-bg);
   padding: 2px 4px;
@@ -93,7 +89,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-  color: var(--list-item-text); /* Temel liste öğesi metin rengini kullanır */
+  color: var(--list-item-text); /* Temel liste metin renini kullan */
    align-items: center;
      justify-content: space-between;
      position: relative;
@@ -102,14 +98,14 @@
 
 .vehicle-item:hover {
   background-color: var(--list-item-selected-bg);
-  color: var(--list-item-selected-text); /* Seçili/hover'da metin rengini kullanır */
+  color: var(--list-item-selected-text); 
 }
 
 .vehicle-item.selected {
   background-color: var(--list-item-selected-bg);
-  color: var(--list-item-selected-text); /* Seçili öğe metni rengini kullanır */
+  color: var(--list-item-selected-text); 
   font-weight: bold;
-  border: 1px solid var(--button-bg); /* Butonun ana rengini kullanır */
+  border: 1px solid var(--button-bg); 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -120,12 +116,12 @@
 }
 
 .item-title strong {
-  color: var(--route-text-primary-color); /* KRİTİK: Hat No. rengi temaya göre değişecek */
+  color: var(--route-text-primary-color); 
 }
 
 .item-details {
   font-size: 0.8em;
-  color: var(--info-text); /* Bilgi metinleri için */
+  color: var(--info-text); 
   padding-left: 10px;
   border-left: 2px solid var(--input-border);
   margin-top: 5px;
@@ -138,7 +134,6 @@
   margin-top: 20px;
 }
 
-/* Güzergah Takip Checkbox Stilleri */
 .route-progress-checkbox-container {
     margin-top: 10px;
     padding-top: 10px;
@@ -150,7 +145,7 @@
     align-items: center;
     cursor: pointer;
     font-size: 0.9em;
-    color: var(--route-text-secondary-color); /* KRİTİK: Güzergah takip metin rengi temaya göre değişecek */
+    color: var(--route-text-secondary-color); 
 }
 
 .route-progress-checkbox {
@@ -164,7 +159,6 @@
     font-size: 12px;
 }
 
-/* Çoklu Rota Seçim Kontrolleri */
 .route-selection-controls {
     display: flex;
     justify-content: space-between;
@@ -177,7 +171,7 @@
 
 .selected-route-count {
     font-size: 0.9em;
-    color: var(--route-text-primary-color); /* KRİTİK: Seçili hat sayısı metni temaya göre değişecek */
+    color: var(--route-text-primary-color);
     font-weight: bold;
 }
 
@@ -196,7 +190,6 @@
     background-color: var(--button-hover-bg);
 }
 
-/* Hat listesi item'larındaki checkbox ve metin için stiller */
 .route-checkbox-label {
     display: flex;
     align-items: center;
@@ -219,20 +212,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
-  color: var(--route-text-primary-color); /* KRİTİK: Ana güzergah özeti metin rengi temaya göre değişecek */
+  color: var(--route-text-primary-color);
 }
 
 .route-name-short {
   font-size: 0.9em;
-  color: var(--route-text-secondary-color); /* KRİTİK: Kısa güzergah adı rengi temaya göre değişecek */
+  color: var(--route-text-secondary-color); 
 }
 
 .route-points-display {
   font-size: 0.85em;
-  color: var(--route-text-secondary-color); /* KRİTİK: Başlangıç/bitiş noktaları rengi temaya göre değişecek */
+  color: var(--route-text-secondary-color); 
 }
 
-/* V İkonu (expand-toggle-button) */
+/* V İkon*/
 .expand-toggle-button {
   background: none;
   border: none;
@@ -243,21 +236,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, color 0.2s ease; /* Renk geçişi de eklendi */
+  transition: transform 0.2s ease, color 0.2s ease; 
 
 }
 .light-theme .expand-toggle-button {
-    color: #333 !important ;/* Light temada koyu gri/siyah olsun */
+    color: #333 !important ;
 }
 
 .dark-theme .expand-toggle-button {
-    color: #f0f0f0 !important; /* Dark temada beyaz olsun */
+    color: #f0f0f0 !important; 
 }
 .expand-toggle-button:hover {
-    color: var(--button-bg); /* Hover'da butonun ana rengi olsun */
+    color: var(--button-bg); 
 }
 
-/* .item-details (aynı kalacak) */
 .item-details {
   max-height: 0;
   overflow: hidden;
@@ -276,7 +268,6 @@
   max-height: 200px;
 }
 
-/* Gidiş/Dönüş Butonu İçin Kapsayıcı Stil */
 .direction-toggle-container {
     display: flex;
     justify-content: center;
@@ -284,24 +275,10 @@
     padding-bottom: 5px;
 }
 
-/* Gidiş/Dönüş Butonu Stili */
-.direction-button {
-    
-}
 
-.direction-button:hover {
-    
-}
-
-.select-all-routes-button {
-   
-
-  
-}
 .select-all-routes-button:hover {
-    background-color: var(--button-hover-bg); /* Temel buton hover rengini kullanır */
+    background-color: var(--button-hover-bg); 
 }
-/* Arama Kutusu Metin Rengi */
 .search-input {
   width: calc(100% - 20px);
   padding: 10px;
@@ -309,11 +286,10 @@
   border: 1px solid var(--input-border);
   border-radius: 5px;
   background-color: var(--input-bg);
-  color: var(--search-input-text-color); /* KRİTİK: Metin rengi temaya göre */
+  color: var(--search-input-text-color); 
   font-size: 0.9em;
 }
 
-/* Placeholder rengi için özel bir kural ekleyelim */
 .search-input::placeholder {
-  color: var(--search-input-placeholder-color); /* KRİTİK: Placeholder rengi temaya göre */
+  color: var(--search-input-placeholder-color); 
 }

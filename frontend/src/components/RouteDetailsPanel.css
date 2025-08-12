@@ -1,12 +1,11 @@
-/* frontend/src/components/RouteDetailsPanel.css */
 
 .route-details-panel {
     padding: 15px;
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: var(--panel-bg); /* <-- Değişken kullanımı */
-    color: var(--panel-text); /* <-- Değişken kullanımı */
+    background-color: var(--panel-bg); 
+    color: var(--panel-text);
 }
 
 .panel-header {
@@ -19,20 +18,20 @@
 .panel-header h3 {
   margin: 0;
   font-size: 1.1em;
-  color: var(--panel-header-text); /* <-- Değişken kullanımı */
+  color: var(--panel-header-text); 
 }
 
 .close-button {
   background: none;
   border: none;
-  color: var(--panel-text); /* <-- Değişken kullanımı */
+  color: var(--panel-text); 
   font-size: 1.2em;
   cursor: pointer;
   padding: 5px;
 }
 
 .close-button:hover {
-  color: var(--error-text); /* Kırmızı tonu kullanabiliriz */
+  color: var(--error-text); 
 }
 
 .input-group {
@@ -43,17 +42,17 @@
     display: block;
     margin-bottom: 5px;
     font-size: 0.9em;
-    color: var(--label-text); /* <-- Değişken kullanımı */
+    color: var(--label-text); 
 }
 
 .bus-number-input {
     width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid var(--input-border); /* <-- Değişken kullanımı */
+    border: 1px solid var(--input-border); 
     border-radius: 5px;
-    background-color: var(--input-bg); /* <-- Değişken kullanımı */
-    color: var(--input-text); /* <-- Değişken kullanımı */
+    background-color: var(--input-bg); 
+    color: var(--input-text); 
     font-size: 0.9em;
 }
 
@@ -67,14 +66,14 @@
 }
 
 .direction-button:hover {
-    background-color: var(--list-item-selected-bg); /* Seçili liste öğesi arka planı gibi */
-    color: var(--list-item-selected-text); /* Seçili liste öğesi metni gibi */
+    background-color: var(--list-item-selected-bg); 
+    color: var(--list-item-selected-text); 
 }
 
 .direction-button.active {
-    background-color: var(--button-bg); /* Ana buton rengi gibi */
-    border-color: var(--button-border); /* Ana buton kenarlığı gibi */
-    color: var(--button-text); /* Ana buton metni gibi */
+    background-color: var(--button-bg); 
+    border-color: var(--button-border); 
+    color: var(--button-text); 
     font-weight: bold;
 }
 
@@ -83,14 +82,13 @@
     overflow-y: auto;
     padding-right: 5px;
     min-height: 0;
-    /* border: 2px solid red; */ /* Debug için eklenmişse kaldır */
 }
 
 .stop-list-section h4 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 1em;
-    color: var(--panel-header-text); /* <-- Değişken kullanımı */
+    color: var(--panel-header-text); 
 }
 
 .stop-list {
@@ -100,49 +98,79 @@
 }
 
 .stop-item {
-    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
+    background-color: var(--list-item-bg); 
     padding: 8px 12px;
     margin-bottom: 5px;
     border-radius: 3px;
     font-size: 0.9em;
-    color: var(--list-item-text); /* <-- Değişken kullanımı */
+    color: var(--list-item-text); 
 }
 
 .route-summary {
     margin-bottom: 15px;
     font-size: 0.95em;
-    color: var(--panel-text); /* <-- Değişken kullanımı */
+    color: var(--panel-text); 
     padding: 10px;
-    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
+    background-color: var(--list-item-bg); 
     border-radius: 5px;
 }
 
 .departure-group {
     margin-bottom: 20px;
     padding: 10px;
-    background-color: var(--list-item-bg); /* <-- Değişken kullanımı */
+    background-color: var(--list-item-bg); 
     border-radius: 5px;
 }
 
 .departure-group h5 {
     margin-top: 0;
-    color: var(--panel-header-text); /* <-- Değişken kullanımı */
-    border-bottom: 1px solid var(--panel-border); /* <-- Değişken kullanımı */
+    color: var(--panel-header-text); 
+    border-bottom: 1px solid var(--panel-border);
     padding-bottom: 5px;
     margin-bottom: 10px;
 }
 
 .error-message {
-    color: var(--error-text); /* <-- Değişken kullanımı */
+    color: var(--error-text); 
     font-size: 0.9em;
     text-align: center;
     margin-top: 15px;
 }
 
 .info-message {
-    color: var(--info-text); /* <-- Değişken kullanımı */
+    color: var(--info-text); 
     font-size: 0.9em;
     text-align: center;
     margin-top: 15px;
     font-style: italic;
+}
+
+
+
+
+.direction-button {
+    background-color: var(--button-bg); 
+    color: var(--button-text); 
+    border: none;
+    padding: 8px 15px; 
+    border-radius: 5px; 
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    white-space: nowrap; 
+    font-weight: bold; 
+    flex-grow: 1; 
+    max-width: 120px; 
+}
+
+.direction-button:hover {
+    background-color: var(--button-hover-bg); 
+    transform: translateY(-1px); 
+}
+
+.direction-button.active {
+    background-color: var(--button-hover-bg); 
+    border: 1px solid var(--button-border); 
+    color: var(--button-text); 
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); 
 }

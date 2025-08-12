@@ -1,15 +1,12 @@
-// frontend/src/components/RouteProgressPanel.js
 import React from 'react';
-import './RouteProgressPanel.css'; // Yeni CSS dosyamız
-// import { formatTime } from '../utils/formatters'; // Formatlama fonksiyonları artık burada kullanılmayacak
+import './RouteProgressPanel.css'; 
+// import { formatTime } from '../utils/formatters'; 
 
-// Location icon'u tekrar import edelim
 const locationIcon = require('../assets/location.png');
 
-// currentStop prop'unu alacak şekilde güncellendi
-function RouteProgressPanel({ selectedRoute, currentStop }) { // <-- distanceToDestination ve timeToDestination kaldırıldı
+function RouteProgressPanel({ selectedRoute, currentStop }) { 
   if (!selectedRoute || !selectedRoute.stops || selectedRoute.stops.length === 0) {
-    return null; // Güzergah veya durak bilgisi yoksa paneli gösterme
+    return null;
   }
 
   return (
@@ -18,7 +15,6 @@ function RouteProgressPanel({ selectedRoute, currentStop }) { // <-- distanceToD
         <h3>{selectedRoute.route_number} Numaralı Hat - Güzergah Takip</h3>
       </div>
       
-      {/* progress-summary kısmı kaldırıldı veya boşaltıldı */}
       {/* <div className="progress-summary">
         {distanceToDestination !== null && (
           <p>Kalan: <strong>{(distanceToDestination / 1000).toFixed(2)} km</strong></p>

@@ -1,35 +1,34 @@
-/* frontend/src/components/RouteProgressPanel.css */
 
 .route-progress-panel {
-    position: fixed; /* Harita üzerinde sabit */
-    top: 200px; /* Navbar'ın hemen altından başlasın (Navbar 50px, biraz boşluk) */
-    right: 20px; /* Sağ kenardan 20px boşluk */
-    width: 180px; /* Yeni, daha dar panel genişliği */
-    height: calc(100vh - 80px); /* Ekran yüksekliğinden navbar ve alt boşluğu çıkar */
-    background-color: var(--panel-bg); /* <-- Değişken kullanımı */
+    position: fixed; 
+    top: 200px; 
+    right: 20px; 
+    width: 180px; 
+    height: calc(100vh - 80px); 
+    background-color: var(--panel-bg); 
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     padding: 15px;
-    color: var(--panel-text); /* <-- Değişken kullanımı */
-    z-index: 50; /* Haritanın üzerinde olsun (Map z-index: 0, Navbar: 102) */
-    pointer-events: auto; /* Tıklama olaylarına yanıt versin */
-    overflow: hidden; /* İçerik taşmasını engeller */
+    color: var(--panel-text); 
+    z-index: 50; 
+    pointer-events: auto; 
+    overflow: hidden; 
 }
 
 .route-progress-panel .panel-header h3 {
     margin: 0 0 10px 0;
-    color: var(--panel-header-text); /* <-- Değişken kullanımı */
+    color: var(--panel-header-text); 
     font-size: 1.1em;
-    border-bottom: 1px solid var(--panel-border); /* <-- Değişken kullanımı */
+    border-bottom: 1px solid var(--panel-border); 
     padding-bottom: 8px;
 }
 
 .route-progress-panel .stop-list-scroll-area {
     flex-grow: 1;
-    overflow-y: auto; /* Duraklar taşarsa kaydırma çubuğu çıksın */
-    padding-right: 5px; /* Kaydırma çubuğu için boşluk */
+    overflow-y: auto; 
+    padding-right: 5px; 
 }
 
 .route-progress-panel .route-stops-list {
@@ -41,10 +40,10 @@
 .route-progress-panel .route-stop-item {
     padding: 8px 0;
     font-size: 0.9em;
-    border-bottom: 1px dashed var(--list-item-border); /* <-- Değişken kullanımı */
+    border-bottom: 1px dashed var(--list-item-border); 
     display: flex;
     align-items: center;
-    color: var(--list-item-text); /* <-- Değişken kullanımı */
+    color: var(--list-item-text); 
 }
 
 .route-progress-panel .route-stop-item:last-child {
@@ -52,7 +51,7 @@
 }
 
 .route-progress-panel .route-stop-item.active-stop {
-    color: var(--button-bg); /* Aktif durağı buton rengi gibi mavi yap */
+    color: var(--button-bg); 
     font-weight: bold;
 }
 

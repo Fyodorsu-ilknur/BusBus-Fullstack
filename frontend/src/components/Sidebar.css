@@ -1,33 +1,28 @@
-/* frontend/src/components/Sidebar.css */
 
 .sidebar {
-  width: var(--sidebar-width); /* Sidebar genişliği için değişken kullanımı */
+  width: var(--sidebar-width); 
   background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
-  align-items: center; /* İçindeki ikonları yatayda ortala */
+  align-items: center; 
   padding-top: 20px;
   box-sizing: border-box;
   z-index: 100;
   box-shadow: 2px 0 5px rgba(0,0,0,0.2);
   overflow-x: hidden;
 
-  /* Masaüstünde varsayılan olarak sidebar'ı gizle */
   position: fixed;
   top: var(--navbar-height);
   left: 0;
   height: calc(100vh - var(--navbar-height));
-  transform: translateX(-100%); /* Varsayılan olarak ekran dışına kaydır (gizle) */
-  transition: transform 0.3s ease-in-out; /* Animasyon ekle */
+  transform: translateX(-100%); 
+  transition: transform 0.3s ease-in-out; 
 }
 
-/* KESİN DÜZELTME BURADA: Masaüstü Sidebar genişlediğinde görünür olmasını sağla */
 .sidebar.expanded {
-    transform: translateX(0); /* Sidebar açıkken ekran içine kaydır (görünür yap) */
-    /* İsteğe bağlı olarak ikonların yanında metin gösterme veya genişliği artırma gibi ek stiller buraya gelebilir. */
+    transform: translateX(0); 
 }
 
-/* Sidebar ikonları için liste (ul.sidebar-icons) */
 .sidebar-icons {
     list-style: none;
     padding: 0;
@@ -39,7 +34,6 @@
     padding-top: 10px;
 }
 
-/* Her bir sidebar öğesi (li içindeki button.sidebar-item) */
 .sidebar-item {
   background: none;
   border: none;
@@ -66,7 +60,6 @@
   border-left: 3px solid var(--sidebar-item-active-text);
 }
 
-/* Material Icons için genel stil */
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;

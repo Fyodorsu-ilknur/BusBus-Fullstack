@@ -1,14 +1,13 @@
-// frontend/src/App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
-// TÜM GEREKLİ REDUX AKSİYONLARI BURADA DOĞRU ŞEKİLDE İMPORT EDİLMİŞTİR
+//  REDUX 
 import {
   setAllRoutes,
   clearSelectedRoutes,
   toggleSelectedRoute,
   selectAllRoutes,
-  toggleSelectedStop,   // <-- BURADA OLMALI VE OLDUĞUNDAN EMİN OLALIM
+  toggleSelectedStop,   
   clearSelectedStops,
   setAllStops,
   selectAllStops
@@ -29,7 +28,7 @@ function App() {
   const allRoutes = useSelector(state => state.selectedItems.allRoutes);
   const selectedRouteIds = useSelector(state => state.selectedItems.selectedRouteIds);
   const allStops = useSelector(state => state.selectedItems.allStops);
-  const selectedStopIds = useSelector(state => state.selectedItems.selectedStopIds); // SelectedStopIds useSelector ile doğru alınıyor
+  const selectedStopIds = useSelector(state => state.selectedItems.selectedStopIds); 
 
 const handleToggleSelectedRoute = useCallback((routeId) => {
   dispatch(toggleSelectedRoute(routeId));
@@ -43,7 +42,7 @@ const handleSelectAllRoutes = useCallback(() => {
   dispatch(selectAllRoutes());
 }, [dispatch]);
 
-// DURAK İŞLEMLERİ İÇİN CALLBACK'LER
+// DURAK İİN CALLBACK
 const handleSelectAllStops = useCallback(() => {
   dispatch(selectAllStops());
 }, [dispatch]);
@@ -53,7 +52,7 @@ const handleClearSelectedStops = useCallback(() => {
 }, [dispatch]);
 
 const handleToggleSelectedStop = useCallback((stopId) => {
-  dispatch(toggleSelectedStop(stopId)); // <-- BU ÇAĞRI İÇİN toggleSelectedStop İMPORT EDİLMİŞ OLMALI
+  dispatch(toggleSelectedStop(stopId)); 
 }, [dispatch]);
 
 
@@ -236,7 +235,7 @@ const handleToggleSelectedStop = useCallback((stopId) => {
     setSelectedRoute(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
-    dispatch(clearSelectedStops()); // Durak paneli kapanınca seçili durakları temizle
+    dispatch(clearSelectedStops()); 
   }, [dispatch]);
 
   const togglePanel = useCallback(() => {

@@ -1,11 +1,10 @@
-/* frontend/src/components/Navbar.css */
 
 .navbar-container {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: var(--navbar-height); /* Değişken kullanımı */
+    height: var(--navbar-height);
     background-color: var(--navbar-bg);
     z-index: 102;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -33,7 +32,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--navbar-height); /* Değişken kullanımı */
+  height: var(--navbar-height); 
 }
 
 .hamburger-icon-button:hover {
@@ -101,10 +100,9 @@
 }
 
 
-/* --- RESPONSIVE DÜZENLEMELER (iPhone 12 ve benzeri küçük ekranlar için) --- */
 @media (max-width: 768px) {
     .navbar-container {
-        height: var(--navbar-height); /* Mobilde navbar yüksekliğini değişken üzerinden al */
+        height: var(--navbar-height); /* Mobilde navbar yüksekliini değişken üzinden al */
         padding: 0 12px;
     }
 
@@ -149,7 +147,8 @@
     }
 }
 
-/* Çok küçük ekranlar için ek düzenlemeler (iPhone SE gibi) */
+/* Çok küçük ekranlar için */
+
 @media (max-width: 480px) {
     .navbar-container {
         height: var(--navbar-height);

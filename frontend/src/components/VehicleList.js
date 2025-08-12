@@ -1,4 +1,3 @@
-// frontend/src/components/VehicleList.js
 import React, { useState, useEffect } from 'react';
 import './VehicleList.css';
 
@@ -10,16 +9,14 @@ function VehicleList({
   onSearch,
   isRouteProgressPanelActive,
   onToggleRouteProgressPanelActive,
-  // YENİ PROP'lar
-  selectedRouteIds, // Redux'tan gelen seçili rota ID'leri
-  onToggleSelectedRoute, // Redux action'ını çağırmak için
-  onClearSelectedRoutes, // Tüm rota seçimlerini temizlemek için
-  onSelectAllRoutes, // "Tümünü Seç" için
-  // YENİ PROP'lar: Gidiş/Dönüş Butonu için
-  selectedRoute, // Animasyonlu güzergah takip edilen tekli rota
-  currentDirection, // Mevcut yön ('1' gidiş, '2' dönüş)
-  onToggleDirection, // Yönü değiştirmek için App.js'ten gelen callback
-  theme // <-- Theme prop'u VehicleList'e geliyor, bu doğru
+  selectedRouteIds, 
+  onToggleSelectedRoute, 
+  onClearSelectedRoutes, 
+  onSelectAllRoutes,
+  selectedRoute, // Animsyonlu güzrgah tekli rota
+  currentDirection, 
+  onToggleDirection, // Yön değiştirmek için geen callback
+  theme 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -59,17 +56,17 @@ function VehicleList({
   };
 
   const handleRouteCheckboxChange = (e, routeId) => {
-    e.stopPropagation(); // li'nin click olayını engelle
+    e.stopPropagation(); 
     onToggleSelectedRoute(routeId);
   };
 
   const handleToggleRouteProgress = (e) => {
-    e.stopPropagation(); // li'nin click olayını engelle
+    e.stopPropagation(); 
     onToggleRouteProgressPanelActive();
   };
 
   const handleToggleDirectionClick = (e) => {
-    e.stopPropagation(); // li'nin click olayını engelle
+    e.stopPropagation(); 
     if (onToggleDirection) {
         onToggleDirection();
     }
@@ -132,7 +129,6 @@ function VehicleList({
                     <button className="expand-toggle-button" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}>
                         <span
                             className="material-icons"
-                            // KRİTİK DÜZELTME: style prop'u doğru yere ve doğru formatta yerleştirildi
                             style={{ color: theme === 'dark' ? '#f0f0f0' : '#a79e9eff' }}
                         >
                             {selectedVehicle?.id === item.id ? 'expand_less' : 'expand_more'}
@@ -154,7 +150,7 @@ function VehicleList({
                             <span className="route-progress-text">Güzergah Takip İçin Tıklayın</span>
                         </label>
                     </div>
-                    {/* Gidiş/Dönüş Butonu */}
+                    {/* GidişDönüş Butonu */}
                     {selectedRoute?.id === item.id && selectedRoute?.directions?.['2']?.length > 0 &&  (
                         <div className="direction-toggle-container">
                             <button

@@ -9,7 +9,7 @@ function RouteDetailsPanel({ onClose }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
 
-  // API'den güzergah detaylarını çeken fonksiyon
+  // API'den guzergah deatylarını cekeck (inşallah)
   const fetchRouteDetails = useCallback(async () => {
     setErrorMessage('');
     setDisplayedRouteDetails(null);
@@ -39,7 +39,6 @@ function RouteDetailsPanel({ onClose }) {
     }
   }, [selectedBusNumber, selectedDirection]);
 
-  // Hat numarası veya yön değiştiğinde API'yi çağır
   useEffect(() => {
     fetchRouteDetails();
   }, [fetchRouteDetails]);
@@ -82,7 +81,7 @@ function RouteDetailsPanel({ onClose }) {
         </button>
       </div>
 
-      <div className="stop-list-section"> {/* Kaydırma çubuğu için stil */}
+      <div className="stop-list-section"> 
         <h4>
           {selectedBusNumber ? (
             `${displayedRouteDetails?.route_name || selectedBusNumber + ' Numaralı Hat'} Durakları (${selectedDirection === '1' ? 'Gidiş' : 'Dönüş'})`
