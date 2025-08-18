@@ -1,3 +1,42 @@
+/* frontend/src/components/StopSelector.css */
+
+/* Renk Paleti - Referans Görseldeki Gri Tonları ve Vurgu Renkleri */
+:root {
+  --panel-background: #F7F9FC; /* Açık gri panel arka planı */
+  --header-background: #FFFFFF; /* Beyaz başlık arka planı */
+  --header-text-color: #333C4A; /* Koyu gri başlık metni */
+  --text-color: #4C576C; /* Genel koyu gri metin */
+  --secondary-text-color: #7A899C; /* Daha açık gri ikincil metin */
+  --border-color: #E2E8F0; /* Açık gri kenarlıklar */
+  --input-background: #FFFFFF; /* Beyaz input arka planı */
+  --hover-background: #EEF2F7; /* Çok hafif gri hover durumu */
+  --selected-background: #E3F2FD; /* Seçili öğe için hafif mavi/gri */
+  --primary-color: #4A90E2; /* Vurgu rengi (mavi) */
+  --button-hover-bg: #357ABD; /* Vurgu renginin hover durumu */
+  --danger-color: #E74C3C; /* Kırmızı renk (hata/silme) */
+  --danger-hover-color: #C0392B; /* Kırmızı rengin hover durumu */
+  --search-input-text-color: #4C576C; /* Arama kutusu metin rengi */
+  --search-input-placeholder-color: #A0AEC0; /* Arama kutusu placeholder rengi */
+}
+
+.dark-theme {
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --search-input-text-color: #F7FAFC;
+  --search-input-placeholder-color: #CBD5E0;
+}
+
 
 .stop-selector {
   height: 100%;
@@ -5,54 +44,60 @@
   flex-direction: column;
   background: var(--panel-background);
   color: var(--text-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stop-selector-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 8px 12px; /* Padding'i daha da küçülttük */
   border-bottom: 1px solid var(--border-color);
   background: var(--header-background);
+  flex-shrink: 0;
 }
 
 .stop-selector-header h2 {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 0.95rem; /* Başlık fontunu daha da küçülttük */
+  font-weight: 700;
   color: var(--header-text-color);
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 0.9rem; /* Boyutunu küçülttük */
   cursor: pointer;
-  color: var(--text-color);
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  color: var(--secondary-text-color);
+  padding: 3px; /* Padding'i küçülttük */
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .close-button:hover {
   background-color: var(--hover-background);
+  color: var(--header-text-color);
 }
 
 .stop-selector-controls {
-  padding: 1rem;
+  padding: 8px 12px; /* Padding'i daha da küçülttük */
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .search-container {
-  margin-bottom: 0.75rem;
+  margin-bottom: 5px; /* Boşluğu azalttık */
   position: relative;
   display: flex;
   align-items: center;
 }
 
 .search-icon {
-  position: absolute;
-  left: 0.75rem;
+  left: 10px;
+  font-size: 0.85rem; /* İkon boyutunu küçülttük */
   color: var(--secondary-text-color);
   pointer-events: none;
   z-index: 1;
@@ -60,34 +105,30 @@
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 1.5rem;
+  padding: 6px 10px 6px 28px; /* Padding'i daha da küçülttük */
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 5px; /* Yuvarlatmayı küçülttük */
   background: var(--input-background);
   color: var(--search-input-text-color);
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
+  font-size: 0.75rem; /* Font boyutunu daha da küçülttük */
+  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
-  margin-bottom: 1px;
-}
-
-.search-input::placeholder {
-  color: var(--search-input-placeholder-color);
+  margin-bottom: 0px;
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
 }
 
 .info-and-clear-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
+  gap: 5px; /* Boşluğu daha da azalttık */
+  margin-top: 5px; /* Üst boşluğu azalttık */
+  flex-wrap: nowrap;
 }
 
 .info-and-clear-button .selected-info-text {
@@ -97,23 +138,25 @@
   text-align: left;
   white-space: nowrap;
   min-width: 0;
+  padding-right: 5px; /* Butonlara yaklaşmasın */
 }
 
 .selected-count {
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text-color);
-  margin-bottom: 0;
+  font-size: 0.8rem; /* Boyutunu küçülttük */
+  margin-bottom: 0px;
 }
 
 .listed-count {
   color: var(--secondary-text-color);
-  font-style: italic;
-  font-size: 0.85rem;
+  font-style: normal;
+  font-size: 0.7rem; /* Boyutunu daha da küçülttük */
 }
 
 .action-buttons-container {
   display: flex;
-  gap: 0.5rem;
+  gap: 5px; /* Butonlar arası boşluk */
   flex-shrink: 0;
 }
 
@@ -121,15 +164,16 @@
   background: var(--primary-color);
   color: white;
   border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: 4px 8px; /* Padding'i daha da küçülttük */
+  border-radius: 4px; /* Yuvarlatmayı küçülttük */
+  font-size: 0.7rem; /* Boyutunu daha da küçülttük */
   cursor: pointer;
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 2px; /* İkon ve metin arası boşluk */
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .select-all-button:hover, .clear-selection-button:hover {
@@ -147,54 +191,78 @@
 .stops-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 6px 12px; /* Padding'i daha da küçülttük */
+  -webkit-overflow-scrolling: touch;
+}
+
+.stops-list::-webkit-scrollbar {
+  width: 4px; /* Scrollbar genişliğini daha da küçülttük */
+}
+
+.stops-list::-webkit-scrollbar-track {
+  background: var(--panel-background);
+}
+
+.stops-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px; /* Yuvarlatmayı küçülttük */
+}
+
+.stops-list::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-text-color);
 }
 
 .loading, .no-stops {
   text-align: center;
-  padding: 2rem;
+  padding: 12px; /* Padding'i azalttık */
   color: var(--secondary-text-color);
-  font-style: italic;
+  font-style: normal;
+  font-size: 0.8rem;
 }
 
 .loading-more {
   text-align: center;
-  padding: 1rem;
+  padding: 6px; /* Padding'i azalttık */
   color: var(--secondary-text-color);
-  font-style: italic;
+  font-style: normal;
+  font-size: 0.7rem;
 }
 
 .stop-item-wrapper {
-  margin-bottom: 0.5rem;
+  margin-bottom: 4px; /* Boşluğu daha da azalttık */
+  border-radius: 5px; /* Yuvarlatmayı küçülttük */
+  overflow: hidden;
 }
 
 .stop-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: 6px 8px; /* Padding'i daha da küçülttük */
+  border-radius: 5px;
   transition: all 0.2s ease;
-  background-color: var(--panel-background);
-  border: 1px solid transparent;
+  background-color: var(--header-background);
+  border: 1px solid var(--border-color);
   cursor: pointer;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); /* Gölgeyi küçülttük */
 }
 
 .stop-item:hover {
   background-color: var(--hover-background);
-  border-color: var(--border-color);
+  border-color: var(--primary-color);
 }
 
 .stop-item.selected {
   background-color: var(--selected-background);
   border-color: var(--primary-color);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.15); /* Gölgeyi küçülttük */
 }
 
 .stop-item.expanded {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-color: transparent;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 .stop-checkbox-label {
@@ -204,7 +272,7 @@
   user-select: none;
   flex-grow: 1;
   min-width: 0;
-  gap: 0.75rem;
+  gap: 6px; /* Boşluğu azalttık */
 }
 
 .stop-list-checkbox {
@@ -212,15 +280,15 @@
 }
 
 .checkmark {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--border-color);
-  border-radius: 4px;
+  width: 14px; /* Boyutunu daha da küçülttük */
+  height: 14px; /* Boyutunu daha da küçülttük */
+  border: 1px solid var(--border-color); /* Kenarlık inceldi */
+  border-radius: 3px;
   background-color: var(--input-background);
   flex-shrink: 0;
   position: relative;
   transition: all 0.2s ease;
+  box-shadow: inset 0 0.5px 1px rgba(0,0,0,0.05); /* İç gölgeyi küçülttük */
 }
 
 .stop-checkbox-label input[type="checkbox"]:checked + .checkmark {
@@ -235,15 +303,17 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  font-size: 12px;
+  font-size: 8px; /* Tik işareti boyutunu küçülttük */
   font-weight: bold;
 }
 
 .stop-info-display {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Yan yana olması için row */
+  align-items: baseline; /* Metin taban çizgisinden hizalama */
   flex-grow: 1;
   min-width: 0;
+  gap: 4px; /* Durak adı ve ID arası boşluk */
 }
 
 .stop-name-container {
@@ -255,30 +325,34 @@
   color: var(--primary-color);
 }
 
+/* Durak adı ve ID'yi yan yana getirme */
 .stop-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.8rem; /* Boyutunu daha da küçülttük */
   color: var(--text-color);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0px;
   word-wrap: break-word;
-  display: block;
+  display: inline;
+  line-height: 1.2;
 }
 
-.stop-details-text {
-  font-size: 0.8rem;
+.stop-details-text { /* ID için */
+  font-size: 0.8rem; /* ID'yi durak adıyla aynı boyda yaptık */
   color: var(--secondary-text-color);
   word-wrap: break-word;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline;
+  margin-left: 0px; /* Boşluğu kaldırarak daha da yakınlaştırdık */
 }
 
 .expand-button {
-  background: none;
+  background: var(--hover-background);
   border: 1px solid var(--border-color);
   color: var(--secondary-text-color);
-  width: 32px;
-  height: 32px;
+  width: 22px; /* Boyutunu daha da küçülttük */
+  height: 22px; /* Boyutunu daha da küçülttük */
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -286,12 +360,12 @@
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  margin-left: 0.5rem;
+  margin-left: 8px; /* Sol boşluğu azalttık */
 }
 
 .expand-button:hover {
-  background-color: var(--hover-background);
-  color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
   border-color: var(--primary-color);
 }
 
@@ -299,17 +373,50 @@
   background-color: var(--selected-background);
   border: 1px solid var(--primary-color);
   border-top: none;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  padding: 1rem;
-  margin-top: -1px;
+  border-bottom-left-radius: 5px; /* Yuvarlatmayı küçülttük */
+  border-bottom-right-radius: 5px; /* Yuvarlatmayı küçülttük */
+  padding: 4px 6px; /* Padding'i küçülttük */
 }
 
 .stop-routes-panel h5 {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.9rem;
+  margin: 0 0 3px 0; /* Margin'i küçülttük */
+  font-size: 0.8rem; /* Boyutunu küçülttük */
   color: var(--header-text-color);
   font-weight: 600;
+}
+
+/* Duraktan geçen hatlar listesi (list item içindeki panel) */
+.routes-from-stop-in-panel {
+    margin-top: 3px; /* Üst boşluğu azalttık */
+    padding: 3px 4px; /* Padding'i daha da küçülttük */
+    border: 1px solid var(--border-color);
+    border-radius: 4px; /* Yuvarlatmayı küçülttük */
+    background-color: var(--input-background);
+    box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.05); /* Gölgeyi küçülttük */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 3px; /* İç elemanlar arası boşluk */
+}
+
+.routes-from-stop-in-panel .route-number {
+  min-width: 26px; /* Boyutunu daha da küçülttük */
+  padding: 2px 4px; /* Padding'i küçülttük */
+  border: 1px solid var(--secondary-text-color);
+  border-radius: 3px;
+  font-weight: 700;
+  text-align: center;
+  background-color: var(--hover-background);
+  color: var(--text-color);
+  font-size: 0.7rem; /* Boyutu küçülttük */
+}
+
+.routes-from-stop-in-panel .route-name {
+  flex-grow: 1;
+  font-size: 0.7rem; /* Boyutu daha da küçülttük */
+  color: var(--secondary-text-color);
+  word-wrap: break-word;
+  line-height: 1.1;
 }
 
 .routes-list {
@@ -318,160 +425,52 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 2px; /* Liste öğeleri arası boşluk */
 }
-
-
-
- .routes-from-stop-in-panel {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color); 
-    padding-left: 1rem;
-    padding-right: 1rem; 
-    padding-bottom: 10px; 
-    background-color: var(--selected-background); 
-    
-    border: 1px solid var(--text-color); 
-    border-radius: 8px; 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
-    box-sizing: border-box; 
-
-  }
-
-.routes-from-stop-in-panel {
-  border: 1px solid #d6c2c2;
-  border-radius: 4px;
-  padding: 6px;
-  margin-top: 6px;
-  background-color: #fffcfc; 
-}
-
-.routes-from-stop-in-panel .route-number {
-  display: inline-block;
-  min-width: 28px;
-  padding: 2px 6px;
-  border: 1px solid #a09b9b;
-  border-radius: 4px;
-  font-weight: bold;
-  text-align: center;
-  margin-right: 6px;
-  background-color: #f5f5f5; 
-}
-
-
-
-
-.routes-from-stop-in-panel h5 {
-    margin-top: 0;
-    margin-bottom: 0.75rem; 
-    font-size: 0.9rem;
-    color: var(--text-color); 
-    font-weight: 600;
-}
-
 
 .route-item {
   background-color: var(--hover-background);
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: 3px 4px; /* Padding'i küçülttük */
+  border-radius: 4px;
+  font-size: 0.75rem;
   color: var(--text-color);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 3px; /* İç elemanlar arası boşluk */
   transition: background-color 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .route-item:hover {
-  background-color: var(--border-color);
+  background-color: var(--selected-background);
+  border-color: var(--primary-color);
 }
 
-.route-number {
+.route-item .route-number {
   font-weight: bold;
-  color: var(--primary-color);
-  min-width: 50px;
+  color: white;
+  min-width: 30px; /* Boyutunu daha da küçülttük */
+  text-align: center;
+  padding: 2px 3px;
+  border: 1px solid var(--primary-color);
+  border-radius: 3px;
+  background-color: var(--primary-color);
+  font-size: 0.7rem;
 }
 
-.route-name {
+.route-item .route-name {
   flex-grow: 1;
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Boyutu küçülttük */
   color: var(--secondary-text-color);
 }
 
 .no-routes, .loading-routes {
   text-align: center;
-  padding: 1rem;
+  padding: 8px; /* Padding'i küçülttük */
   color: var(--secondary-text-color);
-  font-style: italic;
-  font-size: 0.85rem;
+  font-style: normal;
+  font-size: 0.75rem;
 }
 
-
-:root {
-  --panel-background: #ffffff;
-  --header-background: #f8f9fa;
-  --header-text-color: #1f2937;
-  --text-color: #1f2937;
-  --secondary-text-color: #6b7280;
-  --border-color: #e5e7eb;
-  --input-background: #ffffff;
-  --hover-background: #f3f4f6;
-  --selected-background: #eff6ff;
-  --primary-color: #3b82f6;
-  --button-hover-bg: #2563eb;
-  --danger-color: #ef4444;
-  --danger-hover-color: #dc2626;
-  --search-input-text-color: #333;
-  --search-input-placeholder-color: #777;
-}
-
-.dark-theme {
-  --panel-background: #1f2937;
-  --header-background: #111827;
-  --header-text-color: #f9fafb;
-  --text-color: #f9fafb;
-  --secondary-text-color: #9ca3af;
-  --border-color: #374151;
-  --input-background: #374151;
-  --hover-background: #374151;
-  --selected-background: #1e3a8a;
-  --primary-color: #60a5fa;
-  --button-hover-bg: #3b82f6;
-  --danger-color: #f87171;
-  --danger-hover-color: #ef4444;
-  --search-input-text-color: #f0f0f0;
-  --search-input-placeholder-color: #b0b0b0;
-}
-
-.stops-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.stops-list::-webkit-scrollbar-track {
-  background: var(--panel-background);
-}
-
-.stops-list::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.stops-list::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-text-color);
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
-}
+/* Scrollbar stilleri - Zaten vardı, iyi */
+/* @keyframes pulse - Zaten vardı, iyi */
