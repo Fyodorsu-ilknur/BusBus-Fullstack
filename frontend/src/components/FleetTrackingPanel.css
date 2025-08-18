@@ -110,3 +110,58 @@
 .fleet-tracking-content::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-text-color);
 }
+
+.vehicle-tracking-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.vehicle-tracking-item {
+  background-color: var(--list-item-bg); /* Beyaz arka plan */
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vehicle-tracking-item:hover {
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
+}
+
+.vehicle-main-info,
+.vehicle-location-info,
+.vehicle-status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+.vehicle-main-info strong {
+  font-size: 0.9rem;
+  color: var(--header-text-color);
+}
+
+.vehicle-location-info span,
+.vehicle-status-info span {
+  flex: 1; /* Eşit dağılsınlar */
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 10px; /* Sağa boşluk */
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--secondary-text-color);
+  font-size: 0.9rem;
+}

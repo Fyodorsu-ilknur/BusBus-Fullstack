@@ -79,6 +79,93 @@ function App() {
     setCurrentDirection(direction);
   }, []);
 
+
+const getRandomLocation = () => {
+  const izmirCenterLat = 38.419;
+  const izmirCenterLng = 27.128;
+  const range = 0.1; // +/- 0.1 derece enlem/boylam
+
+  const lat = izmirCenterLat + (Math.random() * 2 - 1) * range;
+  const lng = izmirCenterLng + (Math.random() * 2 - 1) * range;
+  return [lng, lat]; // Mapbox/Leaflet için [lng, lat] formatı
+};
+
+// Rastgele bir hız üretici
+const getRandomSpeed = () => Math.floor(Math.random() * 80) + 10; // 10-90 km/s
+
+// Rastgele bir plaka üretici (Örn: 35 ABC 123)
+const generateRandomPlate = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const nums = '0123456789';
+  let plate = '35 ';
+  for (let i = 0; i < 3; i++) plate += chars.charAt(Math.floor(Math.random() * chars.length));
+  plate += ' ';
+  for (let i = 0; i < 3; i++) plate += nums.charAt(Math.floor(Math.random() * nums.length));
+  return plate;
+};
+
+// Simüle edilmiş tek bir araç objesi üretici
+const generateSimulatedVehicle = (id, routeNumber, routeName, currentRoute) => {
+    const randomLocation = getRandomLocation();
+    const randomSpeed = getRandomSpeed();
+    const randomOdometer = Math.floor(Math.random() * 100000) + 10000; // 10,000 - 110,000 km
+    const now = new Date();
+
+    return {
+        id: `vehicle-${id}`, // Aracın benzersiz ID'si
+        vehicleId: id,
+        plate: generateRandomPlate(),
+        speed: randomSpeed,
+        location: {
+            lat: randomLocation[1],
+            lng: randomLocation[0]
+        },
+        lastGpsTime: now.toLocaleTimeString('tr-TR'),
+        odometer: randomOdometer,
+        // Diğer simüle edilmiş veriler
+        activeCouple: Math.random() > 0.5 ? 'Evet' : 'Hayır',
+        samId: `0${Math.floor(Math.random() * 9000000) + 1000000}`,
+        engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
+        batteryVolt: `${Math.floor(Math.random() * 4) + 24} V`, // 24-28V
+        fuelRate: `${(Math.random() * 0.5 + 0.1).toFixed(2)} L/Saat`, // 0.1-0.6 L/saat
+        driverInfo: {
+            personnelNo: Math.floor(Math.random() * 100000),
+            name: Math.random() > 0.5 ? 'CAN AHMET' : 'VEYSEL EKİN'
+        },
+        tripNo: Math.floor(Math.random() * 1000000),
+        companyAd: Math.random() > 0.5 ? '11 Vagon (Tramvay)' : 'Eshot (Otobüs)',
+        routeCode: currentRoute?.id || `RT-${id}`,
+        routeName: currentRoute?.route_name || `Rota ${routeNumber}`,
+        pathCode: `PATH-${routeNumber}`,
+        startDateTime: now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR'),
+        endDateTime: new Date(now.getTime() + 3600 * 1000).toLocaleDateString('tr-TR') + ' ' + new Date(now.getTime() + 3600 * 1000).toLocaleTimeString('tr-TR'), // 1 saat sonra
+        // ... diğer istenen veriler
+    };
+};
+
+// Tüm rotalar için araç verisi üreten ve periyodik olarak güncelleyen useEffect
+useEffect(() => {
+    if (Object.keys(allRoutes).length === 0) {
+        return; // Rota verisi yoksa araç üretme
+    }
+
+    const generateAndSetVehicles = () => {
+        const newVehicles = Object.values(allRoutes).map((route, index) => {
+            // Her rotadan bir araç simüle et
+            return generateSimulatedVehicle(route.id, route.route_number, route.route_name, route);
+        });
+        setVehicles(newVehicles);
+    };
+
+    // Uygulama başladığında ve her 5 saniyede bir araç verilerini güncelle
+    generateAndSetVehicles(); // İlk yüklemede çalıştır
+    const intervalId = setInterval(generateAndSetVehicles, 5000); // Her 5 saniyede bir güncelle
+
+    return () => clearInterval(intervalId); // Bileşen unmount edildiğinde interval'i temizle
+}, [allRoutes]); // allRoutes değiştiğinde tekrar çalıştır
+
+
+
   const handleVehicleClick = async (item) => {
     console.log("handleVehicleClick çağrıldı, item:", item);
     // Eğer aynı item tekrar seçilirse veya item boşsa, sıfırla
@@ -654,7 +741,9 @@ const toggleRouteProgressPanelActive = useCallback(() => {
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
                 <FleetTrackingPanel
                   onClose={closeFleetTrackingPanel}
-                  // Buraya Filo Takip bileşeniniz için gerekli propları ekleyeceksiniz
+                  vehicles={vehicles}
+
+              
                 />
               </div>
             )}
