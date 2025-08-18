@@ -1,11 +1,14 @@
+// frontend/src/components/Navbar.js
 import React from 'react';
 import './Navbar.css';
 
-function Navbar({ onToggleSidebarExpansion, onToggleTheme, currentTheme }) {
+// onToggleSidebarExpansion yerine toggleSidebar olarak değiştirildi
+function Navbar({ toggleSidebar, onToggleTheme, currentTheme }) {
   return (
     <nav className="navbar-container">
       <div className="navbar-left">
-        <button className="hamburger-icon-button" onClick={onToggleSidebarExpansion} title="Sidebar Aç/Kapat">
+        {/* onClick handler'ı toggleSidebar olarak değiştirildi */}
+        <button className="hamburger-icon-button" onClick={toggleSidebar} title="Sidebar Aç/Kapat">
           <span className="material-icons">menu</span>
         </button>
         <div className="logo">

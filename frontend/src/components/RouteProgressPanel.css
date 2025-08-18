@@ -1,62 +1,265 @@
+/* RouteProgressPanel.css */
 
 .route-progress-panel {
-    position: fixed; 
-    top: 200px; 
-    right: 20px; 
-    width: 180px; 
-    height: calc(100vh - 80px); 
-    background-color: var(--panel-bg); 
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    color: var(--panel-text); 
-    z-index: 50; 
-    pointer-events: auto; 
-    overflow: hidden; 
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  width: 300px;
+  max-height: calc(100vh - 100px);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.route-progress-panel .panel-header h3 {
-    margin: 0 0 10px 0;
-    color: var(--panel-header-text); 
-    font-size: 1.1em;
-    border-bottom: 1px solid var(--panel-border); 
-    padding-bottom: 8px;
+.panel-header {
+  background: linear-gradient(135deg, #90b3ea, #1976D2);
+  color: white;
+  padding: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px 12px 0 0;
 }
 
-.route-progress-panel .stop-list-scroll-area {
-    flex-grow: 1;
-    overflow-y: auto; 
-    padding-right: 5px; 
+.panel-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
 }
 
-.route-progress-panel .route-stops-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
 }
 
-.route-progress-panel .route-stop-item {
-    padding: 8px 0;
-    font-size: 0.9em;
-    border-bottom: 1px dashed var(--list-item-border); 
-    display: flex;
-    align-items: center;
-    color: var(--list-item-text); 
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.route-progress-panel .route-stop-item:last-child {
-    border-bottom: none;
+.route-info-section {
+  padding: 1px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.route-progress-panel .route-stop-item.active-stop {
-    color: var(--button-bg); 
-    font-weight: bold;
+.route-direction-info {
+  margin-bottom: 11px;
+  font-size: 0.95em;
+  color: #495057;
+}
+
+.direction-toggle-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 3px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.direction-toggle-btn:hover {
+  background: #218838;
+}
+
+.current-stop-info {
+  padding: 3px;
+  background: linear-gradient(135deg, #FFF3CD, #FFF8E1);
+  border-bottom: 1px solid #FFE082;
+}
+
+.current-stop-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-stop-icon-large {
+  width: 32px;
+  height: 32px;
+  filter: hue-rotate(45deg);
+}
+
+.current-stop-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 1em;
+  color: #F57F17;
+}
+
+.current-stop-text p {
+  margin: 0 0 4px 0;
+  font-size: 1.05em;
+  color: #655f5f;
+}
+
+.stop-sequence {
+  font-size: 0.85em;
+  color: #3c3a3a;
+  background: rgba(245, 127, 23, 0.1);
+  padding: 2px 3px;
+  border-radius: 12px;
+}
+
+.stop-list-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.stop-list-scroll-area h4 {
+  margin: 0 0 12px 0;
+  font-size: 1em;
+  color: #424344;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 1px;
+}
+
+.route-stops-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.route-stop-item {
+  display: flex;
+  align-items: center;
+  padding: 1px;
+  margin-bottom: 3px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.route-stop-item:hover {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.route-stop-item.active-stop {
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-color: #2196F3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+  animation: pulseActive 2s infinite;
+}
+
+.stop-number {
+  width: 30px;
+  height: 30px;
+  background: #6c757d;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.active-stop .stop-number {
+  background: #2196F3;
+  animation: pulse 2s infinite;
+}
+
+.stop-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.stop-name {
+  font-size: 0.95em;
+  color: #333;
+  line-height: 1.4;
+}
+
+.active-indicator {
+  display: block;
+  font-size: 0.8em;
+  color: #2196F3;
+  font-weight: bold;
+  margin-top: 3px;
 }
 
 .current-stop-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  filter: hue-rotate(45deg);
+  animation: bounce 1s infinite;
+}
+
+.panel-footer {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.panel-footer small {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.no-route-message {
+  padding: 32px 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.no-route-message p {
+  margin: 8px 0;
+}
+
+/* Animasyonlar */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseActive {
+  0% { box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2); }
+  50% { box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4); }
+  100% { box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .route-progress-panel {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100vh - 80px);
+  }
+  
+  .current-stop-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
 }

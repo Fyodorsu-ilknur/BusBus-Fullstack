@@ -1,3 +1,4 @@
+// frontend/src/components/Sidebar.js
 import React from 'react';
 import './Sidebar.css';
 
@@ -5,7 +6,8 @@ function Sidebar({
   onTogglePanel,
   onToggleRouteDetailsPanel,
   onToggleDepartureTimesPanel,
-  onToggleStopSelectorPanel, 
+  onToggleStopSelectorPanel,
+  onToggleRouteNavigationPanel, // YENİ: Nasıl Giderim paneli için
   isExpanded 
 }) {
   return (
@@ -36,13 +38,10 @@ function Sidebar({
           </button>
         </li>
         
+        {/* ⭐ FAVORİ HATLAR İKONU KALDIRILDI */}
+        
         <li>
-          <button className="sidebar-item" title="Favori Hatlar ve Duraklar">
-            <span className="material-icons">star</span>
-          </button>
-        </li>
-        <li>
-          <button className="sidebar-item" title="Nasıl Giderim ?">
+          <button onClick={onToggleRouteNavigationPanel} className="sidebar-item" title="Nasıl Giderim?">
             <span className="material-icons">insights</span>
           </button>
         </li>

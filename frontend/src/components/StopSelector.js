@@ -12,7 +12,8 @@ const StopSelector = ({
   selectedStopIds,   
   onToggleSelectedStop, 
   onClearSelectedStops, 
-  onSelectAllStops    
+  onSelectAllStops  
+    
 }) => {
   const dispatch = useDispatch();
 
@@ -75,8 +76,6 @@ const StopSelector = ({
       const response = await fetch(`http://localhost:5000/api/stop-routes/${stopId}`);
       const data = await response.json();
           console.log(`API'den gelen hat verisi (Durak ${stopId}):`, data);
-
-
 
       if (response.ok) {
         setStopRoutes(prev => ({
@@ -145,14 +144,18 @@ const StopSelector = ({
     setExpandedStopId(null); // Arama yapaken detyları kapat
   };
 
-  const handleScroll = (e) => {
-    const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
-    if (bottom && hasMoreStops && !isLoadingMore) {
+  // 🚀 INFINITE SCROLL: Scroll event handler
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+    
+    // %90 scroll edildiğinde yeni durakları yükle
+    if (scrollPercentage > 0.9 && hasMoreStops && !isLoadingMore && searchTerm === '') {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
       fetchStops(nextPage);
     }
-  };
+  }, [hasMoreStops, isLoadingMore, searchTerm, currentPage, fetchStops]);
 
   const handleStopNameClick = useCallback(async (stop) => {
     onStopSelectForMap(stop); 
@@ -164,15 +167,6 @@ const StopSelector = ({
       await fetchStopRoutes(stop.id);
     }
   }, [onStopSelectForMap, expandedStopId, fetchStopRoutes]);
-
-  // daha fazla durak yükleme
-  const handleLoadMore = () => {
-    if (!isLoadingMore && hasMoreStops) {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      fetchStops(nextPage);
-    }
-  };
 
   const toggleStopExpansion = async (stopId, event) => {
     event.stopPropagation(); 
@@ -188,7 +182,6 @@ const StopSelector = ({
   const handleSelectAllStopsClick = () => {
     onSelectAllStops(); 
   };
-
 
   return (
     <div className="stop-selector">
@@ -238,7 +231,7 @@ const StopSelector = ({
 
       <div
         className="stops-list"
-        onScroll={handleScroll}
+        onScroll={handleScroll} // 🚀 INFINITE SCROLL: Scroll event listener eklendi
       >
         {loading && allStops.length === 0 ? (
           <div className="loading">Duraklar yükleniyor...</div>
@@ -294,6 +287,15 @@ const StopSelector = ({
                             <li key={index} className="route-item">
                               <span className="route-number">{route.route_number}</span>
                               <span className="route-name">{route.route_name}</span>
+                              {/* ♿ Erişilebilirlik ikonları eklendi */}
+                              <div className="route-accessibility-icons">
+                                {route.wheelchair_accessible && (
+                                  <span className="accessibility-icon wheelchair" title="Tekerlekli sandalye erişimi">♿</span>
+                                )}
+                                {route.bicycle_accessible && (
+                                  <span className="accessibility-icon bicycle" title="Bisiklet taşınabilir">🚲</span>
+                                )}
+                              </div>
                             </li>
                           ))}
                         </ul>
@@ -307,11 +309,19 @@ const StopSelector = ({
                 )}
               </div>
             ))}
-            {hasMoreStops && (
-              <div className="load-more-container">
-                <button onClick={handleLoadMore} disabled={isLoadingMore} className="load-more-button">
-                  {isLoadingMore ? 'Yükleniyor...' : 'Daha Fazla Göster'}
-                </button>
+            
+            {/* 🚀 INFINITE SCROLL: "Daha Fazla Göster" butonu kaldırıldı */}
+            {/* Otomatik yükleme göstergesi */}
+            {isLoadingMore && hasMoreStops && (
+              <div className="infinite-scroll-loading">
+                <div className="loading-spinner"></div>
+                <p>Daha fazla durak yükleniyor...</p>
+              </div>
+            )}
+            
+            {!hasMoreStops && allStops.length > 0 && searchTerm === '' && (
+              <div className="end-of-list">
+                <p>Tüm duraklar yüklendi</p>
               </div>
             )}
           </>

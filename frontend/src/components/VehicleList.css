@@ -3,7 +3,7 @@
   background-color: var(--button-bg); 
   color: var(--button-text); 
   border: none; 
-  padding: 6px 10px; 
+  padding: 6px 11px; 
   border-radius: 5px; 
   cursor: pointer;
   font-size: 0.8em; 
@@ -12,7 +12,17 @@
   white-space: nowrap; 
   font-weight: bold; 
 }
-
+.fixed-controls-container {
+  position: sticky; 
+  top: 0; 
+  background-color: var(--panel-bg); 
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+  padding-bottom: 5px; 
+  box-sizing: border-box; 
+  width: 100%; 
+  padding: 5px; 
+}
 .control-button:hover {
   background-color: var(--button-hover-bg);
   transform: translateY(-1px);
@@ -23,10 +33,12 @@
   transform: translateY(1px);
 }
 
-
+.route-selection-controls, .list-items {
+    padding-top: 15px;
+}
 
 .vehicle-list-container {
-  padding: 15px;
+  padding: 2px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -38,7 +50,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 1px;
 }
 
 .list-header h2 {
@@ -53,22 +65,11 @@
   color: var(--panel-text); 
   font-size: 1.2em;
   cursor: pointer;
-  padding: 5px;
+  padding: 2px;
 }
 
 .close-button:hover {
   color: var(--error-text);
-}
-
-.search-input {
-  width: calc(100% - 20px);
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid var(--input-border);
-  border-radius: 5px;
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  font-size: 0.9em;
 }
 
 .list-items {
@@ -78,14 +79,14 @@
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 5px;
+   padding-top: 15px; 
 }
-
 
 .vehicle-item {
   background-color: var(--list-item-bg);
-  padding: 2px 4px;
+  padding: 2px 2px;
    display: flex;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
@@ -119,13 +120,7 @@
   color: var(--route-text-primary-color); 
 }
 
-.item-details {
-  font-size: 0.8em;
-  color: var(--info-text); 
-  padding-left: 10px;
-  border-left: 2px solid var(--input-border);
-  margin-top: 5px;
-}
+
 
 .no-results {
   color: var(--info-text);
@@ -145,11 +140,13 @@
     align-items: center;
     cursor: pointer;
     font-size: 0.9em;
-    color: var(--route-text-secondary-color); 
+        color: var(--route-text-primary-color);
+ font-weight: bold;
+
 }
 
 .route-progress-checkbox {
-    margin-right: 8px;
+    margin-right: 5px;
     transform: scale(1.2);
     cursor: pointer;
 }
@@ -163,10 +160,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 0 5px;
-    border-bottom: 1px solid var(--input-border);
-    padding-bottom: 10px;
+    margin-bottom: 0px;
+    padding: 0;
+    border-bottom:none;
+    padding-bottom: 0px;
 }
 
 .selected-route-count {
@@ -201,7 +198,7 @@
 }
 
 .vehicle-list-checkbox {
-    margin-right: 9px;
+    margin-right: 5px;
     transform: scale(1.1);
     flex-shrink: 0;
 }
@@ -225,20 +222,26 @@
   color: var(--route-text-secondary-color); 
 }
 
-/* V İkon*/
 .expand-toggle-button {
   background: none;
   border: none;
   font-size: 28px;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px;
   margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, color 0.2s ease; 
-
+  border-radius: 4px;
+  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
+.expand-toggle-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--button-bg);
+}
+
+
+
 .light-theme .expand-toggle-button {
     color: #333 !important ;
 }
@@ -246,33 +249,24 @@
 .dark-theme .expand-toggle-button {
     color: #f0f0f0 !important; 
 }
-.expand-toggle-button:hover {
-    color: var(--button-bg); 
-}
+
 
 .item-details {
-  max-height: 0;
+ 
   overflow: hidden;
   transition: max-height 0.3s ease-in-out;
-  padding-left: 30px;
-  padding-right: 15px;
+padding: 10px 15px; 
   width: 100%;
   box-sizing: border-box;
-  padding-top: 5px;
+
   display: flex;
   flex-direction: column;
   gap: 10px;
+
 }
 
 .vehicle-item.selected .item-details {
   max-height: 200px;
-}
-
-.direction-toggle-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    padding-bottom: 5px;
 }
 
 
@@ -293,3 +287,75 @@
 .search-input::placeholder {
   color: var(--search-input-placeholder-color); 
 }
+
+/* VehicleList.css dosyasına eklenecek stiller */
+
+.vehicle-item.expanded {
+  background-color: rgba(66, 133, 244, 0.1);
+  border-left: 4px solid #4285F4;
+}
+.direction-toggle-container {
+  display: flex;
+  flex-direction: row;
+justify-content: space-between;  gap: 5px;
+  margin: 4px 0;
+  padding: 0px;
+  background-color: transparent;
+  border-radius: 6px;
+  align-items: center;
+   gap: 10px;
+   width: 100%; 
+}
+
+.direction-button {
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4285F4;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.direction-button:hover {
+  background-color: #3367D6;
+    transform: translateY(-1px);
+}
+
+.direction-info {
+  font-size: 0.8em;
+  color: var(--route-text-secondary-color); 
+  font-style: italic;
+    white-space: nowrap; 
+      overflow: hidden; 
+  text-overflow: ellipsis; 
+ flex-grow: 1;
+ padding-left: 10px;
+}
+
+.route-progress-checkbox-container {
+  margin-top: 5px;
+  padding: 6px;
+  border-radius: 6px;
+      background-color: var(--highlight-bg-color, rgba(255, 193, 7, 0.1));
+          border-left: 3px solid var(--highlight-border-color, #FFC107); 
+         display: flex;
+         align-items: center;
+         justify-content: space-between;  
+ width: fit-content;
+}
+
+
+.route-summary-text {
+  flex: 1;
+  padding: 8px;
+}
+
+.route-summary-text:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+

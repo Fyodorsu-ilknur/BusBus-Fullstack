@@ -1,20 +1,25 @@
 
 .bus-popup {
-  background-color: white;
-  color: #333;
-  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 5px 10px;
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  font-size: 0.85em;
-  font-weight: bold;
-  white-space: nowrap;
+  font-size: 0.8em;
   position: absolute;
-  bottom: calc(100% + 5px);
+  bottom: calc(100% + 5px); /* Otobüs ikonunun biraz üstünde */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
-  text-align: center;
-  min-width: 120px;
+  white-space: nowrap;
+  pointer-events: none; /* Harita etkileşimlerini engellemesin */
+  z-index: 11; /* Otobüs ikonundan ve diğer markerlardan daha yüksek */
+}
+
+.bus-popup div {
+  margin-bottom: 2px;
+}
+
+.bus-popup div:last-child {
+  margin-bottom: 0;
 }
 
 .route-checkbox-label {

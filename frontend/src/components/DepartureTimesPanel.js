@@ -1,13 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { FaSearch } from 'react-icons/fa';
 import './RouteDetailsPanel.css'; 
 
-function DepartureTimesPanel({ onClose }) {
+function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
   const [selectedBusNumber, setSelectedBusNumber] = useState('');
   const [selectedDay, setSelectedDay] = useState('monday'); 
   const [departureData, setDepartureData] = useState(null); 
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [displayDirection, setDisplayDirection] = useState('gidis'); 
+
+  // 🚌 YENİ: Arama ve hat listesi özellikleri
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredRoutes, setFilteredRoutes] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchInputRef = useRef(null);
 
   const daysOfWeek = [
     { key: 'monday', label: 'Pazartesi' },
@@ -18,6 +25,23 @@ function DepartureTimesPanel({ onClose }) {
     { key: 'saturday', label: 'Cumartesi' },
     { key: 'sunday', label: 'Pazar' },
   ];
+
+  // 🚌 allRoutes veya searchTerm değiştiğinde listeyi filtrele
+  useEffect(() => {
+    const routesArray = Object.values(allRoutes || {}); // allRoutes obje olarak geliyor, diziye çeviriyoruz
+    if (searchTerm.trim() === '') {
+      setFilteredRoutes(routesArray); // Arama boşsa tüm rotaları göster
+    } else {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+      const filtered = routesArray.filter(route =>
+        (route.route_number && route.route_number.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (route.route_name && route.route_name.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (route.start_point && route.start_point.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (route.end_point && route.end_point.toLowerCase().includes(lowerCaseSearchTerm))
+      );
+      setFilteredRoutes(filtered);
+    }
+  }, [searchTerm, allRoutes]);
 
   const fetchDepartureTimes = useCallback(async () => {
     setErrorMessage('');
@@ -57,8 +81,41 @@ function DepartureTimesPanel({ onClose }) {
     fetchDepartureTimes();
   }, [fetchDepartureTimes]);
 
+  // 🚌 YENİ: Arama kutusuna yazıldığında veya odaklanıldığında
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value); // Arama terimini güncelle
+    setSelectedBusNumber(''); // Manuel girişi temizle
+    setShowDropdown(true); // Dropdown'u göster
+  };
+
+  // 🚌 YENİ: Listedeki bir hatta tıklandığında
+  const handleRouteSelectionFromList = (route) => {
+    setSelectedBusNumber(route.route_number); // Input değerini ayarla
+    setSearchTerm(route.route_number); // Arama kutusunu seçilen hat numarasıyla doldur
+    setShowDropdown(false); // Dropdown'u gizle
+    setDepartureData(null); // Önceki detayları temizle
+  };
+
+  // 🚌 YENİ: Inputtan odak kaybedildiğinde dropdown'u gizle
+  const handleInputBlur = (e) => {
+    setTimeout(() => {
+      if (searchInputRef.current && !searchInputRef.current.contains(document.activeElement)) {
+        setShowDropdown(false);
+      }
+    }, 100);
+  };
+     
+  // 🚌 YENİ: Inputa odaklanıldığında dropdown'u göster
+  const handleInputFocus = () => {
+    setShowDropdown(true);
+  };
+
+  // Eski handler (manuel giriş için korundu)
   const handleBusNumberChange = (e) => {
-    setSelectedBusNumber(e.target.value.trim());
+    const value = e.target.value.trim();
+    setSelectedBusNumber(value);
+    setSearchTerm(value); // Arama terimini de güncelle
   };
 
   const handleDayChange = (e) => {
@@ -72,16 +129,50 @@ function DepartureTimesPanel({ onClose }) {
         <button onClick={onClose} className="close-button">X</button>
       </div>
 
-      <div className="input-group">
+      {/* 🚌 YENİ: Otobüs Numarası Inputu (Arama Özelliği ile) */}
+      <div className="input-group search-dropdown-container">
         <label htmlFor="busNumberInput">Otobüs Numarası:</label>
-        <input
-          id="busNumberInput"
-          type="text"
-          value={selectedBusNumber}
-          onChange={handleBusNumberChange}
-          placeholder="Örn: 15"
-          className="bus-number-input"
-        />
+        <div className="search-input-wrapper">
+          <FaSearch className="search-icon" />
+          <input
+            id="busNumberInput"
+            type="text"
+            value={searchTerm} // Input değeri searchTerm olacak
+            onChange={handleSearchInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            placeholder="Örn: 15 (Hat No veya Hat Adı Giriniz)"
+            className="bus-number-input"
+            ref={searchInputRef}
+          />
+        </div>
+
+        {/* 🚌 YENİ: Arama Sonuçları Dropdown */}
+        {showDropdown && filteredRoutes.length > 0 && (
+          <ul className="route-search-dropdown">
+            {filteredRoutes.map(route => (
+              <li
+                key={route.id}
+                onClick={() => handleRouteSelectionFromList(route)}
+                className="route-search-dropdown-item"
+              >
+                <strong>{route.route_number}</strong> - {route.route_name || `${route.start_point} → ${route.end_point}`}
+                {/* ♿ Erişilebilirlik ikonları */}
+                <div className="route-accessibility-icons">
+                  {route.wheelchair_accessible && (
+                    <span className="accessibility-icon wheelchair" title="Tekerlekli sandalye erişimi">♿</span>
+                  )}
+                  {route.bicycle_accessible && (
+                    <span className="accessibility-icon bicycle" title="Bisiklet taşınabilir">🚲</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {showDropdown && filteredRoutes.length === 0 && searchTerm && (
+          <p className="route-search-dropdown-no-results">Sonuç bulunamadı.</p>
+        )}
       </div>
 
       <div className="input-group">
