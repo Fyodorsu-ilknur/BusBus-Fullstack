@@ -13,7 +13,7 @@ function Navbar({ toggleSidebar, onToggleTheme, currentTheme }) {
         </button>
         <div className="logo">
           <span className="material-icons">location_on</span> 
-          <span>Fleet Management | İZbus</span>
+          <span>Filo Yönetim Paneli | İZbus</span>
         </div>
       </div>
 

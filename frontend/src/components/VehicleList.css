@@ -1,361 +1,462 @@
+/* frontend/src/components/VehicleList.css */
 
+:root {
+  /* Genel Tema Renkleri (StopSelector.css ile Birebir Aynı) */
+  --panel-background: #F7F9FC; /* Açık gri panel arka planı */
+  --header-background: #FFFFFF; /* Beyaz başlık arka planı */
+  --header-text-color: #333C4A; /* Koyu gri başlık metni */
+  --text-color: #4C576C; /* Genel koyu gri metin */
+  --secondary-text-color: #7A899C; /* Daha açık gri ikincil metin */
+  --border-color: #E2E8F0; /* Açık gri kenarlıklar */
+  --input-background: #FFFFFF; /* Beyaz input arka planı */
+  --hover-background: #EEF2F7; /* Çok hafif gri hover durumu */
+  --selected-background: #E3F2FD; /* Seçili öğe için hafif mavi/gri */
+  --primary-color: #4A90E2; /* Vurgu rengi (mavi) */
+  --button-hover-bg: #357ABD; /* Vurgu renginin hover durumu */
+  --danger-color: #E74C3C; /* Kırmızı renk (hata/silme) */
+  --danger-hover-color: #C0392B; /* Kırmızı rengin hover durumu */
+  --search-input-text-color: #4C576C; /* Arama kutusu metin rengi */
+  --search-input-placeholder-color: #A0AEC0; /* Arama kutusu placeholder rengi */
+
+  /* VehicleList Özel Renk Değişkenleri (Global renklerden türetildi) */
+  --list-item-bg: var(--header-background); /* Liste öğesi arka planı */
+  --list-item-selected-bg: var(--selected-background); /* Seçili liste öğesi arka planı */
+  --list-item-text: var(--text-color); /* Liste öğesi metin rengi */
+  --list-item-selected-text: var(--text-color); /* Seçili liste öğesi metin rengi */
+  --route-text-primary-color: var(--text-color); /* Hat numarası vb. */
+  --route-text-secondary-color: var(--secondary-text-color); /* Hat adı, başlangıç/bitiş vb. */
+  --highlight-bg-color: var(--hover-background); /* Checkbox highlight arka planı */
+  --highlight-border-color: var(--primary-color); /* Checkbox highlight kenarlığı */
+  --button-text: white; /* Buton metin rengi */
+}
+
+/* Dark Theme Ayarları (StopSelector.css ile Birebir Aynı) */
+.dark-theme {
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --search-input-text-color: #F7FAFC;
+  --search-input-placeholder-color: #CBD5E0;
+
+  /* VehicleList özel dark theme renkleri */
+  --list-item-bg: var(--header-background);
+  --list-item-selected-bg: var(--selected-background);
+  --list-item-text: var(--text-color);
+  --list-item-selected-text: var(--text-color);
+  --route-text-primary-color: var(--text-color);
+  --route-text-secondary-color: var(--secondary-text-color);
+  --highlight-bg-color: var(--hover-background);
+  --highlight-border-color: var(--primary-color);
+  --button-text: white;
+}
+
+/* Genel Buton Stilleri (Tümünü Seç, Temizle, Durak Takibi gibi) */
 .control-button {
-  background-color: var(--button-bg); 
-  color: var(--button-text); 
-  border: none; 
-  padding: 6px 11px; 
-  border-radius: 5px; 
+  background-color: var(--primary-color);
+  color: var(--button-text);
+  border: none;
+  padding: 4px 6px; /* StopSelector ile uyumlu */
+  border-radius: 4px; /* StopSelector ile uyumlu */
   cursor: pointer;
-  font-size: 0.8em; 
-  margin-left: 8px; 
+  font-size: 0.7rem; /* StopSelector ile uyumlu */
+  margin-left: 5px; /* StopSelector ile uyumlu */
   transition: background-color 0.2s ease, transform 0.1s ease;
-  white-space: nowrap; 
-  font-weight: bold; 
+  white-space: nowrap;
+  font-weight: 600;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.04); /* StopSelector ile uyumlu */
+  display: flex; /* İkon ve metin için */
+  align-items: center; /* İkon ve metin için */
+  gap: 2px; /* İkon ve metin arası boşluk - StopSelector ile uyumlu */
 }
-.fixed-controls-container {
-  position: sticky; 
-  top: 0; 
-  background-color: var(--panel-bg); 
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
-  padding-bottom: 5px; 
-  box-sizing: border-box; 
-  width: 100%; 
-  padding: 5px; 
-}
+
 .control-button:hover {
   background-color: var(--button-hover-bg);
-  transform: translateY(-1px);
+  transform: translateY(-0.5px); /* Daha az transform */
 }
 
 .control-button:active {
-  background-color: var(--button-active-bg);
-  transform: translateY(1px);
+  background-color: var(--button-hover-bg);
+  transform: translateY(0.5px); /* Daha az transform */
 }
 
+/* Sabit Kontrol Kapsayıcısı (Başlık ve Arama Alanı) */
+.fixed-controls-container {
+  position: sticky;
+  top: 0;
+  background-color: var(--panel-background);
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Daha hafif gölge */
+  padding: 8px 12px; /* StopSelector ile uyumlu */
+  border-bottom: 1px solid var(--border-color); /* StopSelector ile uyumlu */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Liste Öğeleri ve Rota Seçim Kontrolleri */
 .route-selection-controls, .list-items {
-    padding-top: 15px;
+    padding-top: 0;
 }
 
+/* Ana Liste Kapsayıcısı */
 .vehicle-list-container {
-  padding: 2px;
+  padding: 0; /* Padding dışarıya alındı */
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  background-color: var(--panel-bg);
-  color: var(--panel-text); 
+  background-color: var(--panel-background);
+  color: var(--text-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Liste Başlığı */
 .list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1px;
+  padding: 8px 12px; /* StopSelector ile uyumlu */
+  border-bottom: 1px solid var(--border-color); /* StopSelector ile uyumlu */
+  background: var(--header-background); /* StopSelector ile uyumlu */
+  flex-shrink: 0;
 }
 
 .list-header h2 {
   margin: 0;
-  font-size: 1.1em;
-  color: var(--panel-header-text); 
+  font-size: 0.95rem; /* StopSelector ile uyumlu */
+  font-weight: 700;
+  color: var(--header-text-color);
 }
 
+/* Kapat Butonu */
 .close-button {
   background: none;
   border: none;
-  color: var(--panel-text); 
-  font-size: 1.2em;
+  font-size: 0.9rem; /* StopSelector ile uyumlu */
   cursor: pointer;
-  padding: 2px;
+  color: var(--secondary-text-color);
+  padding: 3px; /* StopSelector ile uyumlu */
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .close-button:hover {
-  color: var(--error-text);
+  background-color: var(--hover-background);
+  color: var(--header-text-color);
 }
 
+/* Liste Öğeleri Genel Alanı */
 .list-items {
   list-style: none;
-  padding: 0;
+  padding: 6px 6px; /* StopSelector ile uyumlu */
   margin: 0;
   flex-grow: 1;
   overflow-y: auto;
-  padding-right: 5px;
-   padding-top: 15px; 
+  -webkit-overflow-scrolling: touch; /* iOS için scroll performansı */
 }
 
+/* Her Bir Araç/Hat Öğesi */
 .vehicle-item {
-  background-color: var(--list-item-bg);
-  padding: 2px 2px;
-   display: flex;
-  margin-bottom: 2px;
-  border-radius: 6px;
+  background-color: #ffffff;
+  padding: 4px 6px; /* Padding azaltıldı, StopSelector'daki stop-item padding: 6px 8px'e yakın */
+  display: flex;
+  flex-direction: column; /* Butonlar için dikey layout */
+  margin-bottom: 8px; /* StopSelector ile uyumlu */
+  border-radius: 5px; /* StopSelector ile uyumlu */
   cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-  color: var(--list-item-text); /* Temel liste metin renini kullan */
-   align-items: center;
-     justify-content: space-between;
-     position: relative;
+  transition: all 0.2s ease;
+  color: var(--list-item-text);
+  position: relative;
   overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); /* StopSelector ile uyumlu */
 }
 
 .vehicle-item:hover {
-  background-color: var(--list-item-selected-bg);
-  color: var(--list-item-selected-text); 
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
 }
 
 .vehicle-item.selected {
-  background-color: var(--list-item-selected-bg);
-  color: var(--list-item-selected-text); 
-  font-weight: bold;
-  border: 1px solid var(--button-bg); 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--selected-background);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.15); /* StopSelector ile uyumlu */
+  font-weight: 600;
 }
 
-.item-title {
-  font-size: 0.9em;
-   display: flex;
+/* Ana içerik wrapper - checkbox, text ve V ikonu */
+.item-content-wrapper {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
-.item-title strong {
-  color: var(--route-text-primary-color); 
+/* Başlık Alanı (Checkbox + Metin) */
+.item-title {
+  display: flex;
+  align-items: center; /* Hat No ve isim aynı taban çizgide olsun */
+  flex-grow: 1;
+  gap: 8px; /* Checkbox ve metin arası boşluk */
+  min-width: 0; /* İçerik taşmasını engeller */
+  line-height: 1.1;
+  overflow: hidden; 
 }
 
+/* Checkbox stili */
+.vehicle-list-checkbox {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 
+/* Route summary text kapsayıcısı */
+.route-summary-text {
+  flex-grow: 1;
+  min-width: 0;
+}
 
+.item-title strong { /* Hat No için */
+  font-size: 0.8rem; /* StopSelector'daki stop-name ile aynı */
+  color: var(--text-color);
+  font-weight: 600;
+  flex-shrink: 0; /* Küçülmesini engeller */
+  white-space: nowrap; /* Hat No tek satırda kalır */
+}
+
+.route-name-display { /* Güzergah adı için yeni sınıf */
+  font-size: 0.7rem; /* StopSelector'daki stop-details-text ile aynı */
+  color: var(--secondary-text-color);
+  word-wrap: break-word; /* Uzun metinler için */
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Şimdilik tek satır, gerekirse kaldırılabilir */
+  line-height: 1.2;
+  min-width: 0;
+  flex-grow: 1;
+}
+
+.route-points-display {
+  font-size: 0.7rem;
+  color: var(--secondary-text-color);
+  line-height: 1.2;
+}
+
+/* Expand/Collapse ("V" İkonu) Butonu - Sağda sabit */
+.expand-toggle-button {
+  background: var(--hover-background); /* StopSelector ile uyumlu */
+  border: 1px solid var(--border-color); /* StopSelector ile uyumlu */
+  color: var(--secondary-text-color); /* StopSelector ile uyumlu */
+  width: 22px; /* StopSelector ile uyumlu */
+  height: 22px; /* StopSelector ile uyumlu */
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+  font-size: 0.85rem; /* StopSelector'daki ikon boyutuna yakın */
+  box-shadow: 0 1px 1px rgba(0,0,0,0.04); /* StopSelector ile uyumlu */
+}
+
+.expand-toggle-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Açılan Detay Alanı (V ikonuna tıklayınca açılan panel) */
+.item-details {
+  margin-top: 8px;
+  padding: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Gidiş/Dönüş Butonları Yan Yana */
+.direction-buttons-row {
+  display: flex;
+  gap: 8px; /* Butonlar arası boşluk */
+  width: 100%;
+}
+
+/* Gidiş/Dönüş Butonu - Tümünü Seç butonu ile aynı stil */
+.direction-button {
+    background: var(--primary-color); /* StopSelector ile uyumlu */
+  color: white;
+  border: none;
+  padding: 4px 8px; /* StopSelector ile uyumlu */
+  border-radius: 4px; /* StopSelector ile uyumlu */
+  font-size: 0.7rem; /* StopSelector ile uyumlu */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 2px; /* StopSelector ile uyumlu */
+  white-space: nowrap;
+  font-weight: 600;
+  flex-shrink: 0; /* Küçülmesini engeller */
+
+}
+
+.direction-button:hover {
+  background-color: var(--button-hover-bg);
+  transform: translateY(-0.5px);
+}
+
+.direction-button:active {
+  background-color: var(--button-hover-bg);
+  transform: translateY(0.5px);
+}
+
+.direction-button.active {
+  background-color: var(--button-hover-bg);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Durak Takibi Paneli Aç Butonu - Tümünü Seç butonu ile aynı stil */
+.open-stop-tracking-button {
+  width: 100%;
+  margin-left: 0 !important; /* control-button'daki margin-left'i sıfırla */
+}
+
+/* Sonuç Bulunamadı Metni */
 .no-results {
-  color: var(--info-text);
-  font-size: 0.9em;
+  color: var(--secondary-text-color);
+  font-size: 0.8rem; /* StopSelector ile uyumlu */
   text-align: center;
-  margin-top: 20px;
+  padding: 12px; /* StopSelector ile uyumlu */
+  font-style: normal; /* varsayılan italic yerine normal */
 }
 
-.route-progress-checkbox-container {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--input-border);
-}
-
-.route-progress-checkbox-container .checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 0.9em;
-        color: var(--route-text-primary-color);
- font-weight: bold;
-
-}
-
-.route-progress-checkbox {
-    margin-right: 5px;
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
-.route-progress-text {
-    font-weight: bold;
-    font-size: 12px;
-}
-
+/* Rota Seçim Kontrolleri (Üstteki "0 hat seçili" ve butonlar) */
 .route-selection-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0px;
-    padding: 0;
-    border-bottom:none;
-    padding-bottom: 0px;
-}
-
-.selected-route-count {
-    font-size: 0.9em;
-    color: var(--route-text-primary-color);
-    font-weight: bold;
-}
-
-.clear-all-routes-button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: background-color 0.2s ease;
-}
-
-.clear-all-routes-button:hover {
-    background-color: var(--button-hover-bg);
-}
-
-.route-checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    font-size: 0.9em;
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.vehicle-list-checkbox {
-    margin-right: 5px;
-    transform: scale(1.1);
+    margin-bottom: 5px; /* StopSelector ile uyumlu */
+    padding: 8px 12px; /* StopSelector ile uyumlu */
+    border-bottom: 1px solid var(--border-color); /* StopSelector ile uyumlu */
     flex-shrink: 0;
 }
 
-.route-summary-text {
-  flex-shrink: 1;
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-  color: var(--route-text-primary-color);
+.selected-route-count {
+    font-size: 0.8rem; /* StopSelector ile uyumlu */
+    color: var(--text-color); /* StopSelector ile uyumlu */
+    font-weight: 600;
+    margin-bottom: 0px; /* StopSelector ile uyumlu */
 }
 
-.route-name-short {
-  font-size: 0.9em;
-  color: var(--route-text-secondary-color); 
-}
-
-.route-points-display {
-  font-size: 0.85em;
-  color: var(--route-text-secondary-color); 
-}
-
-.expand-toggle-button {
-  background: none;
+.clear-all-routes-button,
+.select-all-routes-button {
+  background: var(--primary-color); /* StopSelector ile uyumlu */
+  color: white;
   border: none;
-  font-size: 28px;
+  padding: 4px 8px; /* StopSelector ile uyumlu */
+  border-radius: 4px; /* StopSelector ile uyumlu */
+  font-size: 0.7rem; /* StopSelector ile uyumlu */
   cursor: pointer;
-  padding: 4px;
-  margin-left: auto;
+  transition: background-color 0.2s;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  gap: 2px; /* StopSelector ile uyumlu */
+  white-space: nowrap;
+  font-weight: 600;
+  flex-shrink: 0; /* Küçülmesini engeller */
 }
-.expand-toggle-button:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  color: var(--button-bg);
-}
-
-
-
-.light-theme .expand-toggle-button {
-    color: #333 !important ;
-}
-
-.dark-theme .expand-toggle-button {
-    color: #f0f0f0 !important; 
-}
-
-
-.item-details {
- 
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
-padding: 10px 15px; 
-  width: 100%;
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-}
-
-.vehicle-item.selected .item-details {
-  max-height: 200px;
-}
-
 
 .select-all-routes-button:hover {
-    background-color: var(--button-hover-bg); 
+    background: var(--button-hover-bg);
 }
+
+.clear-all-routes-button {
+    background: var(--danger-color);
+    margin-left: 5px; /* Butonlar arası boşluk */
+}
+
+.clear-all-routes-button:hover {
+    background: var(--danger-hover-color);
+}
+
+/* Search Input Stilleri - StopSelector ile Aynı Estetik */
 .search-input {
-  width: calc(100% - 20px);
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid var(--input-border);
-  border-radius: 5px;
-  background-color: var(--input-bg);
-  color: var(--search-input-text-color); 
-  font-size: 0.9em;
+  width: 100%;
+  padding: 6px 10px 6px 28px; /* StopSelector ile uyumlu */
+  border: 1px solid var(--border-color);
+  border-radius: 5px; /* StopSelector ile uyumlu */
+  background: var(--input-background);
+  color: var(--search-input-text-color);
+  font-size: 0.75rem; /* StopSelector ile uyumlu */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  margin-bottom: 0px;
 }
 
 .search-input::placeholder {
-  color: var(--search-input-placeholder-color); 
+  color: var(--search-input-placeholder-color);
 }
 
-/* VehicleList.css dosyasına eklenecek stiller */
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2); /* StopSelector ile uyumlu */
+}
 
+/* Seçili öğe genişletildiğinde (expanded) alt kenarlık ve gölge */
 .vehicle-item.expanded {
-  background-color: rgba(66, 133, 244, 0.1);
-  border-left: 4px solid #4285F4;
-}
-.direction-toggle-container {
-  display: flex;
-  flex-direction: row;
-justify-content: space-between;  gap: 5px;
-  margin: 4px 0;
-  padding: 0px;
-  background-color: transparent;
-  border-radius: 6px;
-  align-items: center;
-   gap: 10px;
-   width: 100%; 
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); /* StopSelector ile uyumlu */
 }
 
-.direction-button {
-  padding: 5px 8px;
-  border: none;
-  border-radius: 6px;
-  background-color: #4285F4;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  flex-shrink: 0;
-    box-sizing: border-box;
+/* Scrollbar stilleri - StopSelector ile aynı */
+.list-items::-webkit-scrollbar {
+  width: 4px; /* StopSelector ile uyumlu */
 }
 
-.direction-button:hover {
-  background-color: #3367D6;
-    transform: translateY(-1px);
+.list-items::-webkit-scrollbar-track {
+  background: var(--panel-background);
 }
 
-.direction-info {
-  font-size: 0.8em;
-  color: var(--route-text-secondary-color); 
-  font-style: italic;
-    white-space: nowrap; 
-      overflow: hidden; 
-  text-overflow: ellipsis; 
- flex-grow: 1;
- padding-left: 10px;
+.list-items::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px; /* StopSelector ile uyumlu */
 }
 
-.route-progress-checkbox-container {
-  margin-top: 5px;
-  padding: 6px;
-  border-radius: 6px;
-      background-color: var(--highlight-bg-color, rgba(255, 193, 7, 0.1));
-          border-left: 3px solid var(--highlight-border-color, #FFC107); 
-         display: flex;
-         align-items: center;
-         justify-content: space-between;  
- width: fit-content;
+.list-items::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-text-color);
 }
 
-
-.route-summary-text {
-  flex: 1;
-  padding: 8px;
+/* Genel Animasyon Keyframes (eğer kullanılacaksa) */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+  }
 }
-
-.route-summary-text:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-

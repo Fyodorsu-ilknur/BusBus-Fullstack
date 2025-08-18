@@ -1,0 +1,112 @@
+/* frontend/src/components/FleetTrackingPanel.css */
+
+/* Renk Paleti - StopSelector.css'ten kopyalandı */
+:root {
+  --panel-background: #F7F9FC; /* Açık gri panel arka planı */
+  --header-background: #FFFFFF; /* Beyaz başlık arka planı */
+  --header-text-color: #333C4A; /* Koyu gri başlık metni */
+  --text-color: #4C576C; /* Genel koyu gri metin */
+  --secondary-text-color: #7A899C; /* Daha açık gri ikincil metin */
+  --border-color: #E2E8F0; /* Açık gri kenarlıklar */
+  --input-background: #FFFFFF; /* Beyaz input arka planı */
+  --hover-background: #EEF2F7; /* Çok hafif gri hover durumu */
+  --selected-background: #E3F2FD; /* Seçili öğe için hafif mavi/gri */
+  --primary-color: #4A90E2; /* Vurgu rengi (mavi) */
+  --button-hover-bg: #357ABD; /* Vurgu renginin hover durumu */
+  --danger-color: #E74C3C; /* Kırmızı renk (hata/silme) */
+  --danger-hover-color: #C0392B; /* Kırmızı rengin hover durumu */
+  --search-input-text-color: #4C576C; /* Arama kutusu metin rengi */
+  --search-input-placeholder-color: #A0AEC0; /* Arama kutusu placeholder rengi */
+}
+
+.dark-theme {
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --search-input-text-color: #F7FAFC;
+  --search-input-placeholder-color: #CBD5E0;
+}
+
+.fleet-tracking-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-background);
+  color: var(--text-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fleet-tracking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--header-background);
+  flex-shrink: 0;
+}
+
+.fleet-tracking-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--header-text-color);
+}
+
+.fleet-tracking-panel .close-button {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--secondary-text-color);
+  padding: 3px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.fleet-tracking-panel .close-button:hover {
+  background-color: var(--hover-background);
+  color: var(--header-text-color);
+}
+
+.fleet-tracking-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px; /* İçerik için boşluk */
+}
+
+.fleet-tracking-content p {
+  color: var(--text-color);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Scrollbar stilleri */
+.fleet-tracking-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fleet-tracking-content::-webkit-scrollbar-track {
+  background: var(--panel-background);
+}
+
+.fleet-tracking-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.fleet-tracking-content::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-text-color);
+}

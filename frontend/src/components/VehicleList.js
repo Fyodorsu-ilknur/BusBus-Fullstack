@@ -1,4 +1,3 @@
-
 // frontend/src/components/VehicleList.js
 import React, { useState, useEffect, useCallback } from 'react';
 import './VehicleList.css';
@@ -18,10 +17,10 @@ function VehicleList({
   selectedRoute, // App.js'teki selectedRoute'a karşılık gelir (animasyon için kullanılan hat objesi)
   currentDirection,
   onToggleDirection,
-  theme
+  theme // Tema prop'u hala kullanılıyorsa
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedItems, setExpandedItems] = new useState(new Set()); // new Set() kullanımı doğru
+  const [expandedItems, setExpandedItems] = useState(new Set()); // new Set() kullanımı doğru
 
   const handleSearchChange = (event) => {
     const term = event.target.value;
@@ -69,44 +68,38 @@ function VehicleList({
     }
   };
 
-  // Hat adına tıklama işlevi: Sadece paneli açıp kapatır, animasyonu etkilemez
-  // NOT: Bu fonksiyon çağrısı JSX'ten kaldırıldığı için sadece burada duruyor ama çağrılmayacak.
-  const handleItemNameClick = (e, item) => {
-    e.stopPropagation(); // Olayın üst elementlere yayılmasını engeller
-    const isCurrentlyExpanded = expandedItems.has(item.id);
-    const newExpandedItems = new Set(expandedItems);
-
-    if (isCurrentlyExpanded) {
-      newExpandedItems.delete(item.id);
-    } else {
-      newExpandedItems.add(item.id);
-    }
-    setExpandedItems(newExpandedItems);
-  };
-
-  // Durak Takibi Checkbox'ının değişim işlevi
-  const handleToggleRouteProgress = useCallback(() => {
+  // Durak Takibi Butonunun tıklama işlevi (checkbox yerine buton)
+  const handleToggleRouteProgressButton = useCallback((e) => {
+      e.stopPropagation(); // Olayın üst elementlere yayılmasını engeller
       onToggleRouteProgressPanelActive(); // App.js'teki fonksiyonu çağır
   }, [onToggleRouteProgressPanelActive]);
 
 
-  // Gidiş/Dönüş butonuna tıklama işlevi
-  const handleToggleDirectionClick = (e) => {
+  // Yön butonlarına tıklama işlevi (Gidiş/Dönüş)
+  const handleDirectionButtonClick = (e, item, direction) => {
     e.stopPropagation(); // Olayın üst elementlere yayılmasını engeller
-    // Yön değiştirme callback'i varsa ve diğer yön için güzergah verisi varsa
-    if (onToggleDirection && selectedRoute?.directions?.[currentDirection === '1' ? '2' : '1']?.length > 0) {
-      onToggleDirection(currentDirection === '1' ? '2' : '1');
-    } else if (onToggleDirection && selectedRoute?.directions?.['1']?.length > 0) {
-      // Sadece gidiş yönü varsa, gidiş yönünde kalmaya devam et
-      onToggleDirection(currentDirection);
+    if (!onToggleDirection || !item || !item.id) {
+        return; // Gerekli prop'lar veya item yoksa çık
+    }
+
+    const targetRoute = selectedRoute && selectedRoute.id === item.id ? selectedRoute : null;
+
+    if (targetRoute && targetRoute.directions?.[direction]?.length > 0) {
+        onToggleDirection(direction);
+    } else if (item.directions?.[direction]?.length > 0) { // selectedRoute henüz ayarlanmamışsa, item'ın kendi yönlerini kontrol et
+        onToggleDirection(direction);
+    } else {
+        console.warn(`Güzergah bilgisi bulunamadı: Yön ${direction}`);
+        // İsterseniz burada kullanıcıya bir mesaj gösterebilirsiniz
     }
   };
+
 
   return (
     <div className="vehicle-list-container">
       <div className="fixed-controls-container">
         <div className="list-header">
-          <h2>Aktif Araçlar / Arama Sonuçları</h2>
+          <h2>Hat Güzergah Takip</h2>
           <button onClick={onClose} className="close-button">X</button>
         </div>
 
@@ -143,29 +136,21 @@ function VehicleList({
                 key={item.id}
                 className={`vehicle-item ${selectedVehicle?.id === item.id ? 'selected' : ''} ${expandedItems.has(item.id) ? 'expanded' : ''}`}
               >
-                <div className="item-title" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                {/* Checkbox, Hat No ve Güzergah Adı ile V ikonunu kapsayan ana satır */}
+                <div className="item-content-wrapper">
+                  <div className="item-title">
                     <input
                       type="checkbox"
                       checked={selectedRouteIds.includes(item.id)}
-                      onClick={(e) => e.stopPropagation()} // Checkbox'ın tıklama olayının yayılmasını engelle
-                      onChange={() => handleRouteCheckboxChange(item.id)} // Redux state'ini güncelle
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => handleRouteCheckboxChange(item.id)}
                       className="vehicle-list-checkbox"
                     />
 
-                    <div
-                      className="route-summary-text"
-                      // onClick={(e) => handleItemNameClick(e, item)} <-- BU SATIRI KALDIRILDI!
-                      // Hat adına tıklama iptal edildi, sadece görsel genişletme/daraltma handleItemNameClick ile yapılmıyordu.
-                      // Sadece V ikonuna tıklanınca genişlemesi isteniyorsa, onClick buraya da eklenmemeli.
-                      // Şu anki mantıkta handleItemNameClick sadece V ikonunun onClick'i içinde çağrılıyor.
-                    >
+                    <div className="route-summary-text">
                       <strong>Hat No: {item.route_number}</strong>
-                      {item.route_name && <span className="route-name-short"> ({item.route_name})</span>}
+                      {item.route_name && <span className="route-name-display"> ({item.route_name})</span>}
                       <br />
-                  
-                      {/* Güzergah Bilgisi Yok yazısını kaldırmak için: */}
-                      {/* Sadece başlangıç veya bitiş noktası varsa render et */}
                       {(item.start_point || item.end_point) ? (
                         <span className="route-points-display">
                             {item.start_point}{' '}
@@ -173,21 +158,15 @@ function VehicleList({
                             {item.end_point}
                         </span>
                       ) : (
-                        // Eğer iki bilgi de yoksa, boş bir span render et, hiçbir şey yazmasın.
-                        // Ya da bu kısmı hiç render etmeyebiliriz, bu da boş bir satır bırakır.
-                        // Güzergah Bilgisi Yok yazısının yerine boşluk için:
-                        <span className="route-points-display"></span> // Burası doğru.
+                        <span className="route-points-display"></span>
                       )}
                     </div>
                   </div>
-                  {/* Yanlışlıkla eklenen kısımlar SİLİNDİ */}
-                  {/* <span className="route-points-display"></span>
-                    )}
-                </div>
-            </div> */}
+
+                  {/* V ikon butonu - sağda sabit */}
                   <button
                     className="expand-toggle-button"
-                    onClick={(e) => handleDropdownToggle(e, item)} // Animasyonu başlatma/durdurma
+                    onClick={(e) => handleDropdownToggle(e, item)}
                     title="Animasyonlu güzergah takibini başlat/durdur"
                   >
                     <span
@@ -197,43 +176,56 @@ function VehicleList({
                       {expandedItems.has(item.id) ? 'expand_less' : 'expand_more'}
                     </span>
                   </button>
-                </div>
+                </div> {/* item-content-wrapper sonu */}
 
+
+                {/* Açılan Detay Alanı (Butonlar) */}
                 {expandedItems.has(item.id) && (
                   <div className="item-details">
-                    {selectedRoute?.id === item.id && selectedRoute?.directions?.[currentDirection === '1' ? '2' : '1']?.length > 0 && (
-                      <div className="direction-toggle-container">
-                        <button
-                          className="direction-button control-button"
-                          onClick={handleToggleDirectionClick}
-                        >
-                          {currentDirection === '1' ? '🚌 Gidiş' : '🔄 Dönüş'}
-                        </button>
-                        <span className="direction-info">
-                          {/* Sadece varsa başlangıç/bitiş noktalarını göster */}
-                          {(item.start_point || item.end_point) ? ( // Yalnızca bilgi varsa göster
-                            currentDirection === '1'
-                              ? `${item.start_point || ''} ${item.start_point && item.end_point ? '→' : ''} ${item.end_point || ''}`
-                              : `${item.end_point || ''} ${item.start_point && item.end_point ? '→' : ''} ${item.start_point || ''}`
-                          ) : (
-                            null // Eğer hiçbir bilgi yoksa boş bırak
-                          )}
-                        </span>
-                      </div>
-                    )}
+                    {/* Gidiş ve Dönüş butonları yan yana */}
+                    <div className="direction-buttons-row">
+                      {/* Gidiş Butonu */}
+                      {(selectedRoute?.id === item.id && selectedRoute?.directions?.['1']?.length > 0) ? (
+                          <button
+                            className={`direction-button gidis-button ${currentDirection === '1' ? 'active' : ''}`}
+                            onClick={(e) => handleDirectionButtonClick(e, item, '1')}
+                          >
+                            🚌 Gidiş
+                          </button>
+                      ) : (item.directions?.['1']?.length > 0 && selectedRoute?.id !== item.id) && ( // Eğer henüz seçili değilse ama gidiş yönü varsa
+                          <button
+                            className="direction-button gidis-button"
+                            onClick={(e) => handleDirectionButtonClick(e, item, '1')}
+                          >
+                            🚌 Gidiş
+                          </button>
+                      )}
 
-                    {/* 📍 Durak Takibi Paneli */}
-                    <div className="route-progress-checkbox-container">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={isRouteProgressPanelActive}
-                          onChange={handleToggleRouteProgress}
-                          className="route-progress-checkbox"
-                        />
-                        <span className="route-progress-text">📍 Durak Takibi Panelini Aç</span>
-                      </label>
+                      {/* Dönüş Butonu */}
+                      {(selectedRoute?.id === item.id && selectedRoute?.directions?.['2']?.length > 0) ? (
+                          <button
+                            className={`direction-button donus-button ${currentDirection === '2' ? 'active' : ''}`}
+                            onClick={(e) => handleDirectionButtonClick(e, item, '2')}
+                          >
+                            🔄 Dönüş
+                          </button>
+                      ) : (item.directions?.['2']?.length > 0 && selectedRoute?.id !== item.id) && ( // Eğer henüz seçili değilse ama dönüş yönü varsa
+                          <button
+                            className="direction-button donus-button"
+                            onClick={(e) => handleDirectionButtonClick(e, item, '2')}
+                          >
+                            🔄 Dönüş
+                          </button>
+                      )}
                     </div>
+
+                    {/* Durak Takibi Paneli Aç Butonu (altında tek başına) */}
+                    <button
+                      className="control-button open-stop-tracking-button"
+                      onClick={handleToggleRouteProgressButton}
+                    >
+                      📍 Durak Takibi Paneli Aç
+                    </button>
                   </div>
                 )}
               </li>

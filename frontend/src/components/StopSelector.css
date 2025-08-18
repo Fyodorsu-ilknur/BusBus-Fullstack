@@ -451,7 +451,7 @@
   color: white;
   min-width: 30px; /* Boyutunu daha da küçülttük */
   text-align: center;
-  padding: 2px 3px;
+  padding: 2px px;
   border: 1px solid var(--primary-color);
   border-radius: 3px;
   background-color: var(--primary-color);

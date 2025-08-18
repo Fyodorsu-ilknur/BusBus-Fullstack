@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
+import FleetTrackingPanel from './components/FleetTrackingPanel'; 
 import {
   setAllRoutes, clearSelectedRoutes, toggleSelectedRoute, selectAllRoutes,
   toggleSelectedStop, clearSelectedStops, setAllStops, selectAllStops
@@ -27,17 +28,18 @@ function App() {
 
   const [vehicles, setVehicles] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null); // Tekli seçilen hat için kullanılır (animasyon)
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false);
-  const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false);
-  const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false);
-  const [isRouteNavigationPanelOpen, setIsRouteNavigationPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false); // Hat Güzergah Takip paneli
+  const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false); // Güzergah Detayları paneli
+  const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false); // Kalkış Saatleri paneli
+  const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false); // Durak Seçimi paneli
+  const [isRouteNavigationPanelOpen, setIsRouteNavigationPanelOpen] = useState(false); // Nasıl Giderim paneli
+  const [isFleetTrackingPanelOpen, setIsFleetTrackingPanelOpen] = useState(false); // YENİ: Filo Takip paneli
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null); // Animasyonu gösterilecek olan route objesi
   const [selectedStop, setSelectedStop] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
-  const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]);
+  const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]); // Bu state App.js'te kullanılmıyor gibi görünüyor, kontrol edilebilir
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [currentAnimatedStop, setCurrentAnimatedStop] = useState(null);
   const [theme, setTheme] = useState('light');
@@ -79,15 +81,16 @@ function App() {
 
   const handleVehicleClick = async (item) => {
     console.log("handleVehicleClick çağrıldı, item:", item);
-    if (selectedItem?.id === item?.id) {
+    // Eğer aynı item tekrar seçilirse veya item boşsa, sıfırla
+    if (selectedItem?.id === item?.id || !item) {
         setSelectedItem(null);
-        setSelectedRoute(null); // Animasyon rotasını temizle
-        setMapCenter(null); // Harita merkezini sıfırla
+        setSelectedRoute(null);
+        setMapCenter(null);
         setCurrentAnimatedStop(null);
-        setIsRouteProgressPanelActive(false); // Durak takip panelini kapat
-        setAnimatedDistanceToDestination(null); // Pop-up mesafeyi temizle
-        setAnimatedTimeToDestination(null); // Pop-up süreyi temizle
-        return; // İşlemi burada sonlandır.
+        setIsRouteProgressPanelActive(false);
+        setAnimatedDistanceToDestination(null);
+        setAnimatedTimeToDestination(null);
+        return;
     }
 
     setSelectedItem(item); // Yeni item seçildi
@@ -95,39 +98,45 @@ function App() {
 
     if (item?.route_number) {
         try {
+          let fullRouteData = item; // Başlangıçta item'ı kopyala
+
+          // Eğer item.directions veya item.directions['1'] yoksa, API'den çek
+          if (!item.directions || !item.directions['1'] || !item.directions['2']) {
+             console.log("Item üzerinde directions bulunamadı, API'den çekiliyor:", item.route_number);
              const response1 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/1`);
-          const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
+             const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
 
-          const response2 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/2`);
-          const data2 = response2.ok ? await response2.json() : { coordinates: [], stops: [] };
+             const response2 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/2`);
+             const data2 = response2.ok ? await response2.json() : { coordinates: [], stops: [] };
 
-          const fullRouteData = {
-              ...item,
-              directions: {
-                  '1': data1.coordinates || [],
-                  '2': data2.coordinates || []
-              },
-              directionsStops: {
-                  '1': data1.stops || [],
-                  '2': data2.stops || []
-              },
-              stops: data1.stops || [],
-              start_point: data1.start_point || item.start_point || '',
-              end_point: data1.end_point || item.end_point || '',
-              center: data1.coordinates && data1.coordinates.length > 0 ? [data1.coordinates[0][1], data1.coordinates[0][0]] : [27.128, 38.419]
-          };
-          
+             fullRouteData = {
+                 ...item,
+                 directions: {
+                     '1': data1.coordinates || [],
+                     '2': data2.coordinates || []
+                 },
+                 directionsStops: {
+                     '1': data1.stops || [],
+                     '2': data2.stops || []
+                 },
+                 stops: data1.stops || [],
+                 start_point: data1.start_point || item.start_point || '',
+                 end_point: data1.end_point || item.end_point || '',
+                 center: data1.coordinates && data1.coordinates.length > 0 ? [data1.coordinates[0][1], data1.coordinates[0][0]] : [27.128, 38.419]
+             };
+          }
+
           setSelectedRoute(fullRouteData); // Animasyonu başlatacak rotayı set et
-          setMapCenter(fullRouteData.center);
-          
-          console.log("Full route data with both directions:", fullRouteData);
-          
+          setMapCenter(fullRouteData.center || [27.128, 38.419]);
+
+          console.log("Full route data with both directions (after fetch if needed):", fullRouteData);
+
       } catch (error) {
           console.error("Harita için güzergah detayları çekilirken hata:", error);
           setSelectedRoute(null);
           setMapCenter([27.128, 38.419]);
       }
-  } else { // item?.route_number yoksa, her şeyi sıfırla
+  } else {
       setSelectedItem(null);
       setSelectedRoute(null);
       setMapCenter(null);
@@ -147,46 +156,80 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/routes')
-      .then(res => res.json())
-      .then(data => {
+    const fetchRoutesAndDirections = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/routes');
+        const data = await res.json();
+
         console.log("API'den gelen RAW data (App.js):", data);
-        let processedRoutes = [];
+        const routesObject = {};
+        let initialRoutes = [];
 
         if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
-            dispatch(setAllRoutes(data));
-            processedRoutes = Object.values(data);
+          initialRoutes = Object.values(data);
         } else if (Array.isArray(data)) {
-             const routesObject = {};
-             data.forEach(route => {
-               if (route && route.id) {
-                 routesObject[route.id] = { 
-                   ...route, 
-                   start_point: route.start_point || '', 
-                   end_point: route.end_point || '' 
-                 };
-               }
-             });
-             dispatch(setAllRoutes(routesObject));
-             processedRoutes = Object.values(routesObject);
+          initialRoutes = data;
+        } else {
+          console.error("API'den beklenen veri formatı (obje veya dizi) gelmedi. Gelen veri:", data);
+          dispatch(setAllRoutes({}));
+          setFilteredItems([]);
+          return;
         }
-        else {
-            console.error("API'den beklenen veri formatı (obje veya dizi) gelmedi. Gelen veri:", data);
-            dispatch(setAllRoutes({}));
-        }
-        console.log("İşlenmiş rotalar dizisi (App.js):", processedRoutes);
-        setFilteredItems(processedRoutes);
-      })
-      .catch(err => {
+
+        const processedRoutes = await Promise.all(initialRoutes.map(async (route) => {
+          let routeWithDirections = { ...route };
+          if (!route.directions) {
+            try {
+              const response1 = await fetch(`http://localhost:5000/api/route-details/${route.route_number}/1`);
+              const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
+
+              const response2 = await fetch(`http://localhost:5000/api/route-details/${route.route_number}/2`);
+              const data2 = response2.ok ? await response2.json() : { coordinates: [], stops: [] };
+
+              routeWithDirections.directions = {
+                '1': data1.coordinates || [],
+                '2': data2.coordinates || []
+              };
+              routeWithDirections.directionsStops = {
+                '1': data1.stops || [],
+                '2': data2.stops || []
+              };
+            } catch (error) {
+              console.warn(`Rota ${route.route_number} için directions verisi çekilemedi:`, error);
+              routeWithDirections.directions = { '1': [], '2': [] };
+              routeWithDirections.directionsStops = { '1': [], '2': [] };
+            }
+          }
+          return {
+            ...routeWithDirections,
+            start_point: routeWithDirections.start_point || '',
+            end_point: routeWithDirections.end_point || ''
+          };
+        }));
+
+        processedRoutes.forEach(route => {
+          if (route && route.id) {
+            routesObject[route.id] = route;
+          }
+        });
+
+        dispatch(setAllRoutes(routesObject));
+        setFilteredItems(Object.values(routesObject));
+        console.log("İşlenmiş rotalar dizisi (App.js, with directions):", Object.values(routesObject));
+
+      } catch (err) {
         console.error("Hat verisi alınırken hata oluştu (App.js):", err);
         dispatch(setAllRoutes({}));
         setFilteredItems([]);
-      });
+      }
+    };
+
+    fetchRoutesAndDirections();
   }, [dispatch]);
+
 
   const handleSearch = useCallback(async (term) => {
     setSearchTerm(term);
-    // Arama yapıldığında tüm seçili/animasyonlu durumları sıfırla
     setSelectedItem(null);
     setSelectedRoute(null);
     setSelectedStop(null);
@@ -215,7 +258,7 @@ function App() {
 
   const closePanel = useCallback(() => {
     setIsPanelOpen(false);
-    setSelectedItem(null); // Paneli kapatırken selectedItem ve selectedRoute'u temizle
+    setSelectedItem(null);
     setSelectedRoute(null);
     setSelectedStop(null);
     setMapCenter(null);
@@ -230,8 +273,8 @@ function App() {
 
   const closeRouteDetailsPanel = useCallback(() => {
     setIsRouteDetailsPanelOpen(false);
-    setSelectedRoute(null); // Güzergah detay paneli kapanınca selectedRoute'u temizle
-    setSelectedItem(null); // Animasyonu durdurmak için
+    setSelectedRoute(null);
+    setSelectedItem(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -245,7 +288,7 @@ function App() {
   const closeDepartureTimesPanel = useCallback(() => {
     setIsDepartureTimesPanelOpen(false);
     setSelectedRoute(null);
-    setSelectedItem(null); // Animasyonu durdurmak için
+    setSelectedItem(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -263,7 +306,7 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setSelectedRoute(null);
-    setSelectedItem(null); // Animasyonu durdurmak için
+    setSelectedItem(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
     dispatch(clearSelectedStops());
@@ -276,7 +319,7 @@ function App() {
     setIsRouteNavigationPanelOpen(false);
     setNavigationRoute(null);
     setSelectedRoute(null);
-    setSelectedItem(null); // Animasyonu durdurmak için
+    setSelectedItem(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -287,15 +330,22 @@ function App() {
     setAnimatedTimeToDestination(null);
   }, [dispatch]);
 
+  // YENİ: Filo Takip panelini kapatma fonksiyonu
+  const closeFleetTrackingPanel = useCallback(() => {
+    setIsFleetTrackingPanelOpen(false);
+  }, []);
+
+
   const togglePanel = useCallback(() => {
     setIsPanelOpen(prev => !prev);
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
+    setIsFleetTrackingPanelOpen(false); // YENİ: Diğer panelleri kapat
     setIsSidebarExpanded(true);
-    setSelectedItem(null); // Yeni panel açıldığında selectedItem'ı temizle
-    setSelectedRoute(null); // Yeni panel açıldığında animasyonu durdur
+    setSelectedItem(null);
+    setSelectedRoute(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -313,9 +363,10 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
+    setIsFleetTrackingPanelOpen(false); // YENİ: Diğer panelleri kapat
     setIsSidebarExpanded(true);
-    setSelectedItem(null); // Yeni panel açıldığında selectedItem'ı temizle
-    setSelectedRoute(null); // Yeni panel açıldığında animasyonu durdur
+    setSelectedItem(null);
+    setSelectedRoute(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -332,9 +383,10 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
+    setIsFleetTrackingPanelOpen(false); // YENİ: Diğer panelleri kapat
     setIsSidebarExpanded(true);
-    setSelectedItem(null); // Yeni panel açıldığında selectedItem'ı temizle
-    setSelectedRoute(null); // Yeni panel açıldığında animasyonu durdur
+    setSelectedItem(null);
+    setSelectedRoute(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -352,9 +404,10 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsRouteNavigationPanelOpen(false);
+    setIsFleetTrackingPanelOpen(false); // YENİ: Diğer panelleri kapat
     setIsSidebarExpanded(true);
-    setSelectedItem(null); // Yeni panel açıldığında selectedItem'ı temizle
-    setSelectedRoute(null); // Yeni panel açıldığında animasyonu durdur
+    setSelectedItem(null);
+    setSelectedRoute(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
@@ -371,9 +424,10 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
+    setIsFleetTrackingPanelOpen(false); // YENİ: Diğer panelleri kapat
     setIsSidebarExpanded(true);
-    setSelectedItem(null); // Yeni panel açıldığında selectedItem'ı temizle
-    setSelectedRoute(null); // Yeni panel açıldığında animasyonu durdur
+    setSelectedItem(null);
+    setSelectedRoute(null);
     setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
@@ -385,17 +439,42 @@ function App() {
     setAnimatedTimeToDestination(null);
   }, [dispatch]);
 
+  // YENİ: Filo Takip paneli açma/kapatma fonksiyonu
+  const toggleFleetTrackingPanel = useCallback(() => {
+    setIsFleetTrackingPanelOpen(prev => !prev);
+    setIsPanelOpen(false);
+    setIsRouteDetailsPanelOpen(false);
+    setIsDepartureTimesPanelOpen(false);
+    setIsStopSelectorOpen(false);
+    setIsRouteNavigationPanelOpen(false);
+    setIsSidebarExpanded(true);
+    setSelectedItem(null);
+    setSelectedRoute(null);
+    setSelectedStop(null);
+    setMapCenter(null);
+    setCurrentAnimatedStop(null);
+    setIsRouteProgressPanelActive(false);
+    setNavigationRoute(null);
+    dispatch(clearSelectedRoutes());
+    setCurrentDirection('1');
+    setAnimatedDistanceToDestination(null);
+    setAnimatedTimeToDestination(null);
+    // Buraya filo takip verilerini getirme veya haritayı güncelleme mantığı eklenebilir
+  }, [dispatch]);
+
+
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
       const newExpandedState = !prev;
-      if (!newExpandedState) { // Sidebar kapanırken
+      if (!newExpandedState) { // Sidebar kapanırken tüm panelleri ve ilgili state'leri temizle
         setIsPanelOpen(false);
         setIsRouteDetailsPanelOpen(false);
         setIsDepartureTimesPanelOpen(false);
         setIsStopSelectorOpen(false);
         setIsRouteNavigationPanelOpen(false);
-        setSelectedItem(null); // Sidebar kapanırken selectedItem'ı temizle
-        setSelectedRoute(null); // Sidebar kapanırken animasyonu durdur
+        setIsFleetTrackingPanelOpen(false); // YENİ: Filo Takip panelini kapat
+        setSelectedItem(null);
+        setSelectedRoute(null);
         setSelectedStop(null);
         setMapCenter(null);
         setCurrentAnimatedStop(null);
@@ -450,9 +529,10 @@ const toggleRouteProgressPanelActive = useCallback(() => {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setSelectedRoute(null); // Navigasyon başladığında animasyonu durdur
-    setSelectedItem(null); // Navigasyon başladığında animasyonu durdur
+    setSelectedRoute(null);
+    setSelectedItem(null);
     setSelectedStop(null);
+    setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
@@ -473,6 +553,7 @@ const toggleRouteProgressPanelActive = useCallback(() => {
           onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
           onToggleStopSelectorPanel={toggleStopSelectorPanel}
           onToggleRouteNavigationPanel={toggleRouteNavigationPanel}
+          onToggleFleetTrackingPanel={toggleFleetTrackingPanel}
           isExpanded={isSidebarExpanded}
         />
 
@@ -551,19 +632,37 @@ const toggleRouteProgressPanelActive = useCallback(() => {
               </div>
             )}
 
-            {isRouteNavigationPanelOpen && (
-              <div className={`panel-wrapper ${isRouteNavigationPanelOpen ? 'open' : ''}`}>
-                <RouteNavigationPanel
-                  onClose={closeRouteNavigationPanel}
-                  allStops={Object.values(allStops)}
-                  onRouteFound={handleRouteFound}
-                />
+            
+            
+
+            {/* YENİ: Filo Takip Paneli (Şimdilik boş, buraya içeriğini eklemeniz gerekecek) */}
+            {isFleetTrackingPanelOpen && (
+              <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
+                {/* Buraya Filo Takip bileşeniniz gelecek */}
+                <div style={{ padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <h2 style={{ margin: '0 0 15px 0', fontSize: '1rem', fontWeight: '700', color: '#333C4A' }}>Filo Takip Paneli</h2>
+                  <p style={{ color: '#4C576C' }}>Bu panelde filo takip verileri listelenecek.</p>
+                  <button onClick={closeFleetTrackingPanel} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', fontSize: '0.9rem', cursor: 'pointer', color: '#7A899C', padding: '3px', borderRadius: '50%' }}>X</button>
+                </div>
               </div>
             )}
+
           </div>
         </div>
 
-        {/* RouteProgressPanel sadece selectedRoute varsa ve aktifse gösterilir */}
+          {isFleetTrackingPanelOpen && (
+              <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
+                <FleetTrackingPanel
+                  onClose={closeFleetTrackingPanel}
+                  // Buraya Filo Takip bileşeniniz için gerekli propları ekleyeceksiniz
+                />
+              </div>
+            )}
+
+    
+        
+
+    
         {selectedRoute && isRouteProgressPanelActive && (
           <RouteProgressPanel
             route={selectedRoute}
@@ -575,7 +674,7 @@ const toggleRouteProgressPanelActive = useCallback(() => {
             timeToDestination={animatedTimeToDestination}
           />
         )}
-      </div>
+      </div> 
     </Provider>
   );
 }
