@@ -169,7 +169,7 @@ body {
     position: fixed; 
     top: var(--navbar-height); 
     left: var(--sidebar-width); 
-    width: 400px;
+    width: 450px;
     height: calc(100vh - var(--navbar-height));
     background-color: var(--panel-bg);
     box-shadow: 3px 0px 15px rgba(0,0,0,0.2);
@@ -257,4 +257,248 @@ body {
     .navbar-container .logo .material-icons {
         font-size: 20px; 
     }
+}
+
+
+
+.content-area {
+  flex: 1;
+  display: flex; 
+  gap: 1px; 
+  padding: 1px; 
+  box-sizing: border-box; /* Padding'in genişliğe dahil olmasını sağlar */
+}
+
+.panel-wrapper {
+  position: relative;
+  height: 100%;
+  flex-shrink: 0;
+
+  overflow: hidden; 
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 10;
+}
+
+.panel-wrapper.open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Sol taraftaki paneller için varsayılan genişlik */
+.panel-wrapper:not(.details-panel-right) {
+  width: 400px; /* Sol paneller için standart genişlik */
+}
+
+/* Sağ taraftaki detay paneli için ayrı stil */
+.panel-wrapper.details-panel-right {
+  width: 350px; /* Detay paneli için daha geniş bir alan */
+  /* margin-left: 12px; /* content-area'daki gap ile çakışmaması için kaldırıldı */
+}
+
+.map-container {
+  flex-grow: 1; /* Haritanın kalan alanı doldurmasını sağlar */
+  height: 100%;
+  min-width: 0; /* Flex item olarak taşmayı engeller */
+}
+/* frontend/src/App.css */
+
+/* Genel Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative; /* panellerin pozisyonlaması için */
+}
+
+/* Sidebar ve Main Container */
+.sidebar {
+  width: 60px; /* Varsayılan dar genişlik */
+  background-color: #2D3748; /* Koyu arka plan */
+  transition: width 0.3s ease-out;
+  flex-shrink: 0;
+  z-index: 20; /* Haritanın ve panellerin üstünde olsun */
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+}
+
+.sidebar.expanded {
+  width: 55px; /* Genişletilmiş hali */
+}
+
+.main-container {
+  flex-grow: 1;
+  display: flex; /* Harita ve panellerin kendi içinde flex yönetimi */
+  flex-direction: column; /* İçeriği dikey sırala */
+  position: relative; /* Panellerin absolute position için referans noktası */
+  overflow: hidden; /* Harita taşmalarını engelle */
+}
+
+.content-area {
+  flex: 1; /* Kalan alanı doldur */
+  position: relative; /* Panellerin absolute position için referans noktası */
+  /* display: flex;  BU SATIR KALDIRILDI! Panelleri yan yana sıralıyordu */
+  /* gap: 12px;     BU SATIR KALDIRILDI! */
+  padding: 12px; /* Harita ve paneller için kenar boşluğu */
+  box-sizing: border-box;
+}
+
+.map-container {
+  width: 100%; /* Harita tam genişlikte olsun */
+  height: 100%; /* Harita tam yükseklikte olsun */
+  position: absolute; /* Harita, panellerin altında tam alanı kaplasın */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1; /* Diğer panellerin altında olsun */
+}
+
+/* Panellerin Ortak Stili */
+.panel-wrapper {
+  position: absolute; /* Paneller haritanın üzerine bindsın */
+  top: 12px; /* content-area padding'ine göre */
+  bottom: 12px; /* content-area padding'ine göre */
+  height: calc(100% - 24px); /* content-area padding'ini düş */
+  flex-shrink: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  z-index: 15; /* Haritanın üstünde, Sidebar'ın altında */
+  background: var(--panel-background); /* Panel arka plan rengi */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* İç scrollbar için */
+}
+
+/* Sol taraftan açılan paneller (varsayılan) */
+.panel-wrapper {
+  left: 12px; /* content-area padding'ine göre */
+  width: 400px; /* Varsayılan sol panel genişliği */
+  transform: translateX(-120%); /* Başlangıçta ekran dışı */
+  opacity: 0;
+}
+
+.panel-wrapper.open {
+  transform: translateX(0); /* Açıkken konumuna gelsin */
+  opacity: 1;
+}
+
+/* Sağ taraftan açılan Araç Detayları Paneli için özel konumlandırma */
+.panel-wrapper.details-panel-right {
+  right: 12px; /* content-area padding'ine göre */
+  left: auto; /* Soldaki konumlandırmayı iptal et */
+  width: 310px; /* Sağ panel için daha geniş bir alan */
+  transform: translateX(120%); /* Başlangıçta ekran dışı (sağdan) */
+  opacity: 0;
+}
+
+.panel-wrapper.details-panel-right.open {
+  transform: translateX(0); /* Sağdan açılırken konumuna gelsin */
+  opacity: 1;
+}
+
+/* Navbar stilini de ekleyelim/kontrol edelim */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #1A202C; /* Koyu arka plan */
+  color: white;
+  flex-shrink: 0; /* Küçülmesini engelle */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 25; /* En üstte olsun */
+}
+
+.navbar .toggle-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+}
+
+.navbar .title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.navbar .icon-group button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 15px;
+}
+
+/* Diğer CSS değişkenleri (varsayılan renk paleti) - App.css'in en başına eklenebilir */
+:root {
+  --panel-background: #F7F9FC;
+  --header-background: #FFFFFF;
+  --header-text-color: #333C4A;
+  --text-color: #4C576C;
+  --secondary-text-color: #7A899C;
+  --border-color: #E2E8F0;
+  --input-background: #FFFFFF;
+  --hover-background: #EEF2F7;
+  --selected-background: #E3F2FD;
+  --primary-color: #4A90E2;
+  --button-hover-bg: #357ABD;
+  --danger-color: #E74C3C;
+  --danger-hover-color: #C0392B;
+  --search-input-text-color: #4C576C;
+  --search-input-placeholder-color: #A0AEC0;
+}
+
+.dark-theme {
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --search-input-text-color: #F7FAFC;
+  --search-input-placeholder-color: #CBD5E0;
+}
+
+/* Animasyon keyframes (varsa, pulse animasyonu için) */
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(74, 144, 226, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); }
+}
+
+/* Pop-up stilleri (harita üzerindeki bus-popup ve stop-popup için) */
+.bus-popup-info, .stop-popup {
+  background-color: black;
+  color: white;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  pointer-events: none; /* Popup'ın harita tıklamalarını engellemesini önler */
+}
+
+/* Route popup için özel stil (eğer RouteDetailsPanel ile açılıyorsa) */
+.route-popup-content {
+  color: white;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Navbar'daki başlık */
+.navbar .title {
+  color: white; /* Navbar metin rengi */
 }

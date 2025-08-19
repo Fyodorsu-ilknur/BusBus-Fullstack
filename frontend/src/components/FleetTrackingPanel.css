@@ -165,3 +165,86 @@
   color: var(--secondary-text-color);
   font-size: 0.9rem;
 }
+
+.fleet-tracking-controls {
+  padding: 8px 12px; /* Arama ve filtre alanı için boşluk */
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.fleet-search-input {
+  width: 100%;
+  padding: 6px 10px; /* Daha kompakt */
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--input-background);
+  color: var(--search-input-text-color);
+  font-size: 0.75rem; /* Daha küçük font */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  margin-bottom: 8px; /* Arama kutusu altındaki boşluk */
+}
+
+.fleet-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
+}
+
+.fleet-filters {
+  /* Filtre butonları için stil eklenecek yer */
+  margin-bottom: 5px;
+}
+
+.vehicle-tracking-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.vehicle-tracking-item {
+  background-color: var(--list-item-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 6px 10px; /* Daha sade ve kompakt */
+  margin-bottom: 4px; /* Daha az boşluk */
+  box-shadow: 0 1px 1px rgba(0,0,0,0.04); /* Daha hafif gölge */
+  display: flex;
+  flex-direction: row; /* Yan yana olması için */
+  justify-content: space-between; /* İki uca yasla */
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vehicle-tracking-item:hover {
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
+}
+
+.vehicle-compact-info {
+  display: flex;
+  gap: 10px; /* Araç ID ve Plaka arası boşluk */
+  align-items: center;
+  font-size: 0.8rem; /* Daha küçük font */
+  color: var(--text-color);
+}
+
+.vehicle-compact-info strong {
+  font-size: 0.85rem; /* Biraz daha belirgin */
+  color: var(--header-text-color);
+  flex-shrink: 0;
+}
+
+.vehicle-compact-info span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--secondary-text-color);
+  font-size: 0.9rem;
+}
