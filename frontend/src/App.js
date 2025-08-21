@@ -33,6 +33,7 @@ function App() {
   // Lokal state'ler
   const [vehicles, setVehicles] = useState([]);
   const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null); // Filo Takip panelinde seçilen araç için state
+  const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]); // YENİ EKLENDİ (Adım 2.1): Harita üzerinde çoklu gösterim için seçilen araçlar
 
   const [selectedItem, setSelectedItem] = useState(null); // Tekli seçilen hat için kullanılır (animasyon)
   const [isPanelOpen, setIsPanelOpen] = useState(false); // Hat Güzergah Takip paneli
@@ -100,14 +101,27 @@ function App() {
   const getRandomSpeed = useCallback(() => Math.floor(Math.random() * 80) + 10, []);
 
   const generateRandomPlate = useCallback(() => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    // GÜNCELLENDİ (Adım 1.1): Kısıtlı harfler: Q, W, Ğ, J, Ş, X, Ö, Ç, V
+    const allowedChars = 'ABCEFGHIKLMNPRSTUYZ'; 
     const nums = '0123456789';
-    let plate = '35 ';
-    for (let i = 0; i < 3; i++) plate += chars.charAt(Math.floor(Math.random() * chars.length));
+    let plate = '35 '; // İzmir plakası başlangıcı
+    
+    // İlk 3 harfi allowedChars içinden seç
+    for (let i = 0; i < 3; i++) {
+        plate += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
+    }
     plate += ' ';
-    for (let i = 0; i < 3; i++) plate += nums.charAt(Math.floor(Math.random() * nums.length));
+    // Son 3 rakamı nums içinden seç
+    for (let i = 0; i < 3; i++) {
+        plate += nums.charAt(Math.floor(Math.random() * nums.length));
+    }
     return plate;
   }, []);
+
+  // Simüle edilmiş tek bir araç objesi oluşturucu (sadece İLK KEZ araç oluşturulurken kullanılır)
+    // frontend/src/App.js
+
+// ... (Diğer kodlar)
 
   // Simüle edilmiş tek bir araç objesi oluşturucu (sadece İLK KEZ araç oluşturulurken kullanılır)
   const createInitialSimulatedVehicle = useCallback((id, routeNumber, routeName, currentRoute) => {
@@ -115,6 +129,16 @@ function App() {
       const randomSpeed = getRandomSpeed();
       const randomOdometer = Math.floor(Math.random() * 100000) + 10000;
       const now = new Date();
+      
+      // GÜNCELLENDİ (Adım 1.2, Revize Edildi): Araç durumları ve ağırlıklı rastgele seçim
+      const statusesWeighted = [
+          'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor', // %70+ oranında Aktif
+          'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+          'Aktif/Çalışıyor', // 7 kez Aktif/Çalışıyor
+          'Servis Dışı',      // 1 kez Servis Dışı
+          'Bakımda'         // 1 kez Bakımda
+      ]; // Toplam 9 öğe var, Aktif/Çalışıyor %77.7 oranında gelecek
+      const randomStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
 
       return {
           id: `vehicle-${id}`, // Aracın benzersiz ID'si
@@ -125,11 +149,12 @@ function App() {
               lat: randomLocation[1],
               lng: randomLocation[0]
           },
+          status: randomStatus, // GÜNCELLENDİ: Ağırlıklı rastgele durum
           lastGpsTime: now.toLocaleTimeString('tr-TR'),
           odometer: randomOdometer,
           activeCouple: Math.random() > 0.5 ? 'Evet' : 'Hayır',
           samId: `0${Math.floor(Math.random() * 9000000) + 1000000}`,
-          engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
+          engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu', // Bu ayrı bir durum olarak kalabilir
           batteryVolt: `${Math.floor(Math.random() * 4) + 24} V`,
           fuelRate: `${(Math.random() * 0.5 + 0.1).toFixed(2)} L/Saat`,
           driverInfo: {
@@ -145,6 +170,8 @@ function App() {
           endDateTime: new Date(now.getTime() + 3600 * 1000).toLocaleDateString('tr-TR') + ' ' + new Date(now.getTime() + 3600 * 1000).toLocaleTimeString('tr-TR'),
       };
   }, [getRandomLocation, getRandomSpeed, generateRandomPlate]);
+
+// ... (Geri kalan kodlar)
 
   // -------- Panel Yönetimi ve Tıklama Fonksiyonları --------
   const handleVehicleClick = async (item) => {
@@ -211,17 +238,45 @@ function App() {
 };
 
   const handleFleetVehicleSelect = useCallback((vehicle) => {
-    console.log("Filo Takip Panelinde araç seçildi:", vehicle);
-    if (selectedFleetVehicle?.id === vehicle.id) {
-      setSelectedFleetVehicle(null); // Aynı araca tekrar tıklanırsa seçimi kaldır
-      setMapCenter(null); // Harita merkezini sıfırla
-    } else {
-      setSelectedFleetVehicle(vehicle); // Yeni aracı seç
-      if (vehicle?.location?.lng && vehicle?.location?.lat) {
-        setMapCenter([vehicle.location.lng, vehicle.location.lat]);
+    console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
+
+    // GÜNCELLENDİ (Adım 2.1): Çoklu seçim mantığı
+    setSelectedFleetVehicles(prevSelected => {
+      const isAlreadySelected = prevSelected.some(v => v.id === vehicle.id);
+      if (isAlreadySelected) {
+        // Zaten seçiliyse listeden çıkar
+        const newSelection = prevSelected.filter(v => v.id !== vehicle.id);
+        // Eğer tüm seçimler kaldırıldıysa harita merkezini sıfırla
+        if (newSelection.length === 0) {
+          setMapCenter(null);
+        } else if (newSelection.length === 1) {
+          // Eğer tek araç kaldıysa, ona odaklan
+          if (newSelection[0]?.location?.lng && newSelection[0]?.location?.lat) {
+            setMapCenter([newSelection[0].location.lng, newSelection[0].location.lat]);
+          }
+        }
+        return newSelection;
+      } else {
+        // Seçili değilse listeye ekle
+        const newSelection = [...prevSelected, vehicle];
+        // Eğer ilk seçim veya sadece bir araç seçiliyse, ona odaklan
+        if (newSelection.length === 1) {
+          if (vehicle?.location?.lng && vehicle?.location?.lat) {
+            setMapCenter([vehicle.location.lng, vehicle.location.lat]);
+          }
+        }
+        return newSelection;
       }
+    });
+
+    // Sağ detay paneli için tek seçimi yönet (tıklanan son araç veya seçimi kaldırıldıysa null)
+    if (selectedFleetVehicle?.id === vehicle.id) {
+      setSelectedFleetVehicle(null);
+    } else {
+      setSelectedFleetVehicle(vehicle);
     }
-  }, [selectedFleetVehicle, setMapCenter]); // Bağımlılıklar güncellendi
+
+  }, [selectedFleetVehicle, setMapCenter, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
 
   const handleSearch = useCallback(async (term) => { // handleSearch fonksiyonu buraya taşındı
     setSearchTerm(term);
@@ -334,28 +389,37 @@ function App() {
     fetchRoutesAndDirections();
   }, [dispatch, setFilteredItems]); // Bağımlılıklar güncellendi
 
-  // Simüle edilmiş araçların oluşturulması ve periyodik güncellenmesi
+  // GÜNCELLENDİ (Adım 1.2, revize edildi): Simüle edilmiş araçların oluşturulması ve periyodik güncellenmesi
   useEffect(() => {
     if (Object.keys(allRoutes).length === 0) {
       // Rota verisi yoksa veya henüz yüklenmediyse araçları oluşturma
-      if (vehicles.length === 0) { // Sadece ilk kez yükleniyorsa oluştur
+      // Sadece ilk kez yükleniyorsa oluştur
+      if (vehicles.length === 0) {
         const defaultVehicles = Array.from({ length: 20 }, (_, i) =>
-          createInitialSimulatedVehicle(i + 1, `Rota No ${i+1}`, `Rota Adı ${i+1}`, null)
+          createInitialSimulatedVehicle(i + 1, `Rota No ${i + 1}`, `Rota Adı ${i + 1}`, null)
         );
         setVehicles(defaultVehicles);
       }
-      return;
+      // Bu 'return' ifadesi, rota verisi yoksa efektin geri kalanını çalıştırmayı durdurur.
+      // Cleanup fonksiyonu buraya gelmez, efektin tamamı erken sonlanır.
+      return; 
     }
 
     // İlk yüklemede veya allRoutes değiştiğinde araçları oluştur
     // Bu sadece BİR KERE çalışmalı ve sonrasında setInterval ile güncellenmeli
     if (vehicles.length === 0 || vehicles.length !== Object.keys(allRoutes).length) {
       const initialVehicles = Object.values(allRoutes).map((route, index) => {
+        // Her rotaya karşılık gelen bir araç oluşturmak, gerçekçi simülasyon için daha iyi
         return createInitialSimulatedVehicle(route.id, route.route_number, route.route_name, route);
       });
       setVehicles(initialVehicles);
       console.log("Initial simulated vehicles created:", initialVehicles.length);
     }
+
+    // Periyodik güncelleme mantığı
+    // frontend/src/App.js
+
+// ... (Diğer kodlar)
 
     // Periyodik güncelleme mantığı
     const intervalId = setInterval(() => {
@@ -365,6 +429,16 @@ function App() {
           const newSpeed = getRandomSpeed();
           const now = new Date();
           const newOdometer = vehicle.odometer + Math.floor(Math.random() * 5) + 1;
+          
+          // GÜNCELLENDİ (Adım 1.2, Revize Edildi): Araç durumları ve ağırlıklı rastgele seçim
+          const statusesWeighted = [
+              'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+              'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+              'Aktif/Çalışıyor',
+              'Servis Dışı',
+              'Bakımda'
+          ];
+          const randomStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
 
           return {
             ...vehicle, // Plaka, ID, şoför bilgisi gibi sabitler aynı kalır
@@ -373,16 +447,22 @@ function App() {
               lat: newLocation[1],
               lng: newLocation[0]
             },
+            status: randomStatus, // GÜNCELLENDİ: Durum güncelleniyor
             lastGpsTime: now.toLocaleTimeString('tr-TR'),
             odometer: newOdometer,
-            engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
+            engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu', // Durum ile uyumlu olması sağlanabilir
           };
         });
       });
-    }, 5000);
+    }, 30000); // 30 saniye olarak ayarlandı
 
+// ... (Geri kalan kodlar)
+  // GÜNCELLENDİ (Adım 1.2): 30 saniye olarak ayarlandı
+
+    // Cleanup fonksiyonu: Component unmount edildiğinde veya bağımlılıklar değiştiğinde interval'i temizler
     return () => clearInterval(intervalId);
-  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed]); // Bağımlılıklar güncellendi
+
+  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed]); // Bağımlılıklar
 
   // -------- Panel Açma/Kapatma Fonksiyonları --------
   const closePanel = useCallback(() => {
@@ -462,8 +542,9 @@ function App() {
   const closeFleetTrackingPanel = useCallback(() => {
     setIsFleetTrackingPanelOpen(false);
     setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]); // YENİ GÜNCELLENDİ (Adım 2.1): Çoklu seçimi temizle
     setMapCenter(null);
-  }, [setSelectedFleetVehicle, setMapCenter]); // Bağımlılıklar güncellendi
+  }, [setSelectedFleetVehicle, setMapCenter, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
 
   const togglePanel = useCallback(() => {
     setIsPanelOpen(prev => !prev);
@@ -613,10 +694,11 @@ function App() {
         setAnimatedDistanceToDestination(null);
         setAnimatedTimeToDestination(null);
         setSelectedFleetVehicle(null);
+        setSelectedFleetVehicles([]); // YENİ GÜNCELLENDİ (Adım 2.1): Çoklu seçimi temizle
       }
       return newExpandedState;
     });
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setSelectedFleetVehicle]); // Bağımlılıklar güncellendi
+  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setSelectedFleetVehicle, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
 
   const toggleTheme = useCallback(() => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -692,6 +774,7 @@ const toggleRouteProgressPanelActive = useCallback(() => {
               <Map
                 vehicles={vehicles}
                 selectedFleetVehicle={selectedFleetVehicle}
+                selectedFleetVehicles={selectedFleetVehicles} // YENİ EKLENDİ (Adım 2.1)!
                 onFleetVehicleMarkerClick={handleFleetVehicleSelect}
                 selectedVehicle={selectedItem}
                 selectedRoute={selectedRoute}

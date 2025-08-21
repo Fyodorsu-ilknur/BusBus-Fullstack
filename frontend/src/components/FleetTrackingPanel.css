@@ -81,10 +81,40 @@
   color: var(--header-text-color);
 }
 
+.fleet-tracking-controls {
+  padding: 8px 12px; /* Arama ve filtre alanı için boşluk */
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.fleet-search-input {
+  width: 100%;
+  padding: 6px 10px; /* Daha kompakt */
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--input-background);
+  color: var(--search-input-text-color);
+  font-size: 0.75rem; /* Daha küçük font */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  margin-bottom: 8px; /* Arama kutusu altındaki boşluk */
+}
+
+.fleet-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
+}
+
+.fleet-filters {
+  /* Filtre butonları için stil eklenecek yer */
+  margin-bottom: 5px;
+}
+
 .fleet-tracking-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px; /* İçerik için boşluk */
+  padding: 8px; /* Genel içeriğin padding'ini küçülttük */
 }
 
 .fleet-tracking-content p {
@@ -117,104 +147,21 @@
   margin: 0;
 }
 
+/* GÜNCELLENDİ: Kutucukları küçültmek için stiller */
 .vehicle-tracking-item {
-  background-color: var(--list-item-bg); /* Beyaz arka plan */
+  background-color: var(--list-item-bg, #FFFFFF); /* Varsayılan değer ekledik */
   border: 1px solid var(--border-color);
   border-radius: 5px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.vehicle-tracking-item:hover {
-  background-color: var(--hover-background);
-  border-color: var(--primary-color);
-}
-
-.vehicle-main-info,
-.vehicle-location-info,
-.vehicle-status-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  color: var(--text-color);
-}
-
-.vehicle-main-info strong {
-  font-size: 0.9rem;
-  color: var(--header-text-color);
-}
-
-.vehicle-location-info span,
-.vehicle-status-info span {
-  flex: 1; /* Eşit dağılsınlar */
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-right: 10px; /* Sağa boşluk */
-}
-
-.no-results {
-  text-align: center;
-  padding: 20px;
-  color: var(--secondary-text-color);
-  font-size: 0.9rem;
-}
-
-.fleet-tracking-controls {
-  padding: 8px 12px; /* Arama ve filtre alanı için boşluk */
-  border-bottom: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.fleet-search-input {
-  width: 100%;
-  padding: 6px 10px; /* Daha kompakt */
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  background: var(--input-background);
-  color: var(--search-input-text-color);
-  font-size: 0.75rem; /* Daha küçük font */
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-  margin-bottom: 8px; /* Arama kutusu altındaki boşluk */
-}
-
-.fleet-search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
-}
-
-.fleet-filters {
-  /* Filtre butonları için stil eklenecek yer */
-  margin-bottom: 5px;
-}
-
-.vehicle-tracking-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.vehicle-tracking-item {
-  background-color: var(--list-item-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  padding: 6px 10px; /* Daha sade ve kompakt */
+  padding: 4px 8px; /* ÖNEMLİ: Padding'i küçülttük */
   margin-bottom: 4px; /* Daha az boşluk */
   box-shadow: 0 1px 1px rgba(0,0,0,0.04); /* Daha hafif gölge */
   display: flex;
-  flex-direction: row; /* Yan yana olması için */
-  justify-content: space-between; /* İki uca yasla */
-  align-items: center;
+  flex-direction: row; /* Checkbox ve bilgiyi yan yana hizala */
+  align-items: center; /* Dikeyde ortala */
+  justify-content: space-between; /* İçerikleri iki uca yasla */
   cursor: pointer;
   transition: all 0.2s ease;
+  color: var(--text-color); /* Metin rengi ekledik */
 }
 
 .vehicle-tracking-item:hover {
@@ -222,24 +169,154 @@
   border-color: var(--primary-color);
 }
 
-.vehicle-compact-info {
-  display: flex;
-  gap: 10px; /* Araç ID ve Plaka arası boşluk */
-  align-items: center;
-  font-size: 0.8rem; /* Daha küçük font */
-  color: var(--text-color);
+/* Seçili öğe için genel stil */
+.vehicle-tracking-item.selected {
+    background-color: var(--selected-background); 
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.vehicle-item-left {
+    margin-right: 8px; /* Checkbox ve bilgi arasında boşluk */
+    display: flex; /* Checkbox'ı ortalamak için */
+    align-items: center;
+    flex-shrink: 0; /* Küçülmesini engelle */
+}
+
+.vehicle-item-left input[type="checkbox"] {
+    width: 14px; /* Checkbox boyutunu küçülttük */
+    height: 14px; /* Checkbox boyutunu küçülttük */
+    cursor: pointer;
+    accent-color: var(--primary-color); /* Checkbox rengi */
+}
+
+.vehicle-compact-info {
+     display: flex;
+  flex-direction: row; /* Öğeleri yatayda hizala */
+  align-items: center; /* Dikeyde ortala */
+  flex-grow: 1; /* Kalan alanı kapla */
+  gap: 8px; /* ÖNEMLİ: Öğeler arasına boşluğu artırdık */
+  font-size: 0.8rem;
+  color: var(--text-color);
+  overflow: hidden; /* Taşmayı önle */
+  white-space: nowrap; /* Metnin tek satırda kalmasını sağla */
+  text-overflow: ellipsis; /* Eğer sığmazsa üç nokta koy */
+}
+
+.vehicle-compact-info .vehicle-id-display,
+.vehicle-compact-info .vehicle-plate-display {
+    flex-shrink: 0; /* Küçülmesini engelle */
+}
+
+.vehicle-compact-info .vehicle-id-display strong,
+.vehicle-compact-info .vehicle-plate-display strong {
+    font-size: 0.85rem; /* Biraz daha belirgin */
+    color: var(--header-text-color);
+}
+
+.vehicle-compact-info .vehicle-plate-display {
+    font-size: 0.75rem; /* Plaka fontu */
+    color: var(--secondary-text-color);
+}
+
+
+/* Araç Durumu Etiketleri İçin Stiller (Küçük düzeltmelerle) */
+.vehicle-status {
+    font-size: 0.6em; /* Çok daha küçük font */
+    padding: 1px 3px; /* Daha küçük padding */
+    border-radius: 3px; /* Köşeleri biraz daha yuvarlak */
+    /* margin-top: 3px; Bu satırı kaldırıyoruz, artık gap ile boşluk veriyoruz */
+    align-self: center; /* Kendi içinde dikeyde ortala */
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1;
+    border: 1px solid currentColor; /* Border rengini text rengiyle aynı yaptık */
+    flex-shrink: 0; /* Durum etiketinin küçülmesini engelle */
+}
+.plate-and-status {
+    display: flex; /* İçindeki elemanları yatayda hizala */
+    align-items: center; /* Dikeyde ortala */
+    gap: 8px; /* Plaka ve Durum etiketi arasına boşluk */
+    flex-wrap: wrap; /* Gerekirse alt satıra geçmesine izin ver */
+}
+
+/* Araç Durumu Etiketleri İçin Stiller (Küçük düzeltmelerle) */
+.vehicle-status {
+    font-size: 0.6em; /* Biraz daha küçülttük */
+    padding: 1px 3px; /* Padding'i küçülttük */
+    border-radius: 3px;
+    /* margin-top: 3px;  Bu satırı kaldırıyoruz, artık gap ile boşluk veriyoruz */
+    align-self: center; /* Kendi içinde dikeyde ortala */
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1;
+    border: 1px solid currentColor; /* Border rengini text rengiyle aynı yaptık */
+}
+
+/* Her durum için farklı renkler */
+.vehicle-status.aktif-çalışıyor {
+    background-color: #d4edda; /* Açık yeşil */
+    color: #155724; /* Koyu yeşil */
+    border-color: #c3e6cb; /* Border rengini de güncelledik */
+}
+
+.vehicle-status.servis-dışı {
+    background-color: #f8d7da; /* Açık kırmızı */
+    color: #721c24; /* Koyu kırmızı */
+    border-color: #f5c6cb;
+}
+
+.vehicle-status.bakımda {
+    background-color: #fff3cd; /* Açık sarı */
+    color: #856404; /* Koyu sarı */
+    border-color: #ffeeba;
+}
+
+/* ... (Geri kalan stiller) ... */
+
 .vehicle-compact-info strong {
-  font-size: 0.85rem; /* Biraz daha belirgin */
+  font-size: 0.85rem; /* Araç ID için biraz daha büyük font */
   color: var(--header-text-color);
-  flex-shrink: 0;
+  margin-bottom: 1px; /* ID ile plaka arasına küçük boşluk */
 }
 
 .vehicle-compact-info span {
+  font-size: 0.7rem; /* Plaka ve diğer bilgiler için daha küçük font */
+  color: var(--secondary-text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Araç Durumu Etiketleri İçin Yeni Stiller */
+.vehicle-status {
+    font-size: 0.65em; /* Çok daha küçük font */
+    padding: 2px 4px; /* Daha küçük padding */
+    border-radius: 3px; /* Köşeleri biraz daha yuvarlak */
+    margin-top: 3px; /* Plaka ile durum arasına boşluk */
+    align-self: flex-start; /* Kendi içinde sola hizala */
+    font-weight: bold;
+    text-transform: uppercase; /* Büyük harf */
+    line-height: 1; /* Satır yüksekliğini ayarla */
+}
+
+/* Her durum için farklı renkler */
+.vehicle-status.aktif-çalışıyor {
+    background-color: #d4edda; /* Açık yeşil */
+    color: #155724; /* Koyu yeşil */
+    border: 1px solid #c3e6cb;
+}
+
+.vehicle-status.servis-dışı {
+    background-color: #f8d7da; /* Açık kırmızı */
+    color: #721c24; /* Koyu kırmızı */
+    border: 1px solid #f5c6cb;
+}
+
+.vehicle-status.bakımda {
+    background-color: #fff3cd; /* Açık sarı */
+    color: #856404; /* Koyu sarı */
+    border: 1px solid #ffeeba;
 }
 
 .no-results {
@@ -247,4 +324,29 @@
   padding: 20px;
   color: var(--secondary-text-color);
   font-size: 0.9rem;
+}
+
+/* frontend/src/components/FleetTrackingPanel.css */
+
+/* ... (Diğer stiller) ... */
+
+/* YENİ: Hat Numarası etiketi için stil */
+.vehicle-route-code {
+    font-size: 0.75rem; /* Plaka ile aynı boyutta olsun */
+    color: var(--secondary-text-color);
+    flex-shrink: 0; /* Küçülmesini engelle */
+}
+
+
+/* Araç Durumu Etiketleri İçin Stiller (Küçük düzeltmelerle) */
+.vehicle-status {
+    font-size: 0.65em; /* Çok daha küçük font */
+    padding: 1px 3px; /* Daha küçük padding */
+    border-radius: 3px; /* Köşeleri biraz daha yuvarlak */
+    align-self: center; /* Kendi içinde dikeyde ortala */
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1;
+    border: 1px solid currentColor; /* Border rengini text rengiyle aynı yaptık */
+    flex-shrink: 0; /* Durum etiketinin küçülmesini engelle */
 }
