@@ -188,3 +188,219 @@
   filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
   transition: filter 0.2s ease-in-out;
 }
+
+/* Map.css - Filo Takip için ek stiller */
+
+/* Animasyonlu araç konteyneri */
+.animated-vehicle-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.static-vehicle-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Araç durum noktası */
+.vehicle-status-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+/* Pop-up stilleri */
+.vehicle-popup {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  border: 1px solid #ddd;
+  max-width: 200px;
+}
+
+.vehicle-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid white;
+}
+
+/* Bus popup info (mevcut popup için) */
+.bus-popup-info {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.bus-popup-info strong {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Araç animasyon geçişleri */
+.animated-vehicle-container img,
+.static-vehicle-container img {
+  transition: all 0.3s ease;
+}
+
+.animated-vehicle-container:hover img,
+.static-vehicle-container:hover img {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* Rota popup */
+.route-popup-content {
+  padding: 8px 12px;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Durak popup */
+.stop-popup {
+  position: absolute;
+  bottom: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.stop-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(0,0,0,0.8);
+}
+
+/* Pulse animasyonu */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Araç seçim efektleri */
+.animated-vehicle-container img[style*="scale(1.1)"],
+.static-vehicle-container img[style*="scale(1.1)"] {
+  border: 2px solid #007bff;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Dark theme desteği */
+.dark .vehicle-popup {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .vehicle-popup::after {
+  border-top-color: #2d3748;
+}
+
+.dark .bus-popup-info strong {
+  color: #e2e8f0;
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+  .vehicle-popup {
+    font-size: 10px;
+    padding: 6px 8px;
+    max-width: 150px;
+  }
+  
+  .animated-vehicle-container img,
+  .static-vehicle-container img {
+    width: 25px !important;
+    height: 25px !important;
+  }
+  
+  .vehicle-status-dot {
+    width: 8px;
+    height: 8px;
+    border-width: 1px;
+  }
+}
+
+/* Harita kontrollerini gizle (isteğe bağlı) */
+.maplibregl-ctrl-top-right {
+  display: none;
+}
+
+/* Bus popup (animasyonlu otobüs için) */
+.bus-popup {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.bus-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(0,0,0,0.9);
+}

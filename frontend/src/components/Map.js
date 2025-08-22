@@ -29,6 +29,7 @@ const DARK_MAP_STYLE_URL = 'https://api.maptiler.com/maps/streets-v2-dark/style.
 function MapComponent({
   vehicles = [], // Tüm simüle edilmiş araçlar listesi
   selectedFleetVehicle, // Filo Takip panelinden seçilen araç
+  selectedFleetVehicles = [], // YENİ: Çoklu seçilen araçlar
   onFleetVehicleMarkerClick, // Filo Takip markerlarına tıklama için
   selectedVehicle, // Ana panelden seçilen (animasyonlu) araç
   selectedRoute,
@@ -49,7 +50,8 @@ function MapComponent({
   currentDirection,
   currentAnimatedStop,
   animatedDistanceToDestination,
-  animatedTimeToDestination
+  animatedTimeToDestination,
+  selectedPopupInfo = [] // YENİ: Ayarlar panelinden seçilen pop-up bilgileri
 }) {
   const mapRef = useRef();
 
@@ -60,6 +62,10 @@ function MapComponent({
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
   const animationIntervalRef = useRef(null);
   const [displayStopsOnRoute, setDisplayStopsOnRoute] = useState({ current: null, next: null });
+
+  // YENİ: Çoklu araç animasyonları için state'ler
+  const [animatedFleetPositions, setAnimatedFleetPositions] = useState({}); // {vehicleId: {position, pathIndex, intervalId}}
+  const fleetAnimationIntervals = useRef({}); // Araç animasyon interval'larını saklar
 
   const [selectedRoutesData, setSelectedRoutesData] = useState({});
   const [routePopup, setRoutePopup] = useState(null);
@@ -90,6 +96,152 @@ function MapComponent({
   const getRouteColor = (routeIndex) => {
     return ROUTE_COLORS[routeIndex % ROUTE_COLORS.length];
   };
+
+  // YENİ: Araç durum rengini al
+  const getVehicleStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'aktif/çalışıyor':
+      case 'aktif':
+        return '#28a745'; // Yeşil
+      case 'bakımda':
+        return '#dc3545'; // Kırmızı  
+      case 'servis dışı':
+        return '#6c757d'; // Gri
+      default:
+        return '#ffc107'; // Sarı
+    }
+  };
+
+  // YENİ: Araç için gerçek güzergah çekme (server'dan)
+  const getVehicleRealRoute = useCallback(async (vehicle) => {
+    try {
+      if (vehicle.routeCode && vehicle.routeData) {
+        // Önce mevcut routeData'dan kontrol et
+        if (vehicle.routeData.directions && vehicle.routeData.directions['1']) {
+          return vehicle.routeData.directions['1'];
+        }
+      }
+      
+      // Server'dan çek
+      const response = await fetch(`http://localhost:5000/api/route-details/${vehicle.routeCode}/1`);
+      if (response.ok) {
+        const routeData = await response.json();
+        return routeData.coordinates || [];
+      } else {
+        console.warn(`Araç ${vehicle.vehicleId} için rota bulunamadı, varsayılan güzergah kullanılıyor`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Araç ${vehicle.vehicleId} rota çekme hatası:`, error);
+      return null;
+    }
+  }, []);
+
+  // YENİ: Çoklu araç animasyonlarını başlat/durdur (gerçek güzergahla)
+  useEffect(() => {
+    if (!isFleetTrackingPanelOpen || selectedFleetVehicles.length === 0) {
+      // Tüm animasyonları durdur
+      Object.values(fleetAnimationIntervals.current).forEach(intervalId => {
+        if (intervalId) clearInterval(intervalId);
+      });
+      fleetAnimationIntervals.current = {};
+      setAnimatedFleetPositions({});
+      return;
+    }
+
+    // Seçili araçlar için animasyon başlat
+    selectedFleetVehicles.forEach(async (vehicle) => {
+      if (!fleetAnimationIntervals.current[vehicle.id]) {
+        // Gerçek güzergah çek
+        const realRoute = await getVehicleRealRoute(vehicle);
+        
+        // Eğer gerçek güzergah yoksa varsayılan oluştur
+        let route = realRoute;
+        if (!route || route.length === 0) {
+          console.warn(`Araç ${vehicle.vehicleId} için varsayılan güzergah oluşturuluyor`);
+          // Basit çizgisel güzergah oluştur
+          const centerLat = 38.419;
+          const centerLng = 27.128;
+          route = Array.from({ length: 20 }, (_, i) => [
+            centerLat + (i * 0.002 - 0.02),
+            centerLng + (i * 0.002 - 0.02)
+          ]);
+        }
+        
+        let currentIndex = 0;
+        
+        // İlk pozisyonu ayarla (gerçek güzergahın başlangıcı)
+        setAnimatedFleetPositions(prev => ({
+          ...prev,
+          [vehicle.id]: {
+            position: { lat: route[0][0], lng: route[0][1] },
+            pathIndex: 0,
+            route: route,
+            isRealRoute: !!realRoute
+          }
+        }));
+
+        // Animasyon interval'ini başlat
+        const intervalId = setInterval(() => {
+          currentIndex = (currentIndex + 1) % route.length;
+          
+          setAnimatedFleetPositions(prev => ({
+            ...prev,
+            [vehicle.id]: {
+              ...prev[vehicle.id],
+              position: { lat: route[currentIndex][0], lng: route[currentIndex][1] },
+              pathIndex: currentIndex
+            }
+          }));
+        }, 1500); // 1.5 saniyede bir hareket (daha hızlı)
+
+        fleetAnimationIntervals.current[vehicle.id] = intervalId;
+      }
+    });
+
+    // Seçimi kaldırılan araçların animasyonlarını durdur
+    Object.keys(fleetAnimationIntervals.current).forEach(vehicleId => {
+      if (!selectedFleetVehicles.some(v => v.id === vehicleId)) {
+        clearInterval(fleetAnimationIntervals.current[vehicleId]);
+        delete fleetAnimationIntervals.current[vehicleId];
+        setAnimatedFleetPositions(prev => {
+          const newState = { ...prev };
+          delete newState[vehicleId];
+          return newState;
+        });
+      }
+    });
+
+    // Cleanup function
+    return () => {
+      Object.values(fleetAnimationIntervals.current).forEach(intervalId => {
+        if (intervalId) clearInterval(intervalId);
+      });
+      fleetAnimationIntervals.current = {};
+      setAnimatedFleetPositions({});
+    };
+  }, [isFleetTrackingPanelOpen, selectedFleetVehicles, getVehicleRealRoute]);
+
+  // YENİ: Pop-up bilgilerini formatla
+  const getPopupContent = useCallback((vehicle, selectedInfo) => {
+    const infoMap = {
+      speed: `Hız: ${vehicle.speed} km/h`,
+      plate: `Plaka: ${vehicle.plate}`,
+      routeCode: `Hat No: ${vehicle.routeCode}`,
+      routeName: `Rota: ${vehicle.routeName}`,
+      driverName: `Sürücü: ${vehicle.driverInfo?.name}`,
+      companyAd: `Firma: ${vehicle.companyAd}`
+    };
+
+    if (!selectedInfo || selectedInfo.length === 0) {
+      return `<strong>Plaka: ${vehicle.plate}</strong><br/>Hız: ${vehicle.speed} km/h`;
+    }
+
+    return selectedInfo
+      .filter(key => infoMap[key])
+      .map(key => infoMap[key])
+      .join('<br/>');
+  }, []);
 
   useEffect(() => {
     const fetchRouteData = async () => {
@@ -541,8 +693,8 @@ function MapComponent({
     }
   }, [multipleRoutesData]);
 
-  // ✅ Sadece Filo Takip paneli açıkken TÜM araç markerlarını çiz.
-  const shouldRenderAllFleetMarkers = mapLoaded && isFleetTrackingPanelOpen;
+  // ✅ DÜZELTME: Sadece seçili araçları göster (Panel açıldığında hiçbiri görünmesin)
+  const shouldRenderAllFleetMarkers = mapLoaded && isFleetTrackingPanelOpen && selectedFleetVehicles.length > 0;
 
   return (
     <Map
@@ -701,10 +853,111 @@ function MapComponent({
         })()
       )}
 
-      {/* ✅ Filo Araç İşaretleyicileri */}
-      {shouldRenderAllFleetMarkers && vehicles.map((vehicle) => {
+      {/* ✅ YENİ: Çoklu Filo Araçları - Animasyonlu Hareket (Sadece aktif ve seçili araçlar) */}
+      {mapLoaded && isFleetTrackingPanelOpen && Object.entries(animatedFleetPositions).map(([vehicleId, animationData]) => {
+        const vehicle = vehicles.find(v => v.id === vehicleId);
+        if (!vehicle || !animationData.position) return null;
+
+        // SADECE SEÇİLİ VE AKTİF ARAÇLARIN ANİMASYONUNU GÖSTER
+        const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicleId);
+        const isActive = vehicle.status?.toLowerCase().includes('aktif');
+        
+        if (!isMultiSelected || !isActive) return null;
+
+        const isSelected = selectedFleetVehicle?.id === vehicleId;
+        
+        return (
+          <Marker
+            key={`animated-${vehicleId}`}
+            longitude={animationData.position.lng}
+            latitude={animationData.position.lat}
+            anchor="center"
+          >
+            <div className="animated-vehicle-container">
+              {/* Araç ikonu */}
+              <img
+                src={busIconUrl}
+                alt={`Araç ${vehicle.plate}`}
+                style={{
+                  width: isSelected ? '45px' : '35px',
+                  height: isSelected ? '45px' : '35px',
+                  cursor: 'pointer',
+                  filter: `hue-rotate(${getVehicleStatusColor(vehicle.status) === '#28a745' ? '0deg' : 
+                    getVehicleStatusColor(vehicle.status) === '#dc3545' ? '120deg' : '240deg'})`,
+                  transition: 'all 0.3s ease',
+                  transform: isMultiSelected ? 'scale(1.1)' : 'scale(1)',
+                  boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
+                  borderRadius: '50%'
+                }}
+                onClick={() => onFleetVehicleMarkerClick && onFleetVehicleMarkerClick(vehicle)}
+              />
+              
+              {/* Durum göstergesi - küçük renkli nokta */}
+              <div 
+                className="vehicle-status-dot"
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: getVehicleStatusColor(vehicle.status),
+                  borderRadius: '50%',
+                  border: '2px solid white',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)'
+                }}
+              />
+
+              {/* Pop-up - sadece seçili araç için */}
+              {isSelected && (
+                <div className="vehicle-popup" style={{
+                  position: 'absolute',
+                  bottom: '50px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: 'white',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  zIndex: 1000,
+                  border: '1px solid #ddd'
+                }}>
+                  <div dangerouslySetInnerHTML={{
+                    __html: getPopupContent(vehicle, selectedPopupInfo)
+                  }} />
+                  <div style={{ 
+                    position: 'absolute', 
+                    bottom: '-6px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderTop: '6px solid white'
+                  }} />
+                </div>
+              )}
+            </div>
+          </Marker>
+        );
+      })}
+
+      {/* ✅ Filo Araç İşaretleyicileri - Statik Konumlar (Sadece aktif ve seçili araçlar) */}
+      {mapLoaded && isFleetTrackingPanelOpen && vehicles.map((vehicle) => {
+        // SADECE SEÇİLİ VE AKTİF ARAÇLARI GÖSTER
+        const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
+        const isActive = vehicle.status?.toLowerCase().includes('aktif');
+        
+        if (!isMultiSelected || !isActive) return null; // Seçili değilse veya aktif değilse hiç gösterme
+        
+        // Eğer bu araç animasyonlu ise, statik gösterme
+        if (animatedFleetPositions[vehicle.id]) return null;
+        
         const isSelected = selectedFleetVehicle?.id === vehicle.id;
-        const iconSize = isSelected ? '40px' : '30px'; // Seçiliyse büyük, değilse küçük
+        const iconSize = isSelected ? '40px' : '30px';
 
         // YALNIZCA KABUL EDİLEBİLİR KONUM VERİSİNE SAHİP ARAÇLARI RENDER ET
         if (!vehicle || typeof vehicle.location?.lat !== 'number' || typeof vehicle.location?.lng !== 'number') {
@@ -719,34 +972,55 @@ function MapComponent({
             latitude={vehicle.location.lat}
             anchor="center"
           >
-            <img
-              src={busIconUrl}
-              alt={`Araç ID: ${vehicle.vehicleId}`}
-              style={{
-                width: iconSize,
-                height: iconSize,
-                cursor: 'pointer'
-              }}
-              onClick={() => onFleetVehicleMarkerClick && onFleetVehicleMarkerClick(vehicle)}
-              onError={(e) => { e.currentTarget.style.opacity = '0.2'; console.error('Bus icon yüklenemedi'); }}
-            />
-            {/* Pop-up: Sadece seçili araç için gösteriliyor */}
-            {isSelected && (
-              <Popup
-                longitude={vehicle.location.lng}
-                latitude={vehicle.location.lat}
-                onClose={() => { /* Popup, isSelected false olunca kapanır */ }}
-                anchor="bottom"
-                closeButton={false}
-                closeOnClick={true}
-                offset={[-1, -15]}
-              >
-                <div className="bus-popup-info">
-                  <strong>Plaka: {vehicle.plate}</strong><br/>
-                  Hız: {vehicle.speed} km/h
-                </div>
-              </Popup>
-            )}
+            <div className="static-vehicle-container">
+              <img
+                src={busIconUrl}
+                alt={`Araç ID: ${vehicle.vehicleId}`}
+                style={{
+                  width: iconSize,
+                  height: iconSize,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  transform: isMultiSelected ? 'scale(1.1)' : 'scale(1)',
+                  boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
+                  borderRadius: '50%'
+                }}
+                onClick={() => onFleetVehicleMarkerClick && onFleetVehicleMarkerClick(vehicle)}
+                onError={(e) => { e.currentTarget.style.opacity = '0.2'; console.error('Bus icon yüklenemedi'); }}
+              />
+              
+              {/* Durum göstergesi */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: getVehicleStatusColor(vehicle.status),
+                  borderRadius: '50%',
+                  border: '2px solid white',
+                  boxShadow: '0 0 3px rgba(0,0,0,0.3)'
+                }}
+              />
+
+              {/* Pop-up: Sadece seçili araç için gösteriliyor */}
+              {isSelected && (
+                <Popup
+                  longitude={vehicle.location.lng}
+                  latitude={vehicle.location.lat}
+                  onClose={() => { /* Popup, isSelected false olunca kapanır */ }}
+                  anchor="bottom"
+                  closeButton={false}
+                  closeOnClick={true}
+                  offset={[-1, -15]}
+                >
+                  <div className="bus-popup-info" dangerouslySetInnerHTML={{
+                    __html: getPopupContent(vehicle, selectedPopupInfo)
+                  }} />
+                </Popup>
+              )}
+            </div>
           </Marker>
         );
       })}

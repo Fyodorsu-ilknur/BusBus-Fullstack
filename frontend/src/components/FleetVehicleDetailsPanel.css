@@ -1,170 +1,243 @@
-/* frontend/src/components/FleetVehicleDetailsPanel.css */
-
-/* Renk Paleti - Zaten App.css veya genel bir :root tanımında olmalı,
-   ancak bağımsızlık için buraya kopyalanmıştır. */
-:root {
-  --panel-background: #F7F9FC; /* Açık gri panel arka planı */
-  --header-background: #FFFFFF; /* Beyaz başlık arka planı */
-  --header-text-color: #333C4A; /* Koyu gri başlık metni */
-  --text-color: #4C576C; /* Genel koyu gri metin */
-  --secondary-text-color: #7A899C; /* Daha açık gri ikincil metin */
-  --border-color: #E2E8F0; /* Açık gri kenarlıklar */
-  --input-background: #FFFFFF; /* Beyaz input arka planı */
-  --hover-background: #EEF2F7; /* Çok hafif gri hover durumu */
-  --selected-background: #E3F2FD; /* Seçili öğe için hafif mavi/gri */
-  --primary-color: #4A90E2; /* Vurgu rengi (mavi) */
-  --button-hover-bg: #357ABD; /* Vurgu renginin hover durumu */
-  --danger-color: #E74C3C; /* Kırmızı renk (hata/silme) */
-  --danger-hover-color: #C0392B; /* Kırmızı rengin hover durumu */
-}
-
-.dark-theme {
-  --panel-background: #2D3748;
-  --header-background: #1A202C;
-  --header-text-color: #E2E8F0;
-  --text-color: #CBD5E0;
-  --secondary-text-color: #A0AEC0;
-  --border-color: #4A5568;
-  --input-background: #4A5568;
-  --hover-background: #4A5568;
-  --selected-background: #2A4365;
-  --primary-color: #63B3ED;
-  --button-hover-bg: #4299E1;
-  --danger-color: #FC8181;
-  --danger-hover-color: #E53E3E;
-}
+/* FleetVehicleDetailsPanel.css */
 
 .fleet-details-panel {
-  height: 100%;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  background: var(--panel-background);
-  color: var(--text-color);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-left: 12px; /* Sol panel ile arasına boşluk */
-  flex-shrink: 0; /* Küçülmesini engelle */
-  width: 300px; /* Sabit bir genişlik verelim, ayarlanabilir */
 }
 
 .fleet-details-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--header-background);
-  flex-shrink: 0;
+  background: #f8f9fa;
 }
 
 .fleet-details-header h2 {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--header-text-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 18px;
+  color: #333;
 }
 
-.fleet-details-panel .close-button {
-  background: none;
+/* Sekme navigasyonu */
+.details-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 8px;
   border: none;
-  font-size: 0.9rem;
+  background: transparent;
   cursor: pointer;
-  color: var(--secondary-text-color);
-  padding: 3px;
-  border-radius: 50%;
-  transition: background-color 0.2s, color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
 }
 
-.fleet-details-panel .close-button:hover {
-  background-color: var(--hover-background);
-  color: var(--header-text-color);
+.tab-button:hover {
+  background: #e9ecef;
+  color: #333;
 }
 
+.tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background: white;
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+/* İçerik alanı */
 .fleet-details-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Bölümler arası boşluk */
-}
-
-.details-section {
-  background-color: var(--input-background); /* Beyaz arka plan */
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 16px;
 }
 
 .details-section h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--header-text-color);
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 5px;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 4px;
 }
 
-.details-section ul {
+.details-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.details-section li {
-  font-size: 0.8rem;
-  color: var(--text-color);
-  margin-bottom: 5px;
+.details-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  line-height: 1.3;
 }
 
-.details-section li strong {
-  color: var(--header-text-color);
-  flex-shrink: 0; /* Başlık kısmının küçülmesini engelle */
-  padding-right: 5px;
+.details-list li:last-child {
+  border-bottom: none;
 }
 
-.details-section li span {
-    text-align: right; /* Değerin sağa yaslanması */
-    flex-grow: 1; /* Kalan boşluğu doldurması */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.details-list strong {
+  color: #666;
+  font-weight: 500;
+  min-width: 120px;
 }
 
-.details-section li:last-child {
-  margin-bottom: 0;
+/* Ayarlar sekmesi */
+.settings-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 16px;
 }
 
-.driver-info-section {
-  border-left: 3px solid var(--primary-color); /* Sol kenarlık vurgusu */
-  background-color: var(--selected-background); /* Hafif mavi arka plan */
+.popup-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-
-/* Scrollbar stilleri */
-.fleet-details-content::-webkit-scrollbar {
-  width: 4px;
+.setting-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
-.fleet-details-content::-webkit-scrollbar-track {
-  background: var(--panel-background);
+.setting-checkbox:hover {
+  background-color: #f8f9fa;
 }
 
-.fleet-details-content::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 2px;
+.setting-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
-.fleet-details-content::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-text-color);
+.checkmark {
+  font-size: 14px;
+  color: #333;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-secondary {
+  background: white;
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background: #6c757d;
+  color: white;
+}
+
+.close-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.close-button:hover {
+  background: #c82333;
+}
+
+/* Dark theme support */
+.dark .fleet-details-panel {
+  background: #2d3748;
+  border-left-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .fleet-details-header {
+  background: #1a202c;
+  border-bottom-color: #4a5568;
+}
+
+.dark .fleet-details-header h2 {
+  color: #e2e8f0;
+}
+
+.dark .details-tabs {
+  background: #1a202c;
+  border-bottom-color: #4a5568;
+}
+
+.dark .tab-button {
+  color: #a0aec0;
+}
+
+.dark .tab-button:hover {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .tab-button.active {
+  background: #2d3748;
+  color: #63b3ed;
+  border-bottom-color: #63b3ed;
+}
+
+.dark .details-list li {
+  border-bottom-color: #4a5568;
+}
+
+.dark .details-list strong {
+  color: #a0aec0;
+}
+
+.dark .setting-checkbox:hover {
+  background-color: #4a5568;
 }

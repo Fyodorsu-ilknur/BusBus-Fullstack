@@ -34,6 +34,7 @@ function App() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null); // Filo Takip panelinde seçilen araç için state
   const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]); // YENİ EKLENDİ (Adım 2.1): Harita üzerinde çoklu gösterim için seçilen araçlar
+  const [selectedPopupInfo, setSelectedPopupInfo] = useState(['speed', 'plate']); // YENİ: Pop-up ayarları için
 
   const [selectedItem, setSelectedItem] = useState(null); // Tekli seçilen hat için kullanılır (animasyon)
   const [isPanelOpen, setIsPanelOpen] = useState(false); // Hat Güzergah Takip paneli
@@ -118,43 +119,37 @@ function App() {
     return plate;
   }, []);
 
-  // Simüle edilmiş tek bir araç objesi oluşturucu (sadece İLK KEZ araç oluşturulurken kullanılır)
-    // frontend/src/App.js
-
-// ... (Diğer kodlar)
-
-  // Simüle edilmiş tek bir araç objesi oluşturucu (sadece İLK KEZ araç oluşturulurken kullanılır)
-  const createInitialSimulatedVehicle = useCallback((id, routeNumber, routeName, currentRoute) => {
+  // GÜNCELLENDİ: Server'dan gerçek verilerle araç oluşturma
+  const createInitialSimulatedVehicle = useCallback((vehicleId, routeData) => {
       const randomLocation = getRandomLocation();
       const randomSpeed = getRandomSpeed();
       const randomOdometer = Math.floor(Math.random() * 100000) + 10000;
       const now = new Date();
       
-      // GÜNCELLENDİ (Adım 1.2, Revize Edildi): Araç durumları ve ağırlıklı rastgele seçim
       const statusesWeighted = [
-          'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor', // %70+ oranında Aktif
           'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
-          'Aktif/Çalışıyor', // 7 kez Aktif/Çalışıyor
-          'Servis Dışı',      // 1 kez Servis Dışı
-          'Bakımda'         // 1 kez Bakımda
-      ]; // Toplam 9 öğe var, Aktif/Çalışıyor %77.7 oranında gelecek
+          'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+          'Aktif/Çalışıyor',
+          'Servis Dışı',
+          'Bakımda'
+      ];
       const randomStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
 
       return {
-          id: `vehicle-${id}`, // Aracın benzersiz ID'si
-          vehicleId: id,
-          plate: generateRandomPlate(), // Plaka burada bir kez üretilir
+          id: `vehicle-${vehicleId}`,
+          vehicleId: vehicleId,
+          plate: generateRandomPlate(),
           speed: randomSpeed,
           location: {
               lat: randomLocation[1],
               lng: randomLocation[0]
           },
-          status: randomStatus, // GÜNCELLENDİ: Ağırlıklı rastgele durum
+          status: randomStatus,
           lastGpsTime: now.toLocaleTimeString('tr-TR'),
           odometer: randomOdometer,
           activeCouple: Math.random() > 0.5 ? 'Evet' : 'Hayır',
           samId: `0${Math.floor(Math.random() * 9000000) + 1000000}`,
-          engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu', // Bu ayrı bir durum olarak kalabilir
+          engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
           batteryVolt: `${Math.floor(Math.random() * 4) + 24} V`,
           fuelRate: `${(Math.random() * 0.5 + 0.1).toFixed(2)} L/Saat`,
           driverInfo: {
@@ -162,16 +157,15 @@ function App() {
               name: Math.random() > 0.5 ? 'CAN AHMET' : 'VEYSEL EKİN'
           },
           tripNo: Math.floor(Math.random() * 1000000),
-          companyAd: Math.random() > 0.5 ? '11 Vagon (Tramvay)' : 'Eshot (Otobüs)',
-          routeCode: currentRoute?.id || `RT-${id}`,
-          routeName: currentRoute?.route_name || `Rota ${routeNumber}`,
-          pathCode: `PATH-${routeNumber}`,
+          companyAd: routeData?.company || 'Eshot (Otobüs)',
+          routeCode: routeData?.route_number || vehicleId.toString(), // Gerçek hat numarası
+          routeName: routeData?.route_name || `Rota ${vehicleId}`, // Gerçek hat adı
+          pathCode: `PATH-${routeData?.route_number || vehicleId}`,
           startDateTime: now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR'),
           endDateTime: new Date(now.getTime() + 3600 * 1000).toLocaleDateString('tr-TR') + ' ' + new Date(now.getTime() + 3600 * 1000).toLocaleTimeString('tr-TR'),
+          routeData: routeData // Tam rota datasını sakla
       };
   }, [getRandomLocation, getRandomSpeed, generateRandomPlate]);
-
-// ... (Geri kalan kodlar)
 
   // -------- Panel Yönetimi ve Tıklama Fonksiyonları --------
   const handleVehicleClick = async (item) => {
@@ -240,7 +234,7 @@ function App() {
   const handleFleetVehicleSelect = useCallback((vehicle) => {
     console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
 
-    // GÜNCELLENDİ (Adım 2.1): Çoklu seçim mantığı
+    // GÜNCELLENDİ: Çoklu seçim mantığı
     setSelectedFleetVehicles(prevSelected => {
       const isAlreadySelected = prevSelected.some(v => v.id === vehicle.id);
       if (isAlreadySelected) {
@@ -269,14 +263,17 @@ function App() {
       }
     });
 
-    // Sağ detay paneli için tek seçimi yönet (tıklanan son araç veya seçimi kaldırıldıysa null)
-    if (selectedFleetVehicle?.id === vehicle.id) {
+    // DÜZELTME: Sağ detay paneli için - tıklanan araç seçiliyse göster, değilse gizle
+    const isCurrentlySelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
+    if (isCurrentlySelected) {
+      // Araç zaten seçiliyse ve tekrar tıklanıyorsa detay panelini kapat
       setSelectedFleetVehicle(null);
     } else {
+      // Araç seçiliyorsa detay panelini aç
       setSelectedFleetVehicle(vehicle);
     }
 
-  }, [selectedFleetVehicle, setMapCenter, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
+  }, [selectedFleetVehicle, selectedFleetVehicles, setMapCenter, setSelectedFleetVehicles]);
 
   const handleSearch = useCallback(async (term) => { // handleSearch fonksiyonu buraya taşındı
     setSearchTerm(term);
@@ -304,7 +301,6 @@ function App() {
 
     setFilteredItems(currentFilteredItems);
   }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setSearchTerm]); // Bağımlılıklar güncellendi
-
 
   // -------- Genel Efektler (Resize, İlk Veri Yükleme, Simülasyon) --------
   useEffect(() => {
@@ -389,39 +385,24 @@ function App() {
     fetchRoutesAndDirections();
   }, [dispatch, setFilteredItems]); // Bağımlılıklar güncellendi
 
-  // GÜNCELLENDİ (Adım 1.2, revize edildi): Simüle edilmiş araçların oluşturulması ve periyodik güncellenmesi
+  // GÜNCELLENDİ: Server'dan gerçek rotalar ile 394 araç oluştur
   useEffect(() => {
-    if (Object.keys(allRoutes).length === 0) {
-      // Rota verisi yoksa veya henüz yüklenmediyse araçları oluşturma
-      // Sadece ilk kez yükleniyorsa oluştur
-      if (vehicles.length === 0) {
-        const defaultVehicles = Array.from({ length: 20 }, (_, i) =>
-          createInitialSimulatedVehicle(i + 1, `Rota No ${i + 1}`, `Rota Adı ${i + 1}`, null)
-        );
-        setVehicles(defaultVehicles);
-      }
-      // Bu 'return' ifadesi, rota verisi yoksa efektin geri kalanını çalıştırmayı durdurur.
-      // Cleanup fonksiyonu buraya gelmez, efektin tamamı erken sonlanır.
-      return; 
-    }
-
-    // İlk yüklemede veya allRoutes değiştiğinde araçları oluştur
-    // Bu sadece BİR KERE çalışmalı ve sonrasında setInterval ile güncellenmeli
-    if (vehicles.length === 0 || vehicles.length !== Object.keys(allRoutes).length) {
-      const initialVehicles = Object.values(allRoutes).map((route, index) => {
-        // Her rotaya karşılık gelen bir araç oluşturmak, gerçekçi simülasyon için daha iyi
-        return createInitialSimulatedVehicle(route.id, route.route_number, route.route_name, route);
+    if (vehicles.length === 0 && Object.keys(allRoutes).length > 0) {
+      const routesList = Object.values(allRoutes);
+      console.log("Mevcut rotalar:", routesList.length);
+      
+      const initialVehicles = Array.from({ length: 394 }, (_, i) => {
+        const vehicleId = i + 1;
+        // Rotaları sırayla dağıt, bitince başa dön
+        const assignedRoute = routesList[i % routesList.length];
+        return createInitialSimulatedVehicle(vehicleId, assignedRoute);
       });
+      
       setVehicles(initialVehicles);
-      console.log("Initial simulated vehicles created:", initialVehicles.length);
+      console.log(`394 araç oluşturuldu. ${routesList.length} farklı rota kullanıldı.`);
     }
 
-    // Periyodik güncelleme mantığı
-    // frontend/src/App.js
-
-// ... (Diğer kodlar)
-
-    // Periyodik güncelleme mantığı
+    // Periyodik güncelleme mantığı - sadece konum ve hız güncelle
     const intervalId = setInterval(() => {
       setVehicles(prevVehicles => {
         return prevVehicles.map(vehicle => {
@@ -430,39 +411,40 @@ function App() {
           const now = new Date();
           const newOdometer = vehicle.odometer + Math.floor(Math.random() * 5) + 1;
           
-          // GÜNCELLENDİ (Adım 1.2, Revize Edildi): Araç durumları ve ağırlıklı rastgele seçim
-          const statusesWeighted = [
-              'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
-              'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
-              'Aktif/Çalışıyor',
-              'Servis Dışı',
-              'Bakımda'
-          ];
-          const randomStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
+          // Durum güncellemesi daha az sıklıkta
+          const shouldUpdateStatus = Math.random() > 0.9; // %10 ihtimalle durum değişir
+          let newStatus = vehicle.status;
+          if (shouldUpdateStatus) {
+            const statusesWeighted = [
+                'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+                'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
+                'Aktif/Çalışıyor',
+                'Servis Dışı',
+                'Bakımda'
+            ];
+            newStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
+          }
 
           return {
-            ...vehicle, // Plaka, ID, şoför bilgisi gibi sabitler aynı kalır
+            ...vehicle, // Plaka, ID, şoför bilgisi, rota bilgileri aynı kalır
             speed: newSpeed,
             location: {
               lat: newLocation[1],
               lng: newLocation[0]
             },
-            status: randomStatus, // GÜNCELLENDİ: Durum güncelleniyor
+            status: newStatus,
             lastGpsTime: now.toLocaleTimeString('tr-TR'),
             odometer: newOdometer,
-            engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu', // Durum ile uyumlu olması sağlanabilir
+            engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
           };
         });
       });
-    }, 30000); // 30 saniye olarak ayarlandı
+    }, 30000); // 30 saniye
 
-// ... (Geri kalan kodlar)
-  // GÜNCELLENDİ (Adım 1.2): 30 saniye olarak ayarlandı
-
-    // Cleanup fonksiyonu: Component unmount edildiğinde veya bağımlılıklar değiştiğinde interval'i temizler
+    // Cleanup fonksiyonu
     return () => clearInterval(intervalId);
 
-  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed]); // Bağımlılıklar
+  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed]);
 
   // -------- Panel Açma/Kapatma Fonksiyonları --------
   const closePanel = useCallback(() => {
@@ -671,7 +653,6 @@ function App() {
     setSelectedFleetVehicle(null);
   }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setSelectedFleetVehicle, setCurrentDirection]); // Bağımlılıklar güncellendi
 
-
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
       const newExpandedState = !prev;
@@ -713,7 +694,6 @@ function App() {
     setAnimatedTimeToDestination(time);
   }, []);
 
-
   const handleStopSelectForMap = useCallback((stop) => {
     setSelectedStop(stop);
     if (stop && typeof stop.lng === 'number' && typeof stop.lat === 'number') {
@@ -723,9 +703,9 @@ function App() {
     }
   }, []);
 
-const toggleRouteProgressPanelActive = useCallback(() => {
-  setIsRouteProgressPanelActive(prev => !prev);
-}, []);
+  const toggleRouteProgressPanelActive = useCallback(() => {
+    setIsRouteProgressPanelActive(prev => !prev);
+  }, []);
 
   const handleRouteFound = useCallback((routeData) => {
     setNavigationRoute(routeData);
@@ -751,7 +731,6 @@ const toggleRouteProgressPanelActive = useCallback(() => {
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
   }, [dispatch, setNavigationRoute, setSelectedRoute, setSelectedItem, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
-
 
   return (
     <Provider store={store}>
@@ -791,12 +770,13 @@ const toggleRouteProgressPanelActive = useCallback(() => {
                 isRouteDetailsPanelOpen={isRouteDetailsPanelOpen}
                 isDepartureTimesPanelOpen={isDepartureTimesPanelOpen}
                 isRouteNavigationPanelOpen={isRouteNavigationPanelOpen}
+                isFleetTrackingPanelOpen={isFleetTrackingPanelOpen} // YENİ EKLENDİ!
                 navigationRoute={navigationRoute}
                 animatedDistanceToDestination={animatedDistanceToDestination}
                 animatedTimeToDestination={animatedTimeToDestination}
+                selectedPopupInfo={selectedPopupInfo} // YENİ EKLENDİ!
               />
             </div>
-
 
             {isPanelOpen && (
               <div className={`panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
@@ -846,7 +826,6 @@ const toggleRouteProgressPanelActive = useCallback(() => {
               </div>
             )}
 
-
             {/* Nasıl Giderim? Paneli */}
             {isRouteNavigationPanelOpen && (
               <div className={`panel-wrapper ${isRouteNavigationPanelOpen ? 'open' : ''}`}>
@@ -864,7 +843,8 @@ const toggleRouteProgressPanelActive = useCallback(() => {
                 <FleetTrackingPanel
                   onClose={closeFleetTrackingPanel}
                   vehicles={vehicles}
-                  onVehicleSelect={handleFleetVehicleSelect} // Doğru prop'u iletiyoruz
+                  onVehicleSelect={handleFleetVehicleSelect}
+                  selectedVehicles={selectedFleetVehicles} // GÜNCELLENDİ!
                 />
               </div>
             )}
@@ -875,13 +855,14 @@ const toggleRouteProgressPanelActive = useCallback(() => {
                 <FleetVehicleDetailsPanel
                   onClose={() => setSelectedFleetVehicle(null)} // Detay panelini kapatma
                   selectedVehicle={selectedFleetVehicle} // Seçilen aracı panele iletiyoruz
+                  selectedPopupInfo={selectedPopupInfo} // YENİ EKLENDİ!
+                  onPopupInfoChange={setSelectedPopupInfo} // YENİ EKLENDİ!
                 />
               </div>
             )}
 
           </div> {/* content-area sonu */}
         </div> {/* main-container sonu */}
-
 
         {selectedRoute && isRouteProgressPanelActive && (
           <RouteProgressPanel
