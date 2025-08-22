@@ -126,22 +126,6 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
         
         {/* Özet Bilgiler */}
         <div className="fleet-summary">
-          <div className="summary-item">
-            <span className="summary-label">Toplam:</span>
-            <span className="summary-value">{totalVehicles}</span>
-          </div>
-          <div className="summary-item">
-            <span className="summary-label">Aktif:</span>
-            <span className="summary-value active">{activeVehicles}</span>
-          </div>
-          <div className="summary-item">
-            <span className="summary-label">Bakımda:</span>
-            <span className="summary-value maintenance">{maintenanceVehicles}</span>
-          </div>
-          <div className="summary-item">
-            <span className="summary-label">Servis Dışı:</span>
-            <span className="summary-value out-of-service">{outOfServiceVehicles}</span>
-          </div>
         </div>
       </div>
 

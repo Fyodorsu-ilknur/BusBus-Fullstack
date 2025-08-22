@@ -1,12 +1,12 @@
 /* frontend/src/components/RouteDetailsPanel.css */
 
 .route-details-panel {
-    padding: 15px;
+    padding: 5px;
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: var(--panel-bg);
-    color: var(--panel-text);
+    background-color: #ffffff;
+    color: #ffffff;
 }
 
 .panel-header {
