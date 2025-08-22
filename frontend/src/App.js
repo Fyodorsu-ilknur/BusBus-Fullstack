@@ -34,7 +34,18 @@ function App() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null); // Filo Takip panelinde seçilen araç için state
   const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]); // YENİ EKLENDİ (Adım 2.1): Harita üzerinde çoklu gösterim için seçilen araçlar
-  const [selectedPopupInfo, setSelectedPopupInfo] = useState(['speed', 'plate']); // YENİ: Pop-up ayarları için
+  
+  // ✅ YENİ: Pop-up entegrasyonu için state'ler
+  const [selectedPopupInfo, setSelectedPopupInfo] = useState([
+    { key: 'speed', label: 'Araç Hızı', value: '41 km/h', icon: '⚡' },
+    { key: 'plate', label: 'Plaka', value: '35 NGK 802', icon: '🏷️' },
+    { key: 'routeCode', label: 'Hat No', value: 'T1', icon: '🔢' },
+    { key: 'status', label: 'Durum', value: 'Aktif/Çalışıyor', icon: '🔵' },
+    { key: 'lastGpsTime', label: 'Son GPS', value: '14:26:53', icon: '⏰' },
+    { key: 'odometer', label: 'KM', value: '522.005,32 km', icon: '📊' }
+  ]); // Başlangıç değerleri
+  const [selectedVehicleForPanel, setSelectedVehicleForPanel] = useState(null);
+  const [isPanelOpenForVehicleDetails, setIsPanelOpenForVehicleDetails] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState(null); // Tekli seçilen hat için kullanılır (animasyon)
   const [isPanelOpen, setIsPanelOpen] = useState(false); // Hat Güzergah Takip paneli
@@ -58,6 +69,19 @@ function App() {
   const [currentDirection, setCurrentDirection] = useState('1');
   const [animatedDistanceToDestination, setAnimatedDistanceToDestination] = useState(null);
   const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
+
+  // ✅ YENİ: Pop-up bilgilerini güncelleme fonksiyonu
+  const handlePopupInfoChange = useCallback((newSelectedInfo) => {
+    console.log('Pop-up bilgileri güncelleniyor:', newSelectedInfo);
+    setSelectedPopupInfo(newSelectedInfo);
+  }, []);
+
+  // ✅ YENİ: Panel açma fonksiyonu
+  const handleOpenPanel = useCallback((vehicle) => {
+    console.log('Panel açılıyor:', vehicle);
+    setSelectedVehicleForPanel(vehicle);
+    setIsPanelOpenForVehicleDetails(true);
+  }, []);
 
   // -------- Genel Kullanım Fonksiyonları --------
   const handleToggleSelectedRoute = useCallback((routeId) => {
@@ -774,7 +798,9 @@ function App() {
                 navigationRoute={navigationRoute}
                 animatedDistanceToDestination={animatedDistanceToDestination}
                 animatedTimeToDestination={animatedTimeToDestination}
-                selectedPopupInfo={selectedPopupInfo} // YENİ EKLENDİ!
+                selectedPopupInfo={selectedPopupInfo} // ✅ YENİ EKLENDİ!
+                onOpenPanel={handleOpenPanel} // ✅ YENİ EKLENDİ!
+                onPopupInfoChange={handlePopupInfoChange} // ✅ YENİ EKLENDİ!
               />
             </div>
 
@@ -849,14 +875,14 @@ function App() {
               </div>
             )}
 
-            {/* YENİ: Araç Detayları Paneli (Sağ panel) */}
+            {/* ✅ YENİ: Araç Detayları Paneli (Sağ panel) - Güncellenmiş prop'larla */}
             {isFleetTrackingPanelOpen && selectedFleetVehicle && ( // Filo paneli açık VE bir araç seçiliyse göster
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''} details-panel-right`}>
                 <FleetVehicleDetailsPanel
                   onClose={() => setSelectedFleetVehicle(null)} // Detay panelini kapatma
                   selectedVehicle={selectedFleetVehicle} // Seçilen aracı panele iletiyoruz
-                  selectedPopupInfo={selectedPopupInfo} // YENİ EKLENDİ!
-                  onPopupInfoChange={setSelectedPopupInfo} // YENİ EKLENDİ!
+                  selectedPopupInfo={selectedPopupInfo} // ✅ YENİ EKLENDİ!
+                  onPopupInfoChange={handlePopupInfoChange} // ✅ YENİ EKLENDİ!
                 />
               </div>
             )}

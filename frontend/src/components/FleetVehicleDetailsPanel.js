@@ -1,14 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './FleetVehicleDetailsPanel.css';
 
 function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo = [], onPopupInfoChange }) {
-  // Başlangıçta 'speed', 'plate', 'routeCode', 'status', 'lastGpsTime', 'odometer' zaten seçili.
   const [selectedInfoForPopup, setSelectedInfoForPopup] = useState(new Set(['speed', 'plate', 'routeCode', 'status', 'lastGpsTime', 'odometer']));
-  const [activeCategory, setActiveCategory] = useState('live'); // Başlangıçta Canlı Veriler açık
-
-  if (!selectedVehicle) {
-    return null;
-  }
+  const [activeCategory, setActiveCategory] = useState('live');
 
   // Her araç için farklı random değerler üret
   const generateVehicleSpecificData = (vehicleId, plate) => {
@@ -21,7 +16,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
       return precision > 0 ? parseFloat(value.toFixed(precision)) : Math.floor(value);
     };
     
-    // Farklı route kodları ve güzergahları
     const routes = [
       { code: '368', name: 'ÜMİT MAH. - BORNOVA METRO' },
       { code: '50010', name: 'İBNİ SİNA GAR' },
@@ -35,16 +29,9 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     
     const selectedRoute = routes[seed % routes.length];
     
-    // Sürücü isimleri
     const drivers = [
-      'BURAK KORKMAZ',
-      'MEHMET YILMAZ', 
-      'AHMET KAYA',
-      'MUSTAFA ÖZ',
-      'VEYSİL EKİN',
-      'HASAN DEMİR',
-      'ALİ VURAL',
-      'EMRE ÖZKAN'
+      'BURAK KORKMAZ', 'MEHMET YILMAZ', 'AHMET KAYA', 'MUSTAFA ÖZ',
+      'VEYSİL EKİN', 'HASAN DEMİR', 'ALİ VURAL', 'EMRE ÖZKAN'
     ];
 
     return {
@@ -70,55 +57,9 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     };
   };
 
-  const vehicleData = generateVehicleSpecificData(selectedVehicle.vehicleId, selectedVehicle.plate);
+  const vehicleData = selectedVehicle ? generateVehicleSpecificData(selectedVehicle.vehicleId, selectedVehicle.plate) : null;
 
-  // Panel içindeki kategori ikonları
-  const categoryIcons = [
-    {
-      key: 'live',
-      icon: 'ℹ️',
-      title: 'Canlı Veriler',
-      color: '#007bff'
-    },
-    {
-      key: 'vehicle',
-      icon: '📱',
-      title: 'Araç Bilgileri',
-      color: '#28a745'
-    },
-    {
-      key: 'vds',
-      icon: '⚙️',
-      title: 'VDS Verileri',
-      color: '#ffc107'
-    },
-    {
-      key: 'avl',
-      icon: '🚌',
-      title: 'AVL Verileri',
-      color: '#007bff'
-    },
-    {
-      key: 'driver',
-      icon: '👤',
-      title: 'Şoför Bilgileri',
-      color: '#6f42c1'
-    },
-    {
-      key: 'route',
-      icon: '🚏',
-      title: 'Hat ve Rota Bilgileri',
-      color: '#17a2b8'
-    },
-    {
-      key: 'accessibility',
-      icon: '♿',
-      title: 'Erişilebilirlik',
-      color: '#e83e8c'
-    }
-  ];
-
-  const importantInfoOptions = [
+  const importantInfoOptions = selectedVehicle && vehicleData ? [
     { key: 'speed', label: 'Araç Hızı', value: `${selectedVehicle.speed || 45} km/h`, icon: '⚡' },
     { key: 'plate', label: 'Plaka', value: selectedVehicle.plate, icon: '🏷️' },
     { key: 'routeCode', label: 'Hat No', value: vehicleData.routeCode, icon: '🔢' },
@@ -131,14 +72,47 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     { key: 'driverName', label: 'Sürücü', value: vehicleData.driverName, icon: '👨‍✈️' },
     { key: 'routeName', label: 'Rota Adı', value: vehicleData.routeName, icon: '📍' },
     { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo}`, icon: '🆔' }
+  ] : [];
+
+  // ✅ DÜZELTME: useEffect dependency array'ine selectedInfoForPopup eklendi
+  useEffect(() => {
+    console.log('🔄 useEffect tetiklendi');
+    console.log('  - selectedVehicle:', selectedVehicle?.plate);
+    console.log('  - onPopupInfoChange var mı:', !!onPopupInfoChange);
+    console.log('  - importantInfoOptions uzunluğu:', importantInfoOptions.length);
+    console.log('  - selectedInfoForPopup:', Array.from(selectedInfoForPopup));
+    
+    if (onPopupInfoChange && selectedVehicle && importantInfoOptions.length > 0) {
+      const initialSelectedOptions = importantInfoOptions.filter(option => 
+        selectedInfoForPopup.has(option.key)
+      );
+      console.log('📤 Seçimler Map\'e gönderiliyor:', initialSelectedOptions);
+      onPopupInfoChange(initialSelectedOptions);
+    } else {
+      console.log('❌ useEffect koşulları sağlanmadı');
+    }
+  }, [selectedVehicle, onPopupInfoChange, selectedInfoForPopup, importantInfoOptions]);
+
+  if (!selectedVehicle) {
+    return null;
+  }
+
+  const categoryIcons = [
+    { key: 'live', icon: 'ℹ️', title: 'Canlı Veriler', color: '#007bff' },
+    { key: 'vehicle', icon: '📱', title: 'Araç Bilgileri', color: '#28a745' },
+    { key: 'vds', icon: '⚙️', title: 'VDS Verileri', color: '#ffc107' },
+    { key: 'avl', icon: '🚌', title: 'AVL Verileri', color: '#007bff' },
+    { key: 'driver', icon: '👤', title: 'Şoför Bilgileri', color: '#6f42c1' },
+    { key: 'route', icon: '🚏', title: 'Hat ve Rota Bilgileri', color: '#17a2b8' },
+    { key: 'accessibility', icon: '♿', title: 'Erişilebilirlik', color: '#e83e8c' }
   ];
 
-  // Kategori verilerini getir
   const getCategoryData = (categoryKey) => {
+    if (!vehicleData) return [];
+    
     switch(categoryKey) {
       case 'live':
         return importantInfoOptions;
-
       case 'vehicle':
         return [
           { icon: '🆔', label: 'Araç ID', value: selectedVehicle.vehicleId || 'V001' },
@@ -154,36 +128,19 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           { icon: '📞', label: 'Contact Status', value: 'On' },
           { icon: '📡', label: 'GPS Status', value: 'On' }
         ];
-
       case 'vds':
         return [
           { icon: '📊', label: 'Total KM', value: `${vehicleData.totalKm.toLocaleString()} km` },
           { icon: '⛽', label: 'Total Fuel Used', value: `${vehicleData.totalFuel.toLocaleString()} L` },
           { icon: '🔧', label: 'Engine Status', value: '1' },
-          { icon: '🛡️', label: 'ABS Fly Status', value: '-' },
           { icon: '🔋', label: 'Battery Volt', value: `${vehicleData.batteryVolt} V` },
-          { icon: '🛑', label: 'Fren Brake Status', value: '-' },
-          { icon: '🔧', label: 'Break Halt Mode', value: '-' },
-          { icon: '⚙️', label: 'Clutch Sw', value: 'bit' },
-          { icon: '⚠️', label: 'EBS Warning Lamp', value: 'bit' },
-          { icon: '🌡️', label: 'Engine Cool Level', value: '102 %' },
-          { icon: '💨', label: 'Engine Cool Press.', value: 'kPa' },
           { icon: '🌡️', label: 'Engine Cool Temp.', value: `${vehicleData.engineCoolTemp} deg C` },
           { icon: '⛽', label: 'Fuel Temperature', value: `${vehicleData.fuelTemp} deg C` },
-          { icon: '📊', label: 'Manifolk Pressure', value: '510 kPa' },
-          { icon: '🌡️', label: 'Manifolk Temp.', value: 'deg C' },
-          { icon: '🌪️', label: 'Turbo Temperature', value: 'deg C' },
-          { icon: '🛢️', label: 'Engine Oil Level', value: '102 %' },
-          { icon: '💨', label: 'Engine Oil Pressure', value: '276 kPa' },
           { icon: '🌡️', label: 'Engine Oil Temp.', value: `${vehicleData.oilTemp} deg C` },
           { icon: '⚡', label: 'Engine Speed', value: `${vehicleData.engineSpeed} rpm` },
           { icon: '⛽', label: 'Fuel Rate', value: `${vehicleData.fuelRate} L/saat` },
-          { icon: '🛢️', label: 'Fuel Oil Con.', value: '0 Km/L' },
-          { icon: '⬇️', label: 'Kick Down', value: '-' },
-          { icon: '⚙️', label: 'Gear Info', value: `${vehicleData.gearInfo} gear` },
-          { icon: '🌡️', label: 'Oil Temp.', value: `${vehicleData.oilTemp} deg C` }
+          { icon: '⚙️', label: 'Gear Info', value: `${vehicleData.gearInfo} gear` }
         ];
-
       case 'avl':
         return [
           { icon: '🎫', label: 'Trip No', value: vehicleData.tripNo.toString() },
@@ -193,21 +150,15 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           { icon: '📍', label: 'Route Name', value: vehicleData.routeName },
           { icon: '🛤️', label: 'Path Code', value: `${vehicleData.pathCode} ${vehicleData.routeName}` },
           { icon: '📅', label: 'Start Date Time', value: vehicleData.startDateTime },
-          { icon: '🚗', label: 'Travel Date Time', value: '13.08.2025 10:35:51' },
-          { icon: '📅', label: 'End Date Time', value: vehicleData.endDateTime },
           { icon: '👨‍✈️', label: 'Driver', value: `${vehicleData.personnelNo} ${vehicleData.driverName}` },
-          { icon: '🚌', label: 'Bus Duty No', value: '1' },
-          { icon: '🚏', label: 'Last Passed Stop', value: '13051 ŞAHİNBEY PARKI' },
-          { icon: '⏰', label: 'Last Passed Stop Time', value: '13.08.2025 10:50:09' }
+          { icon: '🚌', label: 'Bus Duty No', value: '1' }
         ];
-
       case 'driver':
         return [
           { icon: '🆔', label: 'Personel No', value: vehicleData.personnelNo.toString() },
           { icon: '👤', label: 'Adı Soyadı', value: vehicleData.driverName },
           { icon: '📞', label: 'Telefon', value: '+90 5777332204' }
         ];
-
       case 'route':
         return [
           { icon: '🔢', label: 'Hat Numarası', value: vehicleData.routeCode },
@@ -215,34 +166,40 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           { icon: '📝', label: 'Rota Kodu', value: vehicleData.routeCode },
           { icon: '🛤️', label: 'Path Kodu', value: vehicleData.pathCode },
           { icon: '🏢', label: 'Firma', value: 'ESHOT' },
-          { icon: '📅', label: 'Başlangıç Zamanı', value: vehicleData.startDateTime },
-          { icon: '📅', label: 'Bitiş Zamanı', value: vehicleData.endDateTime },
           { icon: '🎫', label: 'Trip No', value: vehicleData.tripNo.toString() }
         ];
-
       case 'accessibility':
         return [
           { icon: '♿', label: 'Tekerlekli Sandalye', value: vehicleData.wheelchairAccess ? 'Uygun' : 'Uygun Değil', status: vehicleData.wheelchairAccess },
           { icon: '🚲', label: 'Bisiklet Rafı', value: vehicleData.bikeRack ? 'Mevcut' : 'Mevcut Değil', status: vehicleData.bikeRack }
         ];
-
       default:
         return [];
     }
   };
 
+  // ✅ DÜZELTME: Debug logları eklendi
   const handleInfoToggle = (infoKey) => {
+    console.log('🔧 handleInfoToggle çağrıldı, infoKey:', infoKey);
+    
     const newSelected = new Set(selectedInfoForPopup);
     if (newSelected.has(infoKey)) {
       newSelected.delete(infoKey);
+      console.log('❌ Seçim kaldırıldı:', infoKey);
     } else {
       newSelected.add(infoKey);
+      console.log('✅ Seçim eklendi:', infoKey);
     }
+    
+    console.log('📝 Yeni seçim seti:', Array.from(newSelected));
     setSelectedInfoForPopup(newSelected);
     
     if (onPopupInfoChange) {
       const selectedOptions = importantInfoOptions.filter(option => newSelected.has(option.key));
+      console.log('📤 onPopupInfoChange\'e gönderilen veri:', selectedOptions);
       onPopupInfoChange(selectedOptions);
+    } else {
+      console.log('❌ onPopupInfoChange fonksiyonu yok!');
     }
   };
 
@@ -258,7 +215,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
         <button onClick={onClose} className="close-button">✕</button>
       </div>
 
-      {/* Kategori İkonları */}
       <div className="category-icons-container">
         {categoryIcons.map(category => (
           <button
@@ -282,7 +238,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           
           <div className="category-content">
             {activeCategory === 'live' ? (
-              // Canlı Veriler - Pop-up için seçim
               <div className="info-selection-grid">
                 {currentData.map(option => (
                   <div 
@@ -300,7 +255,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
                 ))}
               </div>
             ) : (
-              // Diğer kategoriler - Normal görünüm
               currentData.map((item, index) => (
                 <div key={index} className="detail-row">
                   <span className="detail-icon">{item.icon}</span>

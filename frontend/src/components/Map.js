@@ -51,12 +51,19 @@ function MapComponent({
   currentAnimatedStop,
   animatedDistanceToDestination,
   animatedTimeToDestination,
-  selectedPopupInfo = [] // YENİ: Ayarlar panelinden seçilen pop-up bilgileri
+  selectedPopupInfo = [], // ✅ YENİ: Panel'den gelen pop-up bilgileri
+  
+  // ✅ YENİ: Panel entegrasyonu için gerekli props
+  onOpenPanel, // Panel açma fonksiyonu
+  onPopupInfoChange // Pop-up bilgilerini güncelleme
 }) {
   const mapRef = useRef();
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [hoveredVehiclePopup, setHoveredVehiclePopup] = useState(null); // Araç üzerine gelince açılan popup
+  // const [hoveredVehiclePopup, setHoveredVehiclePopup] = useState(null); // Araç üzerine gelince açılan popup - KALDIRILDI
+
+  // ✅ YENİ: Pop-up state'leri
+  const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState(null);
 
   const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
@@ -112,6 +119,95 @@ function MapComponent({
     }
   };
 
+  // ✅ YENİ: Araç tıklama - Pop-up açma
+  // handleVehicleClick kaldırıldı/boşaltıldı - Sadece popup'ı ayarlar.
+  const handleVehicleClick = useCallback((vehicle) => {
+    setSelectedVehicleForPopup(vehicle);
+    // Marker tıklamasıyla açılan popup kaldırıldı - doğrudan setSelectedVehicleForPopup kullanılır.
+  }, []);
+
+  // ✅ YENİ: Pop-up kapatma
+  const handlePopupClose = useCallback(() => {
+    setSelectedVehicleForPopup(null);
+  }, []);
+
+  // ✅ YENİ: Panel açma
+  const handleOpenPanel = useCallback((vehicle) => {
+    if (onOpenPanel) {
+      onOpenPanel(vehicle);
+    }
+    // Panel açıldığında popup'ı kapatmak isteyebiliriz, tercihe göre
+    // setSelectedVehicleForPopup(null); 
+  }, [onOpenPanel]);
+
+  // ✅ DÜZELTME: Pop-up bilgilerini formatla (Panel'den gelen selectedPopupInfo kullanarak)
+  const getPopupContent = useCallback((vehicle) => {
+    // Eğer panel'den seçilmiş bilgi yoksa varsayılan bilgileri göster
+    if (!selectedPopupInfo || selectedPopupInfo.length === 0) {
+      return [
+        { key: 'plate', label: 'Plaka', value: vehicle.plate, icon: '🏷️' },
+        { key: 'speed', label: 'Hız', value: `${vehicle.speed || 45} km/h`, icon: '⚡' }
+      ];
+    }
+
+    // Panel'den seçilen bilgileri aracın gerçek verileriyle eşleştir
+    return selectedPopupInfo.map(info => {
+      let actualValue = info.value; // Varsayılan olarak panel'deki değeri kullan
+
+      // Aracın gerçek verilerini kullanarak dinamik değer oluştur
+      switch(info.key) {
+        case 'speed':
+          actualValue = `${vehicle.speed || 45} km/h`;
+          break;
+        case 'plate':
+          actualValue = vehicle.plate;
+          break;
+        case 'routeCode':
+          actualValue = vehicle.routeCode || vehicle.routeName || 'Bilinmiyor';
+          break;
+        case 'status':
+          actualValue = vehicle.status || 'Aktif';
+          break;
+        case 'lastGpsTime':
+          actualValue = vehicle.lastGpsTime || '14:00:25';
+          break;
+        case 'odometer':
+          // Odometer bilgisi için vehicle'da mevcut olan değeri kullan
+          actualValue = vehicle.odometer ? `${vehicle.odometer.toLocaleString()} km` : 'Bilinmiyor';
+          break;
+        case 'batteryVolt':
+          actualValue = vehicle.batteryVolt || `${Math.floor(Math.random() * 4) + 24} V`;
+          break;
+        case 'fuelRate':
+          actualValue = vehicle.fuelRate || `${(Math.random() * 0.5 + 0.1).toFixed(2)} L/saat`;
+          break;
+        case 'location':
+          actualValue = `${vehicle.location?.lat?.toFixed(4) || '38.4192'}, ${vehicle.location?.lng?.toFixed(4) || '27.1287'}`;
+          break;
+        case 'driverName':
+          actualValue = vehicle.driverInfo?.name || 'Bilinmiyor';
+          break;
+        case 'routeName':
+          actualValue = vehicle.routeName || 'Bilinmiyor';
+          break;
+        case 'samId':
+          actualValue = vehicle.samId || `SAM${Math.floor(Math.random() * 9000000) + 1000000}`;
+          break;
+        default:
+          // Diğer tüm durumlar için panel'den gelen değeri kullan
+          actualValue = info.value;
+          break;
+      }
+
+      return {
+        key: info.key,
+        label: info.label,
+        value: actualValue,
+        icon: info.icon
+      };
+    });
+  }, [selectedPopupInfo]);
+
   // YENİ: Araç için gerçek güzergah çekme (server'dan)
   const getVehicleRealRoute = useCallback(async (vehicle) => {
     try {
@@ -136,6 +232,40 @@ function MapComponent({
       return null;
     }
   }, []);
+
+  // ✅ DÜZELTME: Seçili araca zoom yapma
+  useEffect(() => {
+    if (selectedFleetVehicle && mapLoaded && mapRef.current) {
+      // Animasyonlu pozisyon varsa onu kullan, yoksa statik konumu kullan
+      const animatedPosition = animatedFleetPositions[selectedFleetVehicle.id];
+      let targetPosition = null;
+
+      if (animatedPosition && animatedPosition.position) {
+        targetPosition = {
+          lng: animatedPosition.position.lng,
+          lat: animatedPosition.position.lat
+        };
+      } else if (selectedFleetVehicle.location && 
+                 typeof selectedFleetVehicle.location.lng === 'number' && 
+                 typeof selectedFleetVehicle.location.lat === 'number') {
+        targetPosition = {
+          lng: selectedFleetVehicle.location.lng,
+          lat: selectedFleetVehicle.location.lat
+        };
+      }
+
+      if (targetPosition) {
+        console.log('Seçili araca zoom yapılıyor:', selectedFleetVehicle.plate, targetPosition);
+        mapRef.current.flyTo({
+          center: [targetPosition.lng, targetPosition.lat],
+          zoom: 16, // Daha yakın zoom
+          duration: 1500 // Smooth transition
+        });
+      } else {
+        console.warn('Seçili araç için geçerli konum bulunamadı:', selectedFleetVehicle);
+      }
+    }
+  }, [selectedFleetVehicle, animatedFleetPositions, mapLoaded]);
 
   // YENİ: Çoklu araç animasyonlarını başlat/durdur (gerçek güzergahla)
   useEffect(() => {
@@ -222,27 +352,6 @@ function MapComponent({
     };
   }, [isFleetTrackingPanelOpen, selectedFleetVehicles, getVehicleRealRoute]);
 
-  // YENİ: Pop-up bilgilerini formatla
-  const getPopupContent = useCallback((vehicle, selectedInfo) => {
-    const infoMap = {
-      speed: `Hız: ${vehicle.speed} km/h`,
-      plate: `Plaka: ${vehicle.plate}`,
-      routeCode: `Hat No: ${vehicle.routeCode}`,
-      routeName: `Rota: ${vehicle.routeName}`,
-      driverName: `Sürücü: ${vehicle.driverInfo?.name}`,
-      companyAd: `Firma: ${vehicle.companyAd}`
-    };
-
-    if (!selectedInfo || selectedInfo.length === 0) {
-      return `<strong>Plaka: ${vehicle.plate}</strong><br/>Hız: ${vehicle.speed} km/h`;
-    }
-
-    return selectedInfo
-      .filter(key => infoMap[key])
-      .map(key => infoMap[key])
-      .join('<br/>');
-  }, []);
-
   useEffect(() => {
     const fetchRouteData = async () => {
       const newRoutesData = {};
@@ -307,19 +416,6 @@ function MapComponent({
       }
     }
   }, [mapCenter, zoomLevel, mapLoaded]);
-
-  // selectedFleetVehicle değiştiğinde haritayı o araca odakla
-  useEffect(() => {
-    if (selectedFleetVehicle && mapLoaded && mapRef.current) {
-      if (selectedFleetVehicle.location && typeof selectedFleetVehicle.location.lng === 'number' && typeof selectedFleetVehicle.location.lat === 'number') {
-        mapRef.current.flyTo({
-          center: [selectedFleetVehicle.location.lng, selectedFleetVehicle.location.lat],
-          zoom: 15,
-          duration: 1000
-        });
-      }
-    }
-  }, [selectedFleetVehicle, mapLoaded]);
 
   useEffect(() => {
     if (!isPanelOpen || !selectedVehicle || !selectedRoute || isRouteDetailsPanelOpen || isDepartureTimesPanelOpen || isRouteNavigationPanelOpen) {
@@ -694,7 +790,8 @@ function MapComponent({
   }, [multipleRoutesData]);
 
   // ✅ DÜZELTME: Sadece seçili araçları göster (Panel açıldığında hiçbiri görünmesin)
-  const shouldRenderAllFleetMarkers = mapLoaded && isFleetTrackingPanelOpen && selectedFleetVehicles.length > 0;
+  // Bu mantık, aşağıda ilgili Marker render bölümlerine taşındı.
+  // const shouldRenderAllFleetMarkers = mapLoaded && isFleetTrackingPanelOpen && selectedFleetVehicles.length > 0;
 
   return (
     <Map
@@ -862,6 +959,9 @@ function MapComponent({
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicleId);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
         
+        // Eğer bu araç için bir popup açılacaksa, o da burada ele alınır.
+        const isPopupActive = selectedVehicleForPopup?.id === vehicle.id;
+
         if (!isMultiSelected || !isActive) return null;
 
         const isSelected = selectedFleetVehicle?.id === vehicleId;
@@ -889,7 +989,12 @@ function MapComponent({
                   boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
                   borderRadius: '50%'
                 }}
-                onClick={() => onFleetVehicleMarkerClick && onFleetVehicleMarkerClick(vehicle)}
+                onClick={() => {
+                  if (onFleetVehicleMarkerClick) {
+                    onFleetVehicleMarkerClick(vehicle);
+                  }
+                  handleVehicleClick(vehicle); // Popup açmak için
+                }}
               />
               
               {/* Durum göstergesi - küçük renkli nokta */}
@@ -908,37 +1013,76 @@ function MapComponent({
                 }}
               />
 
-              {/* Pop-up - sadece seçili araç için */}
-              {isSelected && (
-                <div className="vehicle-popup" style={{
-                  position: 'absolute',
-                  bottom: '50px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  backgroundColor: 'white',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-                  fontSize: '12px',
-                  whiteSpace: 'nowrap',
-                  zIndex: 1000,
-                  border: '1px solid #ddd'
-                }}>
-                  <div dangerouslySetInnerHTML={{
-                    __html: getPopupContent(vehicle, selectedPopupInfo)
-                  }} />
-                  <div style={{ 
-                    position: 'absolute', 
-                    bottom: '-6px', 
-                    left: '50%', 
-                    transform: 'translateX(-50%)',
-                    width: 0,
-                    height: 0,
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderTop: '6px solid white'
-                  }} />
-                </div>
+              {/* Seçili araçların marker'larının yanında popup hep açık olacak */}
+              {isPopupActive && (
+                <Popup
+                  longitude={vehicle.location?.lng || 0}
+                  latitude={vehicle.location?.lat || 0}
+                  onClose={handlePopupClose}
+                  anchor="bottom"
+                  closeButton={true}
+                  closeOnClick={false} // Popup'ın tıklamayla kapanmasını engelle
+                  offset={[0, -45]}
+                >
+                  <div style={{
+                    padding: '8px',
+                    minWidth: '200px',
+                    background: 'white',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      borderBottom: '1px solid #e2e8f0',
+                      paddingBottom: '4px'
+                    }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                        {vehicle.plate}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {getPopupContent(vehicle).map(info => (
+                        <div key={info.key} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px'
+                        }}>
+                          <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
+                            {info.icon}
+                          </span>
+                          <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
+                            {info.label}:
+                          </span>
+                          <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
+                            {info.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        background: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        marginTop: '8px',
+                        width: '100%',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => handleOpenPanel(vehicle)}
+                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
+                      onMouseLeave={(e) => e.target.style.background = '#007bff'}
+                    >
+                      📋 Detaylı Bilgiler
+                    </button>
+                  </div>
+                </Popup>
               )}
             </div>
           </Marker>
@@ -951,10 +1095,13 @@ function MapComponent({
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
         
-        if (!isMultiSelected || !isActive) return null; // Seçili değilse veya aktif değilse hiç gösterme
-        
         // Eğer bu araç animasyonlu ise, statik gösterme
         if (animatedFleetPositions[vehicle.id]) return null;
+        
+        // Eğer bu araç için bir popup açılacaksa, o da burada ele alınır.
+        const isPopupActive = selectedVehicleForPopup?.id === vehicle.id;
+
+        if (!isMultiSelected || !isActive) return null; // Seçili değilse veya aktif değilse hiç gösterme
         
         const isSelected = selectedFleetVehicle?.id === vehicle.id;
         const iconSize = isSelected ? '40px' : '30px';
@@ -985,7 +1132,12 @@ function MapComponent({
                   boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
                   borderRadius: '50%'
                 }}
-                onClick={() => onFleetVehicleMarkerClick && onFleetVehicleMarkerClick(vehicle)}
+                onClick={() => {
+                  if (onFleetVehicleMarkerClick) {
+                    onFleetVehicleMarkerClick(vehicle);
+                  }
+                  handleVehicleClick(vehicle); // Popup açmak için
+                }}
                 onError={(e) => { e.currentTarget.style.opacity = '0.2'; console.error('Bus icon yüklenemedi'); }}
               />
               
@@ -1004,20 +1156,75 @@ function MapComponent({
                 }}
               />
 
-              {/* Pop-up: Sadece seçili araç için gösteriliyor */}
-              {isSelected && (
+              {/* Seçili araçların marker'larının yanında popup hep açık olacak */}
+              {isPopupActive && (
                 <Popup
                   longitude={vehicle.location.lng}
                   latitude={vehicle.location.lat}
-                  onClose={() => { /* Popup, isSelected false olunca kapanır */ }}
+                  onClose={handlePopupClose}
                   anchor="bottom"
-                  closeButton={false}
-                  closeOnClick={true}
-                  offset={[-1, -15]}
+                  closeButton={true}
+                  closeOnClick={false} // Popup'ın tıklamayla kapanmasını engelle
+                  offset={[0, -45]}
                 >
-                  <div className="bus-popup-info" dangerouslySetInnerHTML={{
-                    __html: getPopupContent(vehicle, selectedPopupInfo)
-                  }} />
+                  <div style={{
+                    padding: '8px',
+                    minWidth: '200px',
+                    background: 'white',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      borderBottom: '1px solid #e2e8f0',
+                      paddingBottom: '4px'
+                    }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                        {vehicle.plate}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {getPopupContent(vehicle).map(info => (
+                        <div key={info.key} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px'
+                        }}>
+                          <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
+                            {info.icon}
+                          </span>
+                          <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
+                            {info.label}:
+                          </span>
+                          <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
+                            {info.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        background: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        marginTop: '8px',
+                        width: '100%',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => handleOpenPanel(vehicle)}
+                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
+                      onMouseLeave={(e) => e.target.style.background = '#007bff'}
+                    >
+                      📋 Detaylı Bilgiler
+                    </button>
+                  </div>
                 </Popup>
               )}
             </div>
@@ -1036,7 +1243,79 @@ function MapComponent({
             src={busIconUrl}
             alt={`Seçili Araç ${selectedFleetVehicle.plate || selectedFleetVehicle.id}`}
             style={{ width: '40px', height: '40px' }}
+            onClick={() => handleVehicleClick(selectedFleetVehicle)} // Popup açmak için
           />
+          {/* Panel kapalıyken seçili tek aracın popup'ı */}
+          {selectedVehicleForPopup?.id === selectedFleetVehicle.id && (
+                <Popup
+                  longitude={selectedFleetVehicle.location.lng}
+                  latitude={selectedFleetVehicle.location.lat}
+                  onClose={handlePopupClose}
+                  anchor="bottom"
+                  closeButton={true}
+                  closeOnClick={false} 
+                  offset={[0, -45]}
+                >
+                  <div style={{
+                    padding: '8px',
+                    minWidth: '200px',
+                    background: 'white',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      borderBottom: '1px solid #e2e8f0',
+                      paddingBottom: '4px'
+                    }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                        {selectedFleetVehicle.plate}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {getPopupContent(selectedFleetVehicle).map(info => (
+                        <div key={info.key} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px'
+                        }}>
+                          <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
+                            {info.icon}
+                          </span>
+                          <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
+                            {info.label}:
+                          </span>
+                          <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
+                            {info.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        background: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        marginTop: '8px',
+                        width: '100%',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => handleOpenPanel(selectedFleetVehicle)}
+                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
+                      onLeave={(e) => e.target.style.background = '#007bff'}
+                    >
+                      📋 Detaylı Bilgiler
+                    </button>
+                  </div>
+                </Popup>
+              )}
         </Marker>
       )}
 
