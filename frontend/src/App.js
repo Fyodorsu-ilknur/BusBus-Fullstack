@@ -1,3 +1,4 @@
+
 // frontend/src/App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
@@ -255,6 +256,7 @@ function App() {
   }
 };
 
+  // ✅ DÜZELTME: Panel ASLA kapanmasın
   const handleFleetVehicleSelect = useCallback((vehicle) => {
     console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
 
@@ -264,40 +266,18 @@ function App() {
       if (isAlreadySelected) {
         // Zaten seçiliyse listeden çıkar
         const newSelection = prevSelected.filter(v => v.id !== vehicle.id);
-        // Eğer tüm seçimler kaldırıldıysa harita merkezini sıfırla
-        if (newSelection.length === 0) {
-          setMapCenter(null);
-        } else if (newSelection.length === 1) {
-          // Eğer tek araç kaldıysa, ona odaklan
-          if (newSelection[0]?.location?.lng && newSelection[0]?.location?.lat) {
-            setMapCenter([newSelection[0].location.lng, newSelection[0].location.lat]);
-          }
-        }
         return newSelection;
       } else {
         // Seçili değilse listeye ekle
         const newSelection = [...prevSelected, vehicle];
-        // Eğer ilk seçim veya sadece bir araç seçiliyse, ona odaklan
-        if (newSelection.length === 1) {
-          if (vehicle?.location?.lng && vehicle?.location?.lat) {
-            setMapCenter([vehicle.location.lng, vehicle.location.lat]);
-          }
-        }
         return newSelection;
       }
     });
 
-    // DÜZELTME: Sağ detay paneli için - tıklanan araç seçiliyse göster, değilse gizle
-    const isCurrentlySelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
-    if (isCurrentlySelected) {
-      // Araç zaten seçiliyse ve tekrar tıklanıyorsa detay panelini kapat
-      setSelectedFleetVehicle(null);
-    } else {
-      // Araç seçiliyorsa detay panelini aç
-      setSelectedFleetVehicle(vehicle);
-    }
+    // ✅ DÜZELTME: Panel ASLA kapanmasın - sadece seçili aracı değiştir
+    setSelectedFleetVehicle(vehicle); // Her zaman seçilen aracı göster
 
-  }, [selectedFleetVehicle, selectedFleetVehicles, setMapCenter, setSelectedFleetVehicles]);
+  }, [selectedFleetVehicles, setSelectedFleetVehicles]);
 
   const handleSearch = useCallback(async (term) => { // handleSearch fonksiyonu buraya taşındı
     setSearchTerm(term);
@@ -409,7 +389,7 @@ function App() {
     fetchRoutesAndDirections();
   }, [dispatch, setFilteredItems]); // Bağımlılıklar güncellendi
 
-  // GÜNCELLENDİ: Server'dan gerçek rotalar ile 394 araç oluştur
+  // ✅ PERFORMANS OPTİMİZASYONU: Daha az sıklıkta güncelle
   useEffect(() => {
     if (vehicles.length === 0 && Object.keys(allRoutes).length > 0) {
       const routesList = Object.values(allRoutes);
@@ -426,49 +406,39 @@ function App() {
       console.log(`394 araç oluşturuldu. ${routesList.length} farklı rota kullanıldı.`);
     }
 
-    // Periyodik güncelleme mantığı - sadece konum ve hız güncelle
+    // ✅ PERFORMANS OPTİMİZASYONU: Daha az sıklıkta güncelle
     const intervalId = setInterval(() => {
       setVehicles(prevVehicles => {
         return prevVehicles.map(vehicle => {
+          // ✅ SADECE SEÇILI ARAÇLARI GÜNCELLE (performans için)
+          const isSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
+          if (!isSelected) {
+            return vehicle; // Seçili değilse güncelleme
+          }
+
           const newLocation = getRandomLocation();
           const newSpeed = getRandomSpeed();
           const now = new Date();
           const newOdometer = vehicle.odometer + Math.floor(Math.random() * 5) + 1;
           
-          // Durum güncellemesi daha az sıklıkta
-          const shouldUpdateStatus = Math.random() > 0.9; // %10 ihtimalle durum değişir
-          let newStatus = vehicle.status;
-          if (shouldUpdateStatus) {
-            const statusesWeighted = [
-                'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
-                'Aktif/Çalışıyor', 'Aktif/Çalışıyor', 'Aktif/Çalışıyor',
-                'Aktif/Çalışıyor',
-                'Servis Dışı',
-                'Bakımda'
-            ];
-            newStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
-          }
-
           return {
-            ...vehicle, // Plaka, ID, şoför bilgisi, rota bilgileri aynı kalır
+            ...vehicle,
             speed: newSpeed,
             location: {
               lat: newLocation[1],
               lng: newLocation[0]
             },
-            status: newStatus,
             lastGpsTime: now.toLocaleTimeString('tr-TR'),
             odometer: newOdometer,
-            engineStatus: Math.random() > 0.1 ? 'Çalışıyor' : 'Durduruldu',
           };
         });
       });
-    }, 30000); // 30 saniye
+    }, 60000); // ✅ 60 saniye (30'dan 60'a çıkarıldı)
 
     // Cleanup fonksiyonu
     return () => clearInterval(intervalId);
 
-  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed]);
+  }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed, selectedFleetVehicles]);
 
   // -------- Panel Açma/Kapatma Fonksiyonları --------
   const closePanel = useCallback(() => {

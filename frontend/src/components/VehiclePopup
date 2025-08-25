@@ -118,15 +118,7 @@ function VehiclePopup({ vehicle, selectedPopupInfo = [], onClose, onOpenPanel })
         )}
       </div>
 
-      {/* Panel Açma Butonu */}
-      <button 
-        style={panelButtonStyle}
-        onClick={() => onOpenPanel(vehicle)}
-        onMouseEnter={(e) => e.target.style.background = '#0056b3'}
-        onMouseLeave={(e) => e.target.style.background = '#007bff'}
-      >
-        📋 Detaylı Bilgiler
-      </button>
+     
 
       {/* Pop-up Arrow (isteğe bağlı) */}
       <div style={{
