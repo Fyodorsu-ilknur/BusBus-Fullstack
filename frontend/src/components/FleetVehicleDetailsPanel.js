@@ -1,4 +1,4 @@
-// frontend/src/components/FleetVehicleDetaigti alsPanel.js
+// frontend/src/components/FleetVehicleDetailsPanel.js
 import React, { useState, useEffect, useCallback } from 'react';
 import './FleetVehicleDetailsPanel.css';
 
@@ -74,14 +74,13 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     { key: 'fuelRate', label: 'Yakıt', value: `${vehicleData.fuelRate || 0} L/saat`, icon: '⛽' },
     { key: 'location', label: 'Konum', value: `${selectedVehicle.location?.lat?.toFixed(4) || 'N/A'}, ${selectedVehicle.location?.lng?.toFixed(4) || 'N/A'}`, icon: '📍' },
     { key: 'driverName', label: 'Sürücü', value: vehicleData.driverName || 'Bilinmiyor', icon: '👨‍✈️' },
-    { key: 'routeName', label: 'Rota Adı', value: vehicleData.routeName || 'Bilinmiyor', icon: '📍' },
+    { key: 'routeName', label: 'Rota Adı', value: vehicleData.routeName || 'Bilinmiyor', icon: '🗺️' },
     { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo || '0000000'}`, icon: '🆔' }
   ] : [];
 
   useEffect(() => {
     setSelectedInfoForPopup(new Set(selectedPopupInfo.map(info => info.key)));
   }, [selectedPopupInfo]);
-
 
   useEffect(() => {
     if (!onPopupInfoChange) {
@@ -101,13 +100,18 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
   }, [selectedVehicle, onPopupInfoChange, selectedInfoForPopup, importantInfoOptions]);
 
   const handleInfoToggle = useCallback((infoKey) => {
+    console.log('🟢 Toggle çalıştı:', infoKey);
+    
     setSelectedInfoForPopup(prevKeys => {
       const newKeys = new Set(prevKeys);
       if (newKeys.has(infoKey)) {
         newKeys.delete(infoKey);
+        console.log('🔴 Kaldırıldı:', infoKey);
       } else {
         newKeys.add(infoKey);
+        console.log('🟢 Eklendi:', infoKey);
       }
+      console.log('📋 Güncel seçili listesi:', Array.from(newKeys));
       return newKeys;
     });
   }, []);
@@ -115,10 +119,12 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
   const handleSelectAll = useCallback(() => {
     const allKeys = new Set(importantInfoOptions.map(option => option.key));
     setSelectedInfoForPopup(allKeys);
+    console.log('🟢 Tümü seçildi');
   }, [importantInfoOptions]);
 
   const handleClearAll = useCallback(() => {
     setSelectedInfoForPopup(new Set());
+    console.log('🔴 Tümü temizlendi');
   }, []);
 
   if (!selectedVehicle) {
@@ -250,7 +256,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
                 </div>
                 <div className="info-selection-grid">
                   {importantInfoOptions.map(option => (
-                    <div 
+                    <div
                       key={option.key} 
                       className={`info-selection-item ${selectedInfoForPopup.has(option.key) ? 'selected' : ''}`}
                       onClick={() => handleInfoToggle(option.key)}
@@ -259,8 +265,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
                         <input
                           type="checkbox"
                           checked={selectedInfoForPopup.has(option.key)}
-                          // ✅ DÜZELTİLDİ: 'readOnly' prop'u yerine CSS ile pointer-events: none; kullanacağız
-                          // onChange kaldırıldı
+                          readOnly
                         />
                         <span className="slider round"></span>
                       </div>
