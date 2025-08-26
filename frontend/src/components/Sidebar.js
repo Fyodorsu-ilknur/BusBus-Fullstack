@@ -7,8 +7,8 @@ function Sidebar({
   onToggleRouteDetailsPanel,
   onToggleDepartureTimesPanel,
   onToggleStopSelectorPanel,
-  // onToggleRouteNavigationPanel, // KALDIRILDI: Nasıl Giderim paneli için
-  onToggleFleetTrackingPanel, // YENİ: Filo Takip paneli için
+  onToggleFleetTrackingPanel,
+  // onToggleSettingsPanel, // ✅ KALDIRILDI: Ayarlar paneli için prop
   isExpanded
 }) {
   return (
@@ -33,28 +33,26 @@ function Sidebar({
           </button>
         </li>
 
-        {/* DURAK SEÇİMİ İKONU (ÖNCEKİ YANLIŞLIKLA SİLİNEN, ŞİMDİ GERİ GELDİ) */}
         <li>
           <button onClick={onToggleStopSelectorPanel} className="sidebar-item" title="Durak Seçimi">
             <span className="material-icons">location_on</span>
           </button>
         </li>
 
-        {/* ⭐ NASIL GİDERİM? İKONU KALDIRILDI */}
+        <li>
+          <button onClick={onToggleFleetTrackingPanel} className="sidebar-item" title="Filo Takip">
+            <span className="material-icons">directions_bus</span>
+          </button>
+        </li>
+
+        {/* ✅ KALDIRILDI: Ayarlar İkonu */}
         {/*
         <li>
-          <button onClick={onToggleRouteNavigationPanel} className="sidebar-item" title="Nasıl Giderim?">
-            <span className="material-icons">insights</span>
+          <button onClick={onToggleSettingsPanel} className="sidebar-item" title="Ayarlar">
+            <span className="material-icons">settings</span>
           </button>
         </li>
         */}
-
-        {/* YENİ: FİLO TAKİP İKONU (Nasıl Giderim? yerine geldi) */}
-        <li>
-          <button onClick={onToggleFleetTrackingPanel} className="sidebar-item" title="Filo Takip">
-            <span className="material-icons">directions_bus</span> {/* veya local_shipping, drive_eta */}
-          </button>
-        </li>
       </ul>
     </div>
   );

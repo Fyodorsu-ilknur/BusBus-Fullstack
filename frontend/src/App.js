@@ -1,10 +1,10 @@
-
 // frontend/src/App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
 import FleetTrackingPanel from './components/FleetTrackingPanel';
-import FleetVehicleDetailsPanel from './components/FleetVehicleDetailsPanel'; // Sağ panel için yeni import
+import FleetVehicleDetailsPanel from './components/FleetVehicleDetailsPanel';
+// import SettingsPanel from './components/SettingsPanel'; // ✅ KALDIRILDI: SettingsPanel import'u
 
 import {
   setAllRoutes, clearSelectedRoutes, toggleSelectedRoute, selectAllRoutes,
@@ -33,10 +33,11 @@ function App() {
 
   // Lokal state'ler
   const [vehicles, setVehicles] = useState([]);
-  const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null); // Filo Takip panelinde seçilen araç için state
-  const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]); // YENİ EKLENDİ (Adım 2.1): Harita üzerinde çoklu gösterim için seçilen araçlar
+  const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null);
+  const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]);
   
-  // ✅ YENİ: Pop-up entegrasyonu için state'ler
+  // Pop-up entegrasyonu için state'ler
+  // Bu state artık FleetVehicleDetailsPanel'den güncellenecek, App.js sadece Map'e iletecek
   const [selectedPopupInfo, setSelectedPopupInfo] = useState([
     { key: 'speed', label: 'Araç Hızı', value: '41 km/h', icon: '⚡' },
     { key: 'plate', label: 'Plaka', value: '35 NGK 802', icon: '🏷️' },
@@ -44,23 +45,24 @@ function App() {
     { key: 'status', label: 'Durum', value: 'Aktif/Çalışıyor', icon: '🔵' },
     { key: 'lastGpsTime', label: 'Son GPS', value: '14:26:53', icon: '⏰' },
     { key: 'odometer', label: 'KM', value: '522.005,32 km', icon: '📊' }
-  ]); // Başlangıç değerleri
-  const [selectedVehicleForPanel, setSelectedVehicleForPanel] = useState(null);
-  const [isPanelOpenForVehicleDetails, setIsPanelOpenForVehicleDetails] = useState(false);
+  ]);
+  const [selectedVehicleForPanel, setSelectedVehicleForPanel] = useState(null); // Şu an kullanılmıyor, ileride kaldırılabilir
+  const [isPanelOpenForVehicleDetails, setIsPanelOpenForVehicleDetails] = useState(false); // Şu an kullanılmıyor, ileride kaldırılabilir
 
-  const [selectedItem, setSelectedItem] = useState(null); // Tekli seçilen hat için kullanılır (animasyon)
-  const [isPanelOpen, setIsPanelOpen] = useState(false); // Hat Güzergah Takip paneli
-  const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false); // Güzergah Detayları paneli
-  const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false); // Kalkış Saatleri paneli
-  const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false); // Durak Seçimi paneli
-  const [isRouteNavigationPanelOpen, setIsRouteNavigationPanelOpen] = useState(false); // Nasıl Giderim paneli
-  const [isFleetTrackingPanelOpen, setIsFleetTrackingPanelOpen] = useState(false); // Filo Takip paneli
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false);
+  const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false);
+  const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false);
+  const [isRouteNavigationPanelOpen, setIsRouteNavigationPanelOpen] = useState(false);
+  const [isFleetTrackingPanelOpen, setIsFleetTrackingPanelOpen] = useState(false);
+  // const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // ✅ KALDIRILDI: Ayarlar paneli state'i
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
-  const [selectedRoute, setSelectedRoute] = useState(null); // Animasyonu gösterilecek olan route objesi
+  const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedStop, setSelectedStop] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
-  const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]); // Bu state App.js'te kullanılmıyor gibi görünüyor, kontrol edilebilir
+  const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [currentAnimatedStop, setCurrentAnimatedStop] = useState(null);
   const [theme, setTheme] = useState('light');
@@ -71,18 +73,17 @@ function App() {
   const [animatedDistanceToDestination, setAnimatedDistanceToDestination] = useState(null);
   const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
 
-  // ✅ YENİ: Pop-up bilgilerini güncelleme fonksiyonu
   const handlePopupInfoChange = useCallback((newSelectedInfo) => {
     console.log('Pop-up bilgileri güncelleniyor:', newSelectedInfo);
     setSelectedPopupInfo(newSelectedInfo);
   }, []);
 
-  // ✅ YENİ: Panel açma fonksiyonu
-  const handleOpenPanel = useCallback((vehicle) => {
-    console.log('Panel açılıyor:', vehicle);
-    setSelectedVehicleForPanel(vehicle);
-    setIsPanelOpenForVehicleDetails(true);
-  }, []);
+  // handleOpenPanel artık Map tarafından çağrılmayacak, FleetTrackingPanel tarafından yönetilecek
+  // const handleOpenPanel = useCallback((vehicle) => {
+  //   console.log('Panel açılıyor:', vehicle);
+  //   setSelectedVehicleForPanel(vehicle);
+  //   setIsPanelOpenForVehicleDetails(true);
+  // }, []);
 
   // -------- Genel Kullanım Fonksiyonları --------
   const handleToggleSelectedRoute = useCallback((routeId) => {
@@ -127,24 +128,20 @@ function App() {
   const getRandomSpeed = useCallback(() => Math.floor(Math.random() * 80) + 10, []);
 
   const generateRandomPlate = useCallback(() => {
-    // GÜNCELLENDİ (Adım 1.1): Kısıtlı harfler: Q, W, Ğ, J, Ş, X, Ö, Ç, V
     const allowedChars = 'ABCEFGHIKLMNPRSTUYZ'; 
     const nums = '0123456789';
-    let plate = '35 '; // İzmir plakası başlangıcı
+    let plate = '35 ';
     
-    // İlk 3 harfi allowedChars içinden seç
     for (let i = 0; i < 3; i++) {
         plate += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
     }
     plate += ' ';
-    // Son 3 rakamı nums içinden seç
     for (let i = 0; i < 3; i++) {
         plate += nums.charAt(Math.floor(Math.random() * nums.length));
     }
     return plate;
   }, []);
 
-  // GÜNCELLENDİ: Server'dan gerçek verilerle araç oluşturma
   const createInitialSimulatedVehicle = useCallback((vehicleId, routeData) => {
       const randomLocation = getRandomLocation();
       const randomSpeed = getRandomSpeed();
@@ -183,12 +180,12 @@ function App() {
           },
           tripNo: Math.floor(Math.random() * 1000000),
           companyAd: routeData?.company || 'Eshot (Otobüs)',
-          routeCode: routeData?.route_number || vehicleId.toString(), // Gerçek hat numarası
-          routeName: routeData?.route_name || `Rota ${vehicleId}`, // Gerçek hat adı
+          routeCode: routeData?.route_number || vehicleId.toString(),
+          routeName: routeData?.route_name || `Rota ${vehicleId}`,
           pathCode: `PATH-${routeData?.route_number || vehicleId}`,
           startDateTime: now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR'),
           endDateTime: new Date(now.getTime() + 3600 * 1000).toLocaleDateString('tr-TR') + ' ' + new Date(now.getTime() + 3600 * 1000).toLocaleTimeString('tr-TR'),
-          routeData: routeData // Tam rota datasını sakla
+          routeData: routeData
       };
   }, [getRandomLocation, getRandomSpeed, generateRandomPlate]);
 
@@ -256,30 +253,30 @@ function App() {
   }
 };
 
-  // ✅ DÜZELTME: Panel ASLA kapanmasın
   const handleFleetVehicleSelect = useCallback((vehicle) => {
     console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
 
-    // GÜNCELLENDİ: Çoklu seçim mantığı
+    // selectedFleetVehicles state'ini güncelle
     setSelectedFleetVehicles(prevSelected => {
       const isAlreadySelected = prevSelected.some(v => v.id === vehicle.id);
       if (isAlreadySelected) {
-        // Zaten seçiliyse listeden çıkar
         const newSelection = prevSelected.filter(v => v.id !== vehicle.id);
         return newSelection;
       } else {
-        // Seçili değilse listeye ekle
         const newSelection = [...prevSelected, vehicle];
         return newSelection;
       }
     });
 
-    // ✅ DÜZELTME: Panel ASLA kapanmasın - sadece seçili aracı değiştir
-    setSelectedFleetVehicle(vehicle); // Her zaman seçilen aracı göster
+    // ✅ YENİ MANTIK: Eğer seçilen araç zaten `selectedFleetVehicle` ise, null yap (kapat). Aksi takdirde yeni seçilen aracı ata.
+    // Bu, tekli seçimi toggle etme işlevi görür.
+    setSelectedFleetVehicle(prevVehicle => 
+      prevVehicle?.id === vehicle.id ? null : vehicle
+    );
 
-  }, [selectedFleetVehicles, setSelectedFleetVehicles]);
+  }, []); // selectedFleetVehicles bağımlılıktan kaldırıldı, çünkü setSelectedFleetVehicles fonksiyonu prevSelected ile çalışıyor
 
-  const handleSearch = useCallback(async (term) => { // handleSearch fonksiyonu buraya taşındı
+  const handleSearch = useCallback(async (term) => {
     setSearchTerm(term);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -304,7 +301,7 @@ function App() {
     );
 
     setFilteredItems(currentFilteredItems);
-  }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setSearchTerm]); // Bağımlılıklar güncellendi
+  }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setSearchTerm]);
 
   // -------- Genel Efektler (Resize, İlk Veri Yükleme, Simülasyon) --------
   useEffect(() => {
@@ -387,9 +384,8 @@ function App() {
     };
 
     fetchRoutesAndDirections();
-  }, [dispatch, setFilteredItems]); // Bağımlılıklar güncellendi
+  }, [dispatch, setFilteredItems]);
 
-  // ✅ PERFORMANS OPTİMİZASYONU: Daha az sıklıkta güncelle
   useEffect(() => {
     if (vehicles.length === 0 && Object.keys(allRoutes).length > 0) {
       const routesList = Object.values(allRoutes);
@@ -397,7 +393,6 @@ function App() {
       
       const initialVehicles = Array.from({ length: 394 }, (_, i) => {
         const vehicleId = i + 1;
-        // Rotaları sırayla dağıt, bitince başa dön
         const assignedRoute = routesList[i % routesList.length];
         return createInitialSimulatedVehicle(vehicleId, assignedRoute);
       });
@@ -406,13 +401,13 @@ function App() {
       console.log(`394 araç oluşturuldu. ${routesList.length} farklı rota kullanıldı.`);
     }
 
-    // ✅ PERFORMANS OPTİMİZASYONU: Daha az sıklıkta güncelle
     const intervalId = setInterval(() => {
       setVehicles(prevVehicles => {
         return prevVehicles.map(vehicle => {
-          // ✅ SADECE SEÇILI ARAÇLARI GÜNCELLE (performans için)
+          // Eğer selectedFleetVehicles boşsa veya araç seçili değilse, tüm araçları güncelle.
+          // Aksi takdirde sadece seçili olanları güncelle (performans için)
           const isSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
-          if (!isSelected) {
+          if (selectedFleetVehicles.length > 0 && !isSelected) {
             return vehicle; // Seçili değilse güncelleme
           }
 
@@ -433,9 +428,8 @@ function App() {
           };
         });
       });
-    }, 60000); // ✅ 60 saniye (30'dan 60'a çıkarıldı)
+    }, 60000);
 
-    // Cleanup fonksiyonu
     return () => clearInterval(intervalId);
 
   }, [allRoutes, vehicles.length, createInitialSimulatedVehicle, getRandomLocation, getRandomSpeed, selectedFleetVehicles]);
@@ -445,16 +439,15 @@ function App() {
     setIsPanelOpen(false);
     setSelectedItem(null);
     setSelectedRoute(null);
-    setSelectedStop(null);
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
+    setAnimatedDistanceToDestination(null);
+    setAnimatedTimeToDestination(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
     setNavigationRoute(null);
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   const closeRouteDetailsPanel = useCallback(() => {
     setIsRouteDetailsPanelOpen(false);
@@ -468,7 +461,7 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, []);
 
   const closeDepartureTimesPanel = useCallback(() => {
     setIsDepartureTimesPanelOpen(false);
@@ -483,7 +476,7 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   const closeStopSelectorPanel = useCallback(() => {
     setIsStopSelectorOpen(false);
@@ -498,7 +491,7 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setSelectedRoute, setSelectedItem, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   const closeRouteNavigationPanel = useCallback(() => {
     setIsRouteNavigationPanelOpen(false);
@@ -513,14 +506,19 @@ function App() {
     dispatch(clearSelectedRoutes());
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setNavigationRoute, setSelectedRoute, setSelectedItem, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   const closeFleetTrackingPanel = useCallback(() => {
     setIsFleetTrackingPanelOpen(false);
-    setSelectedFleetVehicle(null);
-    setSelectedFleetVehicles([]); // YENİ GÜNCELLENDİ (Adım 2.1): Çoklu seçimi temizle
+    setSelectedFleetVehicle(null); // Panel kapanırken seçili aracı temizle
+    setSelectedFleetVehicles([]); // Panel kapanırken çoklu seçimi temizle
     setMapCenter(null);
-  }, [setSelectedFleetVehicle, setMapCenter, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
+    setSelectedPopupInfo([]); // ✅ YENİ: Panel kapanırken pop-up bilgilerini temizle
+  }, []);
+
+  // const closeSettingsPanel = useCallback(() => { // ✅ KALDIRILDI
+  //   setIsSettingsPanelOpen(false);
+  // }, []);
 
   const togglePanel = useCallback(() => {
     setIsPanelOpen(prev => !prev);
@@ -529,6 +527,7 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -541,7 +540,10 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+    setSelectedFleetVehicle(null); // Diğer panel açıldığında seçimi temizle
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ: Diğer panel açıldığında pop-up bilgilerini temizle
+  }, [dispatch]);
 
   const toggleRouteDetailsPanel = useCallback(() => {
     setIsRouteDetailsPanelOpen(prev => !prev);
@@ -550,6 +552,7 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -561,7 +564,10 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+    setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ
+  }, []);
 
   const toggleDepartureTimesPanel = useCallback(() => {
     setIsDepartureTimesPanelOpen(prev => !prev);
@@ -570,6 +576,7 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -582,7 +589,10 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+    setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ
+  }, [dispatch]);
 
   const toggleStopSelectorPanel = useCallback(() => {
     setIsStopSelectorOpen(prev => !prev);
@@ -591,6 +601,7 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -602,7 +613,10 @@ function App() {
     setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+    setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ
+  }, [dispatch]);
 
   const toggleRouteNavigationPanel = useCallback(() => {
     setIsRouteNavigationPanelOpen(prev => !prev);
@@ -611,27 +625,7 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsSidebarExpanded(true);
-    setSelectedItem(null);
-    setSelectedRoute(null);
-    setSelectedStop(null);
-    setMapCenter(null);
-    setCurrentAnimatedStop(null);
-    setIsRouteProgressPanelActive(false);
-    setNavigationRoute(null);
-    dispatch(clearSelectedRoutes());
-    setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setCurrentDirection]); // Bağımlılıklar güncellendi
-
-  const toggleFleetTrackingPanel = useCallback(() => {
-    setIsFleetTrackingPanelOpen(prev => !prev);
-    setIsPanelOpen(false);
-    setIsRouteDetailsPanelOpen(false);
-    setIsDepartureTimesPanelOpen(false);
-    setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -645,18 +639,57 @@ function App() {
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setSelectedFleetVehicle, setCurrentDirection]); // Bağımlılıklar güncellendi
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ
+  }, [dispatch]);
+
+  const toggleFleetTrackingPanel = useCallback(() => {
+    setIsFleetTrackingPanelOpen(prev => !prev);
+    setIsPanelOpen(false);
+    setIsRouteDetailsPanelOpen(false);
+    setIsDepartureTimesPanelOpen(false);
+    setIsStopSelectorOpen(false);
+    setIsRouteNavigationPanelOpen(false);
+    // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
+    setIsSidebarExpanded(true);
+    setSelectedItem(null);
+    setSelectedRoute(null);
+    setSelectedStop(null);
+    setMapCenter(null);
+    setCurrentAnimatedStop(null);
+    setIsRouteProgressPanelActive(false);
+    setNavigationRoute(null);
+    dispatch(clearSelectedRoutes());
+    setCurrentDirection('1');
+    setAnimatedDistanceToDestination(null);
+    setAnimatedTimeToDestination(null);
+    setSelectedFleetVehicle(null); // Panel açıldığında seçimi temizle
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]); // ✅ YENİ
+  }, [dispatch]);
+
+  // const toggleSettingsPanel = useCallback(() => { // ✅ KALDIRILDI
+  //   setIsSettingsPanelOpen(prev => !prev);
+  //   setIsPanelOpen(false);
+  //   setIsRouteDetailsPanelOpen(false);
+  //   setIsDepartureTimesPanelOpen(false);
+  //   setIsStopSelectorOpen(false);
+  //   setIsRouteNavigationPanelOpen(false);
+  //   setIsFleetTrackingPanelOpen(false);
+  //   setIsSidebarExpanded(true);
+  // }, []);
 
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
       const newExpandedState = !prev;
-      if (!newExpandedState) { // Sidebar kapanırken tüm panelleri ve ilgili state'leri temizle
+      if (!newExpandedState) {
         setIsPanelOpen(false);
         setIsRouteDetailsPanelOpen(false);
         setIsDepartureTimesPanelOpen(false);
         setIsStopSelectorOpen(false);
         setIsRouteNavigationPanelOpen(false);
         setIsFleetTrackingPanelOpen(false);
+        // setIsSettingsPanelOpen(false); // ✅ KALDIRILDI
         setSelectedItem(null);
         setSelectedRoute(null);
         setSelectedStop(null);
@@ -669,11 +702,12 @@ function App() {
         setAnimatedDistanceToDestination(null);
         setAnimatedTimeToDestination(null);
         setSelectedFleetVehicle(null);
-        setSelectedFleetVehicles([]); // YENİ GÜNCELLENDİ (Adım 2.1): Çoklu seçimi temizle
+        setSelectedFleetVehicles([]);
+        setSelectedPopupInfo([]); // ✅ YENİ
       }
       return newExpandedState;
     });
-  }, [dispatch, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setNavigationRoute, setAnimatedDistanceToDestination, setAnimatedTimeToDestination, setSelectedFleetVehicle, setSelectedFleetVehicles]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   const toggleTheme = useCallback(() => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -724,7 +758,7 @@ function App() {
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-  }, [dispatch, setNavigationRoute, setSelectedRoute, setSelectedItem, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setCurrentDirection, setAnimatedDistanceToDestination, setAnimatedTimeToDestination]); // Bağımlılıklar güncellendi
+  }, [dispatch]);
 
   return (
     <Provider store={store}>
@@ -736,8 +770,8 @@ function App() {
           onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
           onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
           onToggleStopSelectorPanel={toggleStopSelectorPanel}
-          onToggleRouteNavigationPanel={toggleRouteNavigationPanel}
           onToggleFleetTrackingPanel={toggleFleetTrackingPanel}
+          // onToggleSettingsPanel={toggleSettingsPanel} // ✅ KALDIRILDI: Sidebar'dan SettingsPanel prop'u
           isExpanded={isSidebarExpanded}
         />
 
@@ -747,8 +781,8 @@ function App() {
               <Map
                 vehicles={vehicles}
                 selectedFleetVehicle={selectedFleetVehicle}
-                selectedFleetVehicles={selectedFleetVehicles} // YENİ EKLENDİ (Adım 2.1)!
-                onFleetVehicleMarkerClick={handleFleetVehicleSelect}
+                selectedFleetVehicles={selectedFleetVehicles}
+                // onFleetVehicleMarkerClick={handleFleetVehicleSelect} // ✅ KALDIRILDI: Map üzerindeki marker tıklanamaz olacak
                 selectedVehicle={selectedItem}
                 selectedRoute={selectedRoute}
                 mapCenter={mapCenter}
@@ -764,13 +798,13 @@ function App() {
                 isRouteDetailsPanelOpen={isRouteDetailsPanelOpen}
                 isDepartureTimesPanelOpen={isDepartureTimesPanelOpen}
                 isRouteNavigationPanelOpen={isRouteNavigationPanelOpen}
-                isFleetTrackingPanelOpen={isFleetTrackingPanelOpen} // YENİ EKLENDİ!
+                isFleetTrackingPanelOpen={isFleetTrackingPanelOpen}
                 navigationRoute={navigationRoute}
                 animatedDistanceToDestination={animatedDistanceToDestination}
                 animatedTimeToDestination={animatedTimeToDestination}
-                selectedPopupInfo={selectedPopupInfo} // ✅ YENİ EKLENDİ!
-                onOpenPanel={handleOpenPanel} // ✅ YENİ EKLENDİ!
-                onPopupInfoChange={handlePopupInfoChange} // ✅ YENİ EKLENDİ!
+                selectedPopupInfo={selectedPopupInfo}
+                // onOpenPanel={handleOpenPanel} // ✅ KALDIRILDI: Map üzerindeki detaylı bilgiler butonu
+                onPopupInfoChange={handlePopupInfoChange} // FleetVehicleDetailsPanel'den Map'e veri göndermek için
               />
             </div>
 
@@ -822,7 +856,6 @@ function App() {
               </div>
             )}
 
-            {/* Nasıl Giderim? Paneli */}
             {isRouteNavigationPanelOpen && (
               <div className={`panel-wrapper ${isRouteNavigationPanelOpen ? 'open' : ''}`}>
                 <RouteNavigationPanel
@@ -833,32 +866,41 @@ function App() {
               </div>
             )}
 
-            {/* YENİ: Filo Takip Paneli (Sol panel) */}
             {isFleetTrackingPanelOpen && (
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
                 <FleetTrackingPanel
                   onClose={closeFleetTrackingPanel}
                   vehicles={vehicles}
                   onVehicleSelect={handleFleetVehicleSelect}
-                  selectedVehicles={selectedFleetVehicles} // GÜNCELLENDİ!
+                  selectedVehicles={selectedFleetVehicles}
                 />
               </div>
             )}
 
-            {/* ✅ YENİ: Araç Detayları Paneli (Sağ panel) - Güncellenmiş prop'larla */}
-            {isFleetTrackingPanelOpen && selectedFleetVehicle && ( // Filo paneli açık VE bir araç seçiliyse göster
+            {/* ✅ KALDIRILDI: Ayarlar Paneli */}
+            {/* {isSettingsPanelOpen && (
+              <div className={`panel-wrapper ${isSettingsPanelOpen ? 'open' : ''}`}>
+                <SettingsPanel
+                  onClose={closeSettingsPanel}
+                  selectedPopupInfo={selectedPopupInfo}
+                  onPopupInfoChange={handlePopupInfoChange}
+                />
+              </div>
+            )} */}
+
+            {isFleetTrackingPanelOpen && selectedFleetVehicle && (
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''} details-panel-right`}>
                 <FleetVehicleDetailsPanel
-                  onClose={() => setSelectedFleetVehicle(null)} // Detay panelini kapatma
-                  selectedVehicle={selectedFleetVehicle} // Seçilen aracı panele iletiyoruz
-                  selectedPopupInfo={selectedPopupInfo} // ✅ YENİ EKLENDİ!
-                  onPopupInfoChange={handlePopupInfoChange} // ✅ YENİ EKLENDİ!
+                  onClose={() => setSelectedFleetVehicle(null)}
+                  selectedVehicle={selectedFleetVehicle}
+                  selectedPopupInfo={selectedPopupInfo} // Map'e gidecek state'i alıyor
+                  onPopupInfoChange={handlePopupInfoChange} // Map'e göndermek için App.js'e güncellenecek
                 />
               </div>
             )}
 
-          </div> {/* content-area sonu */}
-        </div> {/* main-container sonu */}
+          </div>
+        </div>
 
         {selectedRoute && isRouteProgressPanelActive && (
           <RouteProgressPanel

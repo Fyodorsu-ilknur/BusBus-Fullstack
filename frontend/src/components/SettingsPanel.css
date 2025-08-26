@@ -1,0 +1,203 @@
+/* frontend/src/components/SettingsPanel.css */
+
+.settings-panel {
+    position: absolute;
+    top: 0;
+    left: 0; /* Sol paneller gibi davranacak */
+    height: 100%;
+    width: 350px; /* Genişlik ayarlayabilirsiniz */
+    background-color: var(--panel-bg-color); /* App.css'teki temayı kullan */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0); /* Açık durumda */
+    color: var(--text-color); /* Tema rengi */
+}
+
+/* Panel kapalıyken (eğer isSettingsPanelOpen false ise) */
+/* .settings-panel:not(.open) {
+    transform: translateX(-100%);
+} */
+/* Not: App.js'teki koşullu renderlama sayesinde bu CSS'e gerek kalmayacak */
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color); /* Tema rengi */
+    background-color: var(--panel-header-bg-color); /* Tema rengi */
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--header-text-color); /* Tema rengi */
+}
+
+.settings-panel .close-button {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: var(--text-color); /* Tema rengi */
+    transition: color 0.2s ease;
+}
+
+.settings-panel .close-button:hover {
+    color: var(--accent-color); /* Tema rengi */
+}
+
+.settings-content {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu */
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section h3 {
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--header-text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-section .description {
+    font-size: 0.9em;
+    color: var(--light-text-color);
+    margin-bottom: 15px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.action-button {
+    background-color: var(--primary-color); /* Tema rengi */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+    background-color: var(--primary-dark-color); /* Tema rengi */
+}
+
+.data-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 2 sütunlu, responsive */
+    gap: 10px;
+}
+
+.data-selection-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background-color: var(--card-bg-color); /* Tema rengi */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.data-selection-item:hover {
+    background-color: var(--hover-bg-color); /* Tema rengi */
+    border-color: var(--primary-color);
+}
+
+.data-selection-item.selected {
+    background-color: var(--selected-item-bg-color); /* Tema rengi */
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.3);
+}
+
+.data-icon {
+    font-size: 1.2em;
+    width: 24px; /* İkonların hizalanması için */
+    text-align: center;
+}
+
+.data-label {
+    flex-grow: 1;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* Toggle Switch stilleri */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+    min-width: 34px; /* Grid içinde küçülmesini engelle */
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(14px);
+    -ms-transform: translateX(14px);
+    transform: translateX(14px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 20px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}

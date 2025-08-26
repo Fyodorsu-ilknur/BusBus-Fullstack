@@ -1,18 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+// frontend/src/components/FleetVehicleDetailsPanel.js
+import React, { useState, useEffect, useCallback } from 'react';
 import './FleetVehicleDetailsPanel.css';
 
 function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo = [], onPopupInfoChange }) {
-  const [selectedInfoForPopup, setSelectedInfoForPopup] = useState(new Set(['speed', 'plate', 'routeCode', 'status', 'lastGpsTime', 'odometer']));
+  const [selectedInfoForPopup, setSelectedInfoForPopup] = useState(() => 
+    new Set(selectedPopupInfo.map(info => info.key))
+  );
   const [activeCategory, setActiveCategory] = useState('live');
 
-  // Her araç için farklı random değerler üret
   const generateVehicleSpecificData = (vehicleId, plate) => {
-    const seed = vehicleId ? parseInt(vehicleId.toString().replace(/\D/g, '')) || 1 : 
-                 plate ? plate.replace(/\D/g, '').slice(-3) || 123 : 123;
+    const validVehicleId = vehicleId || '0';
+    const validPlate = plate || '000';
+    
+    const seed = parseInt(validVehicleId.toString().replace(/\D/g, '') || (validPlate.replace(/\D/g, '') || '1')) || 1;
     
     const random = (min, max, precision = 0) => {
-      const baseRandom = ((seed * 9301 + 49297) % 233280) / 233280;
-      const value = min + (baseRandom * (max - min));
+      const pseudoRandom = ((seed * 9301 + 49297) % 233280) / 233280.0;
+      const value = min + (pseudoRandom * (max - min));
       return precision > 0 ? parseFloat(value.toFixed(precision)) : Math.floor(value);
     };
     
@@ -60,38 +64,62 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
   const vehicleData = selectedVehicle ? generateVehicleSpecificData(selectedVehicle.vehicleId, selectedVehicle.plate) : null;
 
   const importantInfoOptions = selectedVehicle && vehicleData ? [
-    { key: 'speed', label: 'Araç Hızı', value: `${selectedVehicle.speed || 45} km/h`, icon: '⚡' },
-    { key: 'plate', label: 'Plaka', value: selectedVehicle.plate, icon: '🏷️' },
-    { key: 'routeCode', label: 'Hat No', value: vehicleData.routeCode, icon: '🔢' },
-    { key: 'status', label: 'Durum', value: selectedVehicle.status || 'Aktif', icon: '🔵' },
-    { key: 'lastGpsTime', label: 'Son GPS', value: selectedVehicle.lastGpsTime || '14:00:25', icon: '⏰' },
-    { key: 'odometer', label: 'KM', value: `${vehicleData.totalKm.toLocaleString()} km`, icon: '📊' },
-    { key: 'batteryVolt', label: 'Akü', value: `${vehicleData.batteryVolt} V`, icon: '🔋' },
-    { key: 'fuelRate', label: 'Yakıt', value: `${vehicleData.fuelRate} L/saat`, icon: '⛽' },
-    { key: 'location', label: 'Konum', value: `${selectedVehicle.location?.lat?.toFixed(4) || '38.4192'}, ${selectedVehicle.location?.lng?.toFixed(4) || '27.1287'}`, icon: '📍' },
-    { key: 'driverName', label: 'Sürücü', value: vehicleData.driverName, icon: '👨‍✈️' },
-    { key: 'routeName', label: 'Rota Adı', value: vehicleData.routeName, icon: '📍' },
-    { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo}`, icon: '🆔' }
+    { key: 'speed', label: 'Araç Hızı', value: `${selectedVehicle.speed || 0} km/h`, icon: '⚡' },
+    { key: 'plate', label: 'Plaka', value: selectedVehicle.plate || 'Bilinmiyor', icon: '🏷️' },
+    { key: 'routeCode', label: 'Hat No', value: vehicleData.routeCode || 'Bilinmiyor', icon: '🔢' },
+    { key: 'status', label: 'Durum', value: selectedVehicle.status || 'Bilinmiyor', icon: '🔵' },
+    { key: 'lastGpsTime', label: 'Son GPS', value: selectedVehicle.lastGpsTime || 'Bilinmiyor', icon: '⏰' },
+    { key: 'odometer', label: 'KM', value: `${(vehicleData.totalKm || 0).toLocaleString()} km`, icon: '📊' },
+    { key: 'batteryVolt', label: 'Akü', value: `${vehicleData.batteryVolt || 0} V`, icon: '🔋' },
+    { key: 'fuelRate', label: 'Yakıt', value: `${vehicleData.fuelRate || 0} L/saat`, icon: '⛽' },
+    { key: 'location', label: 'Konum', value: `${selectedVehicle.location?.lat?.toFixed(4) || 'N/A'}, ${selectedVehicle.location?.lng?.toFixed(4) || 'N/A'}`, icon: '📍' },
+    { key: 'driverName', label: 'Sürücü', value: vehicleData.driverName || 'Bilinmiyor', icon: '👨‍✈️' },
+    { key: 'routeName', label: 'Rota Adı', value: vehicleData.routeName || 'Bilinmiyor', icon: '📍' },
+    { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo || '0000000'}`, icon: '🆔' }
   ] : [];
 
-  // ✅ DÜZELTME: useEffect dependency array'ine selectedInfoForPopup eklendi
   useEffect(() => {
-    console.log('🔄 useEffect tetiklendi');
-    console.log('  - selectedVehicle:', selectedVehicle?.plate);
-    console.log('  - onPopupInfoChange var mı:', !!onPopupInfoChange);
-    console.log('  - importantInfoOptions uzunluğu:', importantInfoOptions.length);
-    console.log('  - selectedInfoForPopup:', Array.from(selectedInfoForPopup));
-    
-    if (onPopupInfoChange && selectedVehicle && importantInfoOptions.length > 0) {
-      const initialSelectedOptions = importantInfoOptions.filter(option => 
-        selectedInfoForPopup.has(option.key)
-      );
-      console.log('📤 Seçimler Map\'e gönderiliyor:', initialSelectedOptions);
-      onPopupInfoChange(initialSelectedOptions);
-    } else {
-      console.log('❌ useEffect koşulları sağlanmadı');
+    setSelectedInfoForPopup(new Set(selectedPopupInfo.map(info => info.key)));
+  }, [selectedPopupInfo]);
+
+
+  useEffect(() => {
+    if (!onPopupInfoChange) {
+      return;
     }
+
+    if (!selectedVehicle) {
+        onPopupInfoChange([]);
+        return;
+    }
+
+    const updatedSelectedOptions = importantInfoOptions.filter(option => 
+      selectedInfoForPopup.has(option.key)
+    );
+    onPopupInfoChange(updatedSelectedOptions);
+
   }, [selectedVehicle, onPopupInfoChange, selectedInfoForPopup, importantInfoOptions]);
+
+  const handleInfoToggle = useCallback((infoKey) => {
+    setSelectedInfoForPopup(prevKeys => {
+      const newKeys = new Set(prevKeys);
+      if (newKeys.has(infoKey)) {
+        newKeys.delete(infoKey);
+      } else {
+        newKeys.add(infoKey);
+      }
+      return newKeys;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const allKeys = new Set(importantInfoOptions.map(option => option.key));
+    setSelectedInfoForPopup(allKeys);
+  }, [importantInfoOptions]);
+
+  const handleClearAll = useCallback(() => {
+    setSelectedInfoForPopup(new Set());
+  }, []);
 
   if (!selectedVehicle) {
     return null;
@@ -115,14 +143,14 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
         return importantInfoOptions;
       case 'vehicle':
         return [
-          { icon: '🆔', label: 'Araç ID', value: selectedVehicle.vehicleId || 'V001' },
-          { icon: '🆔', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo}` },
-          { icon: '🏷️', label: 'Plaka', value: selectedVehicle.plate },
-          { icon: '⚡', label: 'Hız', value: `${selectedVehicle.speed || 45} km/h` },
-          { icon: '📍', label: 'Konum (Enlem)', value: selectedVehicle.location?.lat?.toFixed(6) || '38.419200' },
-          { icon: '📍', label: 'Konum (Boylam)', value: selectedVehicle.location?.lng?.toFixed(6) || '27.128700' },
-          { icon: '⏰', label: 'Son GPS Zamanı', value: `${selectedVehicle.lastGpsTime || '14:00:25'} (26 saniye önce)` },
-          { icon: '🔵', label: 'Durum', value: selectedVehicle.status || 'Aktif' },
+          { icon: '🆔', label: 'Araç ID', value: selectedVehicle.vehicleId || 'N/A' },
+          { icon: '🆔', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo || 'N/A'}` },
+          { icon: '🏷️', label: 'Plaka', value: selectedVehicle.plate || 'N/A' },
+          { icon: '⚡', label: 'Hız', value: `${selectedVehicle.speed || 0} km/h` },
+          { icon: '📍', label: 'Konum (Enlem)', value: selectedVehicle.location?.lat?.toFixed(6) || 'N/A' },
+          { icon: '📍', label: 'Konum (Boylam)', value: selectedVehicle.location?.lng?.toFixed(6) || 'N/A' },
+          { icon: '⏰', label: 'Son GPS Zamanı', value: `${selectedVehicle.lastGpsTime || 'N/A'} (26 saniye önce)` },
+          { icon: '🔵', label: 'Durum', value: selectedVehicle.status || 'N/A' },
           { icon: '📡', label: 'Event', value: 'GPS_Online (0-0)' },
           { icon: '🕒', label: 'UTC TIME', value: new Date().toLocaleTimeString('tr-TR') },
           { icon: '📞', label: 'Contact Status', value: 'On' },
@@ -130,43 +158,43 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
         ];
       case 'vds':
         return [
-          { icon: '📊', label: 'Total KM', value: `${vehicleData.totalKm.toLocaleString()} km` },
-          { icon: '⛽', label: 'Total Fuel Used', value: `${vehicleData.totalFuel.toLocaleString()} L` },
+          { icon: '📊', label: 'Total KM', value: `${(vehicleData.totalKm || 0).toLocaleString()} km` },
+          { icon: '⛽', label: 'Total Fuel Used', value: `${(vehicleData.totalFuel || 0).toLocaleString()} L` },
           { icon: '🔧', label: 'Engine Status', value: '1' },
-          { icon: '🔋', label: 'Battery Volt', value: `${vehicleData.batteryVolt} V` },
-          { icon: '🌡️', label: 'Engine Cool Temp.', value: `${vehicleData.engineCoolTemp} deg C` },
-          { icon: '⛽', label: 'Fuel Temperature', value: `${vehicleData.fuelTemp} deg C` },
-          { icon: '🌡️', label: 'Engine Oil Temp.', value: `${vehicleData.oilTemp} deg C` },
-          { icon: '⚡', label: 'Engine Speed', value: `${vehicleData.engineSpeed} rpm` },
-          { icon: '⛽', label: 'Fuel Rate', value: `${vehicleData.fuelRate} L/saat` },
-          { icon: '⚙️', label: 'Gear Info', value: `${vehicleData.gearInfo} gear` }
+          { icon: '🔋', label: 'Battery Volt', value: `${vehicleData.batteryVolt || 0} V` },
+          { icon: '🌡️', label: 'Engine Cool Temp.', value: `${vehicleData.engineCoolTemp || 0} deg C` },
+          { icon: '⛽', label: 'Fuel Temperature', value: `${vehicleData.fuelTemp || 0} deg C` },
+          { icon: '🌡️', label: 'Engine Oil Temp.', value: `${vehicleData.oilTemp || 0} deg C` },
+          { icon: '⚡', label: 'Engine Speed', value: `${vehicleData.engineSpeed || 0} rpm` },
+          { icon: '⛽', label: 'Fuel Rate', value: `${vehicleData.fuelRate || 0} L/saat` },
+          { icon: '⚙️', label: 'Gear Info', value: `${vehicleData.gearInfo || 0} gear` }
         ];
       case 'avl':
         return [
-          { icon: '🎫', label: 'Trip No', value: vehicleData.tripNo.toString() },
+          { icon: '🎫', label: 'Trip No', value: (vehicleData.tripNo || 0).toString() },
           { icon: '🏷️', label: 'Edge Code', value: 'G01' },
           { icon: '🏢', label: 'Company Adı', value: 'ESHOT' },
-          { icon: '📝', label: 'Route Code', value: vehicleData.routeCode },
-          { icon: '📍', label: 'Route Name', value: vehicleData.routeName },
-          { icon: '🛤️', label: 'Path Code', value: `${vehicleData.pathCode} ${vehicleData.routeName}` },
-          { icon: '📅', label: 'Start Date Time', value: vehicleData.startDateTime },
-          { icon: '👨‍✈️', label: 'Driver', value: `${vehicleData.personnelNo} ${vehicleData.driverName}` },
+          { icon: '📝', label: 'Route Code', value: vehicleData.routeCode || 'N/A' },
+          { icon: '📍', label: 'Route Name', value: vehicleData.routeName || 'N/A' },
+          { icon: '🛤️', label: 'Path Code', value: `${vehicleData.pathCode || 'N/A'} ${vehicleData.routeName || 'N/A'}` },
+          { icon: '📅', label: 'Start Date Time', value: vehicleData.startDateTime || 'N/A' },
+          { icon: '👨‍✈️', label: 'Driver', value: `${vehicleData.personnelNo || 'N/A'} ${vehicleData.driverName || 'N/A'}` },
           { icon: '🚌', label: 'Bus Duty No', value: '1' }
         ];
       case 'driver':
         return [
-          { icon: '🆔', label: 'Personel No', value: vehicleData.personnelNo.toString() },
-          { icon: '👤', label: 'Adı Soyadı', value: vehicleData.driverName },
+          { icon: '🆔', label: 'Personel No', value: (vehicleData.personnelNo || 0).toString() },
+          { icon: '👤', label: 'Adı Soyadı', value: vehicleData.driverName || 'N/A' },
           { icon: '📞', label: 'Telefon', value: '+90 5777332204' }
         ];
       case 'route':
         return [
-          { icon: '🔢', label: 'Hat Numarası', value: vehicleData.routeCode },
-          { icon: '📍', label: 'Hat Adı', value: vehicleData.routeName },
-          { icon: '📝', label: 'Rota Kodu', value: vehicleData.routeCode },
-          { icon: '🛤️', label: 'Path Kodu', value: vehicleData.pathCode },
+          { icon: '🔢', label: 'Hat Numarası', value: vehicleData.routeCode || 'N/A' },
+          { icon: '📍', label: 'Hat Adı', value: vehicleData.routeName || 'N/A' },
+          { icon: '📝', label: 'Rota Kodu', value: vehicleData.routeCode || 'N/A' },
+          { icon: '🛤️', label: 'Path Kodu', value: vehicleData.pathCode || 'N/A' },
           { icon: '🏢', label: 'Firma', value: 'ESHOT' },
-          { icon: '🎫', label: 'Trip No', value: vehicleData.tripNo.toString() }
+          { icon: '🎫', label: 'Trip No', value: (vehicleData.tripNo || 0).toString() }
         ];
       case 'accessibility':
         return [
@@ -178,38 +206,13 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     }
   };
 
-  // ✅ DÜZELTME: Debug logları eklendi
-  const handleInfoToggle = (infoKey) => {
-    console.log('🔧 handleInfoToggle çağrıldı, infoKey:', infoKey);
-    
-    const newSelected = new Set(selectedInfoForPopup);
-    if (newSelected.has(infoKey)) {
-      newSelected.delete(infoKey);
-      console.log('❌ Seçim kaldırıldı:', infoKey);
-    } else {
-      newSelected.add(infoKey);
-      console.log('✅ Seçim eklendi:', infoKey);
-    }
-    
-    console.log('📝 Yeni seçim seti:', Array.from(newSelected));
-    setSelectedInfoForPopup(newSelected);
-    
-    if (onPopupInfoChange) {
-      const selectedOptions = importantInfoOptions.filter(option => newSelected.has(option.key));
-      console.log('📤 onPopupInfoChange\'e gönderilen veri:', selectedOptions);
-      onPopupInfoChange(selectedOptions);
-    } else {
-      console.log('❌ onPopupInfoChange fonksiyonu yok!');
-    }
-  };
-
   const currentData = getCategoryData(activeCategory);
 
   return (
     <div className="fleet-details-panel">
       <div className="fleet-details-header">
         <div className="header-content">
-          <h2>{selectedVehicle.vehicleId || 'V001'} {selectedVehicle.plate}</h2>
+          <h2>{selectedVehicle.vehicleId || 'V001'} {selectedVehicle.plate || 'Bilinmiyor'}</h2>
           <div className="status-badge online">Çalışıyor</div>
         </div>
         <button onClick={onClose} className="close-button">✕</button>
@@ -228,6 +231,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           </button>
         ))}
       </div>
+      
 
       <div className="fleet-details-content">
         <div className="detail-category">
@@ -238,22 +242,34 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
           
           <div className="category-content">
             {activeCategory === 'live' ? (
-              <div className="info-selection-grid">
-                {currentData.map(option => (
-                  <div 
-                    key={option.key} 
-                    className={`info-selection-item ${selectedInfoForPopup.has(option.key) ? 'selected' : ''}`}
-                    onClick={() => handleInfoToggle(option.key)}
-                  >
-                    <span className="info-icon">{option.icon}</span>
-                    <div className="info-details">
-                      <div className="info-label">{option.label}</div>
-                      <div className="info-value">{option.value}</div>
+              <>
+                <p className="description">Harita üzerindeki araç pop-up'larında görünmesini istediğiniz verileri seçin.</p>
+                <div className="action-buttons">
+                  <button className="action-button" onClick={handleSelectAll}>Tümünü Seç</button>
+                  <button className="action-button" onClick={handleClearAll}>Seçimi Temizle</button>
+                </div>
+                <div className="info-selection-grid">
+                  {importantInfoOptions.map(option => (
+                    <div 
+                      key={option.key} 
+                      className={`info-selection-item ${selectedInfoForPopup.has(option.key) ? 'selected' : ''}`}
+                      onClick={() => handleInfoToggle(option.key)}
+                    >
+                      <div className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={selectedInfoForPopup.has(option.key)}
+                          // ✅ DÜZELTİLDİ: 'readOnly' prop'u yerine CSS ile pointer-events: none; kullanacağız
+                          // onChange kaldırıldı
+                        />
+                        <span className="slider round"></span>
+                      </div>
+                      <span className="info-icon">{option.icon}</span>
+                      <span className="info-label">{option.label}</span>
                     </div>
-                    {selectedInfoForPopup.has(option.key) && <span className="check-mark">✓</span>}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             ) : (
               currentData.map((item, index) => (
                 <div key={index} className="detail-row">
@@ -270,6 +286,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
                 </div>
               ))
             )}
+            
           </div>
         </div>
       </div>

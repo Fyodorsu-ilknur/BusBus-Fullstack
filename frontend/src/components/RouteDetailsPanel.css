@@ -1,7 +1,7 @@
 /* frontend/src/components/RouteDetailsPanel.css */
 
 .route-details-panel {
-    padding: 5px;
+    padding: 3px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -13,12 +13,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: px;
 }
 
 .panel-header h3 {
   margin: 0;
-  font-size: 1.1em;
+  font-size: 0.85em;
   color: var(--panel-header-text);
 }
 
@@ -26,9 +26,9 @@
   background: none;
   border: none;
   color: var(--panel-text);
-  font-size: 1.2em;
+  font-size: 0.85em;
   cursor: pointer;
-  padding: 5px;
+  padding: 2px;
 }
 
 .close-button:hover {
@@ -50,12 +50,12 @@
 
 .bus-number-input { /* Eski bus-number-input, şimdi arama kutusu gibi */
     width: 100%; /* Tam genişlik */
-    padding: 10px 10px 10px 35px; /* İkon için soldan boşluk */
+    padding: 5px 5px 5px 35px; /* İkon için soldan boşluk */
     border: 1px solid var(--input-border);
     border-radius: 5px;
     background-color: var(--input-bg);
     color: var(--search-input-text-color); /* Temaya göre değişir */
-    font-size: 0.9em;
+    font-size: 0.85em;
     transition: border-color 0.2s;
     box-sizing: border-box; /* Padding genişliğe dahil */
 }
@@ -98,11 +98,11 @@
 }
 
 .route-search-dropdown-item {
-    padding: 10px;
+    padding: 0px;
     cursor: pointer;
     transition: background-color 0.2s ease;
     color: var(--text-color); /* Temaya göre değişir */
-    font-size: 0.9em;
+    font-size: 0.85em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -117,8 +117,8 @@
 }
 
 .route-search-dropdown-no-results {
-    padding: 10px;
-    font-size: 0.9em;
+    padding: 1px;
+    font-size: 0.85em;
     color: var(--secondary-text-color); /* Temaya göre değişir */
     text-align: center;
 }
@@ -129,50 +129,44 @@
 .stop-list-section h4 {
     margin-top: 0;
     margin-bottom: 10px;
-    font-size: 1.1em;
+    font-size: 0.85em;
     color: var(--panel-header-text);
     border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 10px;
+    padding-bottom: 1px;
 }
 
 /* Lütfen bir otobüs numarası girin. / Durak bilgisi bulunamadı. mesajları için */
 .info-message {
     color: var(--info-text); /* Temaya göre değişir */
-    font-size: 0.9em;
+    font-size: 0.85em;
     text-align: center;
     margin-top: 15px;
     font-style: italic;
 }
 
 
-/* Otobüs Numarası inputu kaldırıldığı için input-group kaldırılabilir */
-/* .input-group { margin-bottom: 15px; } */
-/* .input-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--label-text); } */
 
-/* bus-number-input kaldırıldı */
-/* .bus-number-input { ... } */
-
-/* KRİTİK DÜZELTME: direction-toggle ve direction-button stilleri */
 .direction-toggle {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 2px;
 }
 
 .direction-button {
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    padding: 8px 15px;
+    padding: 2px 3px;
+    text-align: center;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.85em;
     transition: background-color 0.2s ease, transform 0.1s ease;
     white-space: nowrap;
     font-weight: bold;
     flex-grow: 1;
-    max-width: 120px;
+    max-width: 80px;
 }
 
 .direction-button:hover {
@@ -191,18 +185,18 @@
 .stop-list-section { /* Veya route-list-section olarak adlandırılabilir */
     flex-grow: 1;
     overflow-y: auto; /* Kaydırma çubuğu */
-    padding-right: 5px;
+    padding-right: 1px;
     min-height: 0;
-    margin-top: 15px; /* Arama kutusu altındaki boşluk */
+    margin-top: 8px; /* Arama kutusu altındaki boşluk */
 }
 
 .stop-list-section h4 {
     margin-top: 0;
     margin-bottom: 10px;
-    font-size: 1.1em;
+    font-size: 0.85em;
     color: var(--panel-header-text);
     border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 10px;
+    padding-bottom: 1px;
 }
 
 .stop-list { /* Eskiden durak listesiydi, şimdi güzergah detaylarındaki durak listesi */
@@ -212,26 +206,26 @@
 }
 
 .stop-item {
-    background-color: var(--list-item-bg);
-    padding: 8px 12px;
-    margin-bottom: 5px;
+    background-color: rgb(255, 254, 254);
+    padding: 2px 2px;
+    margin-bottom: 1px;
     border-radius: 3px;
-    font-size: 0.9em;
+    font-size: 0.85em;
     color: var(--list-item-text);
 }
 
 .route-summary {
-    margin-bottom: 15px;
-    font-size: 0.95em;
+    margin-bottom: 1px;
+    font-size: 0.85em;
     color: var(--panel-text);
-    padding: 10px;
+    padding: 1px;
     background-color: var(--list-item-bg);
     border-radius: 5px;
 }
 
 .departure-group { /* Bu panelde kullanılmıyorsa kaldırılabilir */
-    margin-bottom: 20px;
-    padding: 10px;
+    margin-bottom: 2px;
+    padding: 1px;
     background-color: var(--list-item-bg);
     border-radius: 5px;
 }
@@ -240,22 +234,22 @@
     margin-top: 0;
     color: var(--panel-header-text);
     border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 5px;
-    margin-bottom: 10px;
+    padding-bottom: 1px;
+    margin-bottom: 1px;
 }
 
 .error-message {
     color: var(--error-text);
-    font-size: 0.9em;
+    font-size: 0.85em;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 1px;
 }
 
 .info-message {
     color: var(--info-text);
-    font-size: 0.9em;
+    font-size: 0.85em;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 5px;
     font-style: italic;
 }
 

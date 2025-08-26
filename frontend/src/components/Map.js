@@ -17,7 +17,7 @@ const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
 const ROUTE_COLORS = [
   '#FF0000', '#00FF00', '#0000FF', '#FFD700', '#FF69B4', '#00CED1', '#FF4500',
   '#9370DB', '#32CD32', '#FF1493', '#00FA9A', '#1E90FF', '#FF8C00', '#DA70D6',
-  '#00FFFF', '#FFB6C1', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C'
+  '#00FFFF', '##FFB6C1', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C'
 ];
 
 const NAVIGATION_BUS_COLOR = '#4285F4'; // Google Blue
@@ -29,8 +29,8 @@ const DARK_MAP_STYLE_URL = 'https://api.maptiler.com/maps/streets-v2-dark/style.
 function MapComponent({
   vehicles = [], // Tüm simüle edilmiş araçlar listesi
   selectedFleetVehicle, // Filo Takip panelinden seçilen araç
-  selectedFleetVehicles = [], // YENİ: Çoklu seçilen araçlar
-  onFleetVehicleMarkerClick, // Filo Takip markerlarına tıklama için
+  selectedFleetVehicles = [], // Çoklu seçilen araçlar
+  // onFleetVehicleMarkerClick, // ✅ KALDIRILDI: Marker tıklama özelliği artık yok
   selectedVehicle, // Ana panelden seçilen (animasyonlu) araç
   selectedRoute,
   selectedStop,
@@ -53,19 +53,17 @@ function MapComponent({
   animatedTimeToDestination,
   selectedPopupInfo = [], // ✅ YENİ: Panel'den gelen pop-up bilgileri
   
-  // ✅ YENİ: Panel entegrasyonu için gerekli props
-  onOpenPanel, // Panel açma fonksiyonu
-  onPopupInfoChange // Pop-up bilgilerini güncelleme - App.js'te tanımlandı
+  // onOpenPanel, // ✅ KALDIRILDI: Map üzerinden detay paneli açma özelliği artık yok
+  // onPopupInfoChange // ✅ KALDIRILDI: Map artık doğrudan popup info'yu değiştirmeyecek
 }) {
   const mapRef = useRef();
 
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // ✅ YENİ: Pop-up state'leri (Sadece Filo Takip için)
-  const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState(null);
+  // const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState(null); // ✅ KALDIRILDI: Artık doğrudan selectedFleetVehicle kullanılacak
 
-  // ✅ YENİ: Kullanıcı haritayı manuel olarak hareket ettirdi mi? (Sadece Filo Takip zoom kontrolü için)
-  const [userInteractedFleetZoom, setUserInteractedFleetZoom] = useState(false);
+  // ✅ GÜNCELLENDİ: Kullanıcının manuel etkileşimini izlemek için bir referans.
+  const userInteractedFleetZoomRef = useRef(false);
 
   const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
@@ -97,12 +95,12 @@ function MapComponent({
 
   // ✅ GÜNCELLENDİ: Kullanıcı etkileşimi izleme (SADECE FİLO TAKİP ZOOM İÇİN)
   useEffect(() => {
-    if (mapRef.current) {
+    if (mapLoaded && mapRef.current) {
       const map = mapRef.current.getMap();
 
       const handleUserInteraction = () => {
         // Kullanıcı haritayı manuel olarak hareket ettirdiğinde, otomatik zoom'u engelle.
-        setUserInteractedFleetZoom(true); 
+        userInteractedFleetZoomRef.current = true; 
       };
 
       // Harita hareket ettirildiğinde, sürüklendiğinde veya yakınlaştırıldığında
@@ -144,29 +142,25 @@ function MapComponent({
     }
   };
 
-  // ✅ GÜNCELLENDİ: Araç tıklama - Pop-up açma (SADECE FİLO TAKİP İÇİN)
-  const handleFleetVehicleClickForPopup = useCallback((vehicle) => {
-    // Pop-up'ı tıklanan araç için aç
-    setSelectedVehicleForPopup(vehicle);
-    // Harita üzerinde manuel etkileşimi sıfırla ki, zoom tekrar çalışabilsin
-    setUserInteractedFleetZoom(false); 
-    // onFleetVehicleMarkerClick'i de çağır (App.js'teki seçimi güncellemek için)
-    if (onFleetVehicleMarkerClick) {
-      onFleetVehicleMarkerClick(vehicle);
-    }
-  }, [onFleetVehicleMarkerClick]);
+  // ✅ KALDIRILDI: handleFleetVehicleClickForPopup fonksiyonu, artık marker tıklanabilir değil.
+  // const handleFleetVehicleClickForPopup = useCallback((vehicle) => {
+  //   setSelectedVehicleForPopup(vehicle);
+  //   if (onFleetVehicleMarkerClick) {
+  //     onFleetVehicleMarkerClick(vehicle);
+  //   }
+  // }, [onFleetVehicleMarkerClick]);
 
-  // ✅ YENİ: Pop-up kapatma (SADECE FİLO TAKİP İÇİN)
-  const handlePopupClose = useCallback(() => {
-    setSelectedVehicleForPopup(null);
-  }, []);
+  // ✅ KALDIRILDI: handlePopupClose fonksiyonu, pop-up seçili araca bağlı olarak otomatik kapanacak.
+  // const handlePopupClose = useCallback(() => {
+  //   setSelectedVehicleForPopup(null);
+  // }, []);
 
-  // ✅ YENİ: Panel açma (SADECE FİLO TAKİP İÇİN)
-  const handleOpenPanelFromMap = useCallback((vehicle) => {
-    if (onOpenPanel) {
-      onOpenPanel(vehicle);
-    }
-  }, [onOpenPanel]);
+  // ✅ KALDIRILDI: handleOpenPanelFromMap fonksiyonu, Map'ten doğrudan panel açılmayacak.
+  // const handleOpenPanelFromMap = useCallback((vehicle) => {
+  //   if (onOpenPanel) {
+  //     onOpenPanel(vehicle);
+  //   }
+  // }, [onOpenPanel]);
 
   // ✅ GÜNCELLENDİ: Pop-up bilgilerini formatla (SADECE FİLO TAKİP İÇİN)
   // selectedPopupInfo boşsa hiçbir bilgi döndürmeyecek.
@@ -175,8 +169,10 @@ function MapComponent({
       return []; // selectedPopupInfo boşsa, pop-up'ta hiçbir şey gösterme
     }
 
+    // Not: Burada `vehicle` objesinden gelen gerçek değerler kullanılmalı.
+    // Simülasyon verilerinin `vehicle` objesinde mevcut olduğu varsayılır.
     return selectedPopupInfo.map(info => {
-      let actualValue = info.value; 
+      let actualValue; 
 
       switch(info.key) {
         case 'speed':
@@ -186,7 +182,7 @@ function MapComponent({
           actualValue = vehicle.plate;
           break;
         case 'routeCode':
-          actualValue = vehicle.routeCode || vehicle.routeName || 'Bilinmiyor';
+          actualValue = vehicle.routeCode || 'Bilinmiyor';
           break;
         case 'status':
           actualValue = vehicle.status || 'Aktif';
@@ -198,10 +194,10 @@ function MapComponent({
           actualValue = vehicle.odometer ? `${vehicle.odometer.toLocaleString()} km` : 'Bilinmiyor';
           break;
         case 'batteryVolt':
-          actualValue = vehicle.batteryVolt || `${Math.floor(Math.random() * 4) + 24} V`;
+          actualValue = vehicle.batteryVolt || '28 V'; 
           break;
         case 'fuelRate':
-          actualValue = vehicle.fuelRate || `${(Math.random() * 0.5 + 0.1).toFixed(2)} L/saat`;
+          actualValue = vehicle.fuelRate || '15 L/saat';
           break;
         case 'location':
           actualValue = `${vehicle.location?.lat?.toFixed(4) || '38.4192'}, ${vehicle.location?.lng?.toFixed(4) || '27.1287'}`;
@@ -213,10 +209,10 @@ function MapComponent({
           actualValue = vehicle.routeName || 'Bilinmiyor';
           break;
         case 'samId':
-          actualValue = vehicle.samId || `SAM${Math.floor(Math.random() * 9000000) + 1000000}`;
+          actualValue = vehicle.samId || 'Bilinmiyor';
           break;
         default:
-          actualValue = info.value;
+          actualValue = 'Bilinmiyor'; // Tanımsız bir key gelirse
           break;
       }
 
@@ -254,18 +250,17 @@ function MapComponent({
     }
   }, []);
 
-  // ✅ GÜNCELLENDİ: Filo Takip panelinden araç seçildiğinde hafifçe zoom yapma (ve userInteractedFleetZoom'u sıfırlama)
+  // ✅ GÜNCELLENDİ: Filo Takip panelinden araç seçildiğinde hafifçe zoom yapma (ve userInteractedFleetZoomRef'i sıfırlama)
   useEffect(() => {
     if (isFleetTrackingPanelOpen && selectedFleetVehicle && mapLoaded && mapRef.current) {
       // Sadece kullanıcı haritayı manuel hareket ettirmediyse zoom yap
-      if (!userInteractedFleetZoom) { 
-        const animatedPosition = animatedFleetPositions[selectedFleetVehicle.id];
+      if (!userInteractedFleetZoomRef.current) { 
         let targetPosition = null;
 
-        if (animatedPosition && animatedPosition.position) {
+        if (animatedFleetPositions[selectedFleetVehicle.id] && animatedFleetPositions[selectedFleetVehicle.id].position) {
           targetPosition = {
-            lng: animatedPosition.position.lng,
-            lat: animatedPosition.position.lat
+            lng: animatedFleetPositions[selectedFleetVehicle.id].position.lng,
+            lat: animatedFleetPositions[selectedFleetVehicle.id].position.lat
           };
         } else if (selectedFleetVehicle.location && 
                    typeof selectedFleetVehicle.location.lng === 'number' && 
@@ -283,19 +278,16 @@ function MapComponent({
             zoom: 16, // Hafif zoom
             duration: 1500 // Smooth transition
           });
-          // Zoom yapıldıktan sonra userInteractedFleetZoom'u tekrar false yap ki,
-          // yeni bir selectedFleetVehicle geldiğinde tekrar zoom yapabilsin.
-          // Ancak bu sadece kod tarafından yapılan zoom için geçerli olmalı, manuel etkileşimi sıfırlamamalı.
-          // Bu mantık daha iyi kontrol edilmesi gerekiyor. Şimdilik bu kısmı yoruma alıyorum
-          // ve sadece manuel etkileşim olduğunda userInteractedFleetZoom true kalsın.
-          // Otomatik zoom, manuel etkileşim olmadıkça her zaman çalışmalı.
-          // setUserInteractedFleetZoom(false); // Bu kaldırıldı
         } else {
           console.warn('Seçili araç için geçerli konum bulunamadı:', selectedFleetVehicle);
         }
+      } else {
+          console.log('Kullanıcı manuel etkileşimde bulundu, otomatik zoom engellendi.');
       }
     }
-  }, [selectedFleetVehicle, animatedFleetPositions, mapLoaded, isFleetTrackingPanelOpen, userInteractedFleetZoom]);
+    // userInteractedFleetZoomRef.current bir referans olduğu için bağımlılık dizisine eklenmesine gerek yoktur.
+    // Ref'in değeri değiştiğinde useEffect tekrar çalışmaz, sadece diğer bağımlılıklar değiştiğinde çalışır.
+  }, [selectedFleetVehicle, animatedFleetPositions, mapLoaded, isFleetTrackingPanelOpen]);
 
 
   // YENİ: Çoklu araç animasyonlarını başlat/durdur (gerçek güzergahla) (SADECE FİLO TAKİP İÇİN)
@@ -455,7 +447,6 @@ function MapComponent({
   }, [selectedRouteIds, allRoutes]); // selectedRoutesData bağımlılıktan çıkarıldı
 
   // Harita merkezi ve zoom seviyesi güncellemeleri
-  // Bu kısma userInteractedFleetZoom kontrolü eklenmeyecek, genel merkezleme/zoom önceki gibi çalışacak.
   useEffect(() => {
     if (mapCenter && Array.isArray(mapCenter) && mapCenter.length === 2 && typeof mapCenter[0] === 'number' && typeof mapCenter[1] === 'number' && mapLoaded) {
       if (mapRef.current) {
@@ -469,7 +460,7 @@ function MapComponent({
   }, [mapCenter, zoomLevel, mapLoaded]);
 
 
-  // Tekli araç animasyon mantığı (userInteractedFleetZoom kontrolü EKlenmeyecek) - Bu kısma dokunulmadı
+  // Tekli araç animasyon mantığı
   useEffect(() => {
     if (!isPanelOpen || !selectedVehicle || !selectedRoute || isRouteDetailsPanelOpen || isDepartureTimesPanelOpen || isRouteNavigationPanelOpen) {
       if (animationIntervalRef.current) {
@@ -827,6 +818,9 @@ function MapComponent({
   }, [multipleRoutesData, hoveredRoute]);
 
   const onMapClick = useCallback((event) => {
+    // Harita manuel etkileşimini sıfırla (eğer kullanıcı route'a veya boşa tıklarsa)
+    userInteractedFleetZoomRef.current = false; 
+
     const features = mapRef.current?.queryRenderedFeatures(event.point, {
       layers: multipleRoutesData.map(route => `route-layer-${route.id}`)
     });
@@ -860,7 +854,7 @@ function MapComponent({
       onMouseMove={onMouseMove}
       interactiveLayerIds={multipleRoutesData.map(route => `route-layer-${route.id}`)}
     >
-      {/* Tekli Seçili Rota (Aktif Araçlar paneli açıkken ve selectedItem/selectedRoute varsa) - Bu kısma dokunulmadı */}
+      {/* Tekli Seçili Rota (Aktif Araçlar paneli açıkken ve selectedItem/selectedRoute varsa) */}
       {mapLoaded && singleSelectedRouteGeoJSON && (
         <Source id="route-data" type="geojson" data={singleSelectedRouteGeoJSON}>
           <Layer
@@ -872,7 +866,7 @@ function MapComponent({
         </Source>
       )}
 
-      {/* Çoklu Seçili Rotalar (selectedRouteIds'e göre) - Bu kısma dokunulmadı */}
+      {/* Çoklu Seçili Rotalar (selectedRouteIds'e göre) */}
       {mapLoaded && multipleRoutesData.length > 0 && multipleRoutesData.map((routeData) => (
         <Source
           key={routeData.id}
@@ -893,7 +887,7 @@ function MapComponent({
         </Source>
       ))}
 
-      {/* Rota Popup (Çoklu Rotalar için) - Bu kısma dokunulmadı */}
+      {/* Rota Popup (Çoklu Rotalar için) */}
       {routePopup && (
         <Popup
           longitude={routePopup.lngLat.lng}
@@ -909,7 +903,7 @@ function MapComponent({
         </Popup>
       )}
 
-      {/* Seçili Durak İşaretçisi (Durak Seçimi paneli ve diğer genel kullanımlar için) - Bu kısma dokunulmadı */}
+      {/* Seçili Durak İşaretçisi (Durak Seçimi paneli ve diğer genel kullanımlar için) */}
       {mapLoaded && selectedStop && typeof selectedStop.lat === 'number' && typeof selectedStop.lng === 'number' && (
         <Marker
           longitude={selectedStop.lng}
@@ -924,7 +918,7 @@ function MapComponent({
         </Marker>
       )}
 
-      {/* Bir rota üzerindeki duraklar (selectedRoute varsa VE Aktif Araçlar paneli açıkken) - Bu kısma dokunulmadı */}
+      {/* Bir rota üzerindeki duraklar (selectedRoute varsa VE Aktif Araçlar paneli açıkken) */}
       {mapLoaded && selectedRoute?.directionsStops?.[currentDirection] && isPanelOpen && (
         selectedRoute.directionsStops[currentDirection].map((stop) => {
           const isSelectedInRedux = selectedStops.includes(stop.id);
@@ -951,7 +945,7 @@ function MapComponent({
         })
       )}
 
-      {/* Seçili Redux Durakları (başka bir rota üzerinde olmayanlar) - Navigasyon paneli açık değilse göster - Bu kısma dokunulmadı */}
+      {/* Seçili Redux Durakları (başka bir rota üzerinde olmayanlar) - Navigasyon paneli açık değilse göster */}
       {mapLoaded && !isRouteNavigationPanelOpen && selectedStops.map(stopId => {
         const stop = allStops.find(s => s.id === stopId);
         const isOnSelectedAnimatedRoute = selectedRoute?.directionsStops?.[currentDirection]?.some(routeStop => routeStop.id === stopId);
@@ -979,7 +973,7 @@ function MapComponent({
         return null;
       })}
 
-      {/* Rota Bitiş Noktası İşaretleyicisi (selectedRoute varsa VE Aktif Araçlar paneli açıkken) - Bu kısma dokunulmadı */}
+      {/* Rota Bitiş Noktası İşaretleyicisi (selectedRoute varsa VE Aktif Araçlar paneli açıkken) */}
       {mapLoaded && selectedRoute && selectedRoute.directions && selectedRoute.directions[currentDirection] && selectedRoute.directions[currentDirection].length > 0 && isPanelOpen && (
         (() => {
           const lastCoord = selectedRoute.directions[currentDirection][selectedRoute.directions[currentDirection].length - 1];
@@ -1002,18 +996,18 @@ function MapComponent({
         })()
       )}
 
-      {/* ✅ YENİ: Çoklu Filo Araçları - Animasyonlu Hareket (Sadece aktif ve seçili araçlar) */}
+      {/* ✅ GÜNCELLENDİ: Çoklu Filo Araçları - Animasyonlu Hareket (Sadece aktif ve seçili araçlar) */}
       {mapLoaded && isFleetTrackingPanelOpen && Object.entries(animatedFleetPositions).map(([vehicleId, animationData]) => {
         const vehicle = vehicles.find(v => v.id === vehicleId);
         if (!vehicle || !animationData.position) return null;
 
-        // SADECE SEÇİLİ VE AKTİF ARAÇLARIN ANİMASYONUNU GÖSTER
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicleId);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
         
-        const isPopupActive = selectedVehicleForPopup?.id === vehicle.id;
+        // Pop-up'ın gösterilip gösterilmeyeceği artık selectedFleetVehicle'a ve selectedPopupInfo'ya bağlı
+        const isPopupVisible = selectedFleetVehicle?.id === vehicle.id && selectedPopupInfo.length > 0;
 
-        if (!isMultiSelected || !isActive) return null; // Seçili değilse veya aktif değilse animasyonu gösterme
+        if (!isMultiSelected || !isActive) return null;
 
         const isSelected = selectedFleetVehicle?.id === vehicleId;
         
@@ -1025,14 +1019,13 @@ function MapComponent({
             anchor="center"
           >
             <div className="animated-vehicle-container">
-              {/* Araç ikonu */}
               <img
                 src={busIconUrl}
                 alt={`Araç ${vehicle.plate}`}
                 style={{
                   width: isSelected ? '45px' : '35px',
                   height: isSelected ? '45px' : '35px',
-                  cursor: 'pointer',
+                  cursor: 'default', // ✅ CURSOR DEFAULT: Artık tıklanabilir değil
                   filter: `hue-rotate(${getVehicleStatusColor(vehicle.status) === '#28a745' ? '0deg' : 
                     getVehicleStatusColor(vehicle.status) === '#dc3545' ? '120deg' : '240deg'})`,
                   transition: 'all 0.3s ease',
@@ -1040,12 +1033,10 @@ function MapComponent({
                   boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
                   borderRadius: '50%'
                 }}
-                onClick={() => {
-                  handleFleetVehicleClickForPopup(vehicle); // Pop-up'ı açmak için
-                }}
+                // onClick kaldırıldı
+                onError={(e) => { e.currentTarget.style.opacity = '0.2'; console.error('Bus icon yüklenemedi'); }}
               />
               
-              {/* Durum göstergesi - küçük renkli nokta */}
               <div 
                 className="vehicle-status-dot"
                 style={{
@@ -1061,15 +1052,15 @@ function MapComponent({
                 }}
               />
 
-              {/* Seçili araçların marker'larının yanında popup hep açık olacak */}
-              {isPopupActive && getPopupContent(vehicle).length > 0 && ( // Pop-up sadece içeriği varsa gösterilecek
+              {/* ✅ YENİ: Otomatik Pop-up gösterimi */}
+              {isPopupVisible && ( // Sadece seçili ve bilgisi varsa göster
                 <Popup
-                  longitude={animationData.position.lng} // Animasyonlu pozisyonu kullan
-                  latitude={animationData.position.lat} // Animasyonlu pozisyonu kullan
-                  onClose={handlePopupClose}
+                  longitude={animationData.position.lng}
+                  latitude={animationData.position.lat}
+                  // onClose kaldırıldı
                   anchor="bottom"
-                  closeButton={true}
-                  closeOnClick={false} // Popup'ın tıklamayla kapanmasını engelle
+                  closeButton={false} // ✅ CLOSE BUTTON FALSE: Otomatik kapanacağı için butona gerek yok
+                  closeOnClick={false} 
                   offset={[0, -45]}
                 >
                   <div style={{
@@ -1110,25 +1101,7 @@ function MapComponent({
                         </div>
                       ))}
                     </div>
-                    <button
-                      style={{
-                        background: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '6px 12px',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        marginTop: '8px',
-                        width: '100%',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => handleOpenPanelFromMap(vehicle)}
-                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
-                      onMouseLeave={(e) => e.target.style.background = '#007bff'}
-                    >
-                      📋 Detaylı Bilgiler
-                    </button>
+                    {/* ✅ Detaylı Bilgiler butonu kaldırıldı */}
                   </div>
                 </Popup>
               )}
@@ -1139,16 +1112,16 @@ function MapComponent({
 
       {/* ✅ Filo Araç İşaretleyicileri - Statik Konumlar (Sadece aktif, seçili VE animasyonlu olmayan araçlar) */}
       {mapLoaded && isFleetTrackingPanelOpen && vehicles.map((vehicle) => {
-        // SADECE SEÇİLİ VE AKTİF ARAÇLARI GÖSTER (Eğer animasyonlu değilse)
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
         
         // Eğer bu araç animasyonlu ise, statik gösterme
         if (animatedFleetPositions[vehicle.id]) return null;
         
-        const isPopupActive = selectedVehicleForPopup?.id === vehicle.id;
+        // Pop-up'ın gösterilip gösterilmeyeceği selectedFleetVehicle'a ve selectedPopupInfo'ya bağlı
+        const isPopupVisible = selectedFleetVehicle?.id === vehicle.id && selectedPopupInfo.length > 0;
 
-        if (!isMultiSelected || !isActive) return null; // Seçili değilse veya aktif değilse hiç gösterme
+        if (!isMultiSelected || !isActive) return null;
         
         const isSelected = selectedFleetVehicle?.id === vehicle.id;
         const iconSize = isSelected ? '40px' : '30px';
@@ -1173,15 +1146,13 @@ function MapComponent({
                 style={{
                   width: iconSize,
                   height: iconSize,
-                  cursor: 'pointer',
+                  cursor: 'default', // ✅ CURSOR DEFAULT: Artık tıklanabilir değil
                   transition: 'all 0.3s ease',
                   transform: isMultiSelected ? 'scale(1.1)' : 'scale(1)',
                   boxShadow: isMultiSelected ? '0 0 15px rgba(0,123,255,0.6)' : 'none',
                   borderRadius: '50%'
                 }}
-                onClick={() => {
-                  handleFleetVehicleClickForPopup(vehicle); // Pop-up'ı açmak için
-                }}
+                // onClick kaldırıldı
                 onError={(e) => { e.currentTarget.style.opacity = '0.2'; console.error('Bus icon yüklenemedi'); }}
               />
               
@@ -1200,15 +1171,15 @@ function MapComponent({
                 }}
               />
 
-              {/* Seçili araçların marker'larının yanında popup hep açık olacak */}
-              {isPopupActive && getPopupContent(vehicle).length > 0 && ( // Pop-up sadece içeriği varsa gösterilecek
+              {/* ✅ YENİ: Otomatik Pop-up gösterimi */}
+              {isPopupVisible && ( // Sadece seçili ve bilgisi varsa göster
                 <Popup
                   longitude={vehicle.location.lng}
                   latitude={vehicle.location.lat}
-                  onClose={handlePopupClose}
+                  // onClose kaldırıldı
                   anchor="bottom"
-                  closeButton={true}
-                  closeOnClick={false} // Popup'ın tıklamayla kapanmasını engelle
+                  closeButton={false} // ✅ CLOSE BUTTON FALSE
+                  closeOnClick={false} 
                   offset={[0, -45]}
                 >
                   <div style={{
@@ -1249,25 +1220,7 @@ function MapComponent({
                         </div>
                       ))}
                     </div>
-                    <button
-                      style={{
-                        background: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '6px 12px',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        marginTop: '8px',
-                        width: '100%',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => handleOpenPanelFromMap(vehicle)}
-                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
-                      onMouseLeave={(e) => e.target.style.background = '#007bff'}
-                    >
-                      📋 Detaylı Bilgiler
-                    </button>
+                    {/* ✅ Detaylı Bilgiler butonu kaldırıldı */}
                   </div>
                 </Popup>
               )}
@@ -1276,7 +1229,7 @@ function MapComponent({
         );
       })}
 
-      {/* 🔎 Panel KAPALIYSA bile seçilen tek bir aracı göster (animasyonlu değilse) - Bu kısma dokunulmadı */}
+      {/* 🔎 Panel KAPALIYSA bile seçilen tek bir aracı göster (animasyonlu değilse) */}
       {mapLoaded && !isFleetTrackingPanelOpen && selectedFleetVehicle && selectedFleetVehicle.location && !animatedFleetPositions[selectedFleetVehicle.id] && (
         <Marker
           longitude={selectedFleetVehicle.location.lng}
@@ -1286,17 +1239,18 @@ function MapComponent({
           <img
             src={busIconUrl}
             alt={`Seçili Araç ${selectedFleetVehicle.plate || selectedFleetVehicle.id}`}
-            style={{ width: '40px', height: '40px' }}
-            onClick={() => handleFleetVehicleClickForPopup(selectedFleetVehicle)} // Popup açmak için
+            style={{ width: '40px', height: '40px', cursor: 'default' }} // ✅ CURSOR DEFAULT
+            // onClick kaldırıldı
           />
           {/* Panel kapalıyken seçili tek aracın popup'ı */}
-          {selectedVehicleForPopup?.id === selectedFleetVehicle.id && getPopupContent(selectedFleetVehicle).length > 0 && ( // Pop-up sadece içeriği varsa gösterilecek
+          {/* ✅ YENİ: Otomatik Pop-up gösterimi */}
+          {selectedFleetVehicle && selectedPopupInfo.length > 0 && (
                 <Popup
                   longitude={selectedFleetVehicle.location.lng}
                   latitude={selectedFleetVehicle.location.lat}
-                  onClose={handlePopupClose}
+                  // onClose kaldırıldı
                   anchor="bottom"
-                  closeButton={true}
+                  closeButton={false} // ✅ CLOSE BUTTON FALSE
                   closeOnClick={false} 
                   offset={[0, -45]}
                 >
@@ -1338,32 +1292,14 @@ function MapComponent({
                         </div>
                       ))}
                     </div>
-                    <button
-                      style={{
-                        background: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '6px 12px',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        marginTop: '8px',
-                        width: '100%',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => handleOpenPanelFromMap(selectedFleetVehicle)}
-                      onMouseEnter={(e) => e.target.style.background = '#0056b3'}
-                      onMouseLeave={(e) => e.target.style.background = '#007bff'}
-                    >
-                      📋 Detaylı Bilgiler
-                    </button>
+                    {/* ✅ Detaylı Bilgiler butonu kaldırıldı */}
                   </div>
                 </Popup>
               )}
         </Marker>
       )}
 
-      {/* 🧭 Navigasyon Rotası Katmanları (Nasıl Giderim paneli için) - Bu kısma dokunulmadı */}
+      {/* 🧭 Navigasyon Rotası Katmanları (Nasıl Giderim paneli için) */}
       {mapLoaded && isRouteNavigationPanelOpen && navigationRouteGeoJSON.bus && (
         <Source id="navigation-bus-route" type="geojson" data={navigationRouteGeoJSON.bus}>
           <Layer
@@ -1395,7 +1331,7 @@ function MapComponent({
         </Source>
       )}
 
-      {/* 🧭 Navigasyon Başlangıç ve Bitiş Noktası İşaretleyicileri - Bu kısma dokunulmadı */}
+      {/* 🧭 Navigasyon Başlangıç ve Bitiş Noktası İşaretleyicileri */}
       {mapLoaded && isRouteNavigationPanelOpen && navigationStartEndMarkers.start && (
         <Marker
           longitude={navigationStartEndMarkers.start.lng}
@@ -1430,7 +1366,7 @@ function MapComponent({
         </Marker>
       )}
 
-      {/* Animasyonlu Otobüs (Sadece haritada otobüs görünür ve selectedItem seçiliyse) - Bu kısma dokunulmadı */}
+      {/* Animasyonlu Otobüs (Sadece haritada otobüs görünür ve selectedItem seçiliyse) */}
       {mapLoaded && animatedBusPosition && typeof animatedBusPosition.lat === 'number' && typeof animatedBusPosition.lng === 'number' && selectedRoute && selectedVehicle && isPanelOpen && (
         <Marker
           longitude={animatedBusPosition.lng}
@@ -1442,7 +1378,6 @@ function MapComponent({
             alt="Animated Bus"
             style={{ width: '40px', height: '40px' }}
           />
-          {/* Pop-up geri getirildi! */}
           {animatedDistanceToDestination !== null && animatedTimeToDestination !== null && (
             <div className="bus-popup">
               <div>Kalan: {(animatedDistanceToDestination / 1000).toFixed(2)} km</div>
