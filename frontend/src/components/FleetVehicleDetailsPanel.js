@@ -1,4 +1,4 @@
-// frontend/src/components/FleetVehicleDetailsPanel.js
+// frontend/src/components/FleetVehicleDetaigti alsPanel.js
 import React, { useState, useEffect, useCallback } from 'react';
 import './FleetVehicleDetailsPanel.css';
 
