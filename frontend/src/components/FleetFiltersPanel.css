@@ -1,32 +1,21 @@
 /* frontend/src/components/FleetFiltersPanel.css */
 
 .fleet-filters-panel {
-  position: fixed;
-  right: 0;
-  top: var(--navbar-height);
-  width: 450px;
-  height: calc(100vh - var(--navbar-height));
+  width: 400px; /* Diğer paneller gibi 400px */
+  height: 100%;
   background: var(--panel-bg);
-  border-left: 1px solid var(--panel-border);
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 20;
+  border-right: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
-  transform: translateX(100%); /* Başlangıçta sağda gizli */
-  transition: transform 0.3s ease-out;
+  overflow: hidden;
 }
 
-/* ✅ Panel açıkken göster */
-.fleet-filters-panel.open {
-  transform: translateX(0);
-}
-
-/* Header */
+/* Header - Minimum spacing */
 .fleet-filters-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 6px 10px; /* Çok küçük padding */
   border-bottom: 1px solid var(--panel-border);
   background: var(--panel-bg);
   flex-shrink: 0;
@@ -34,7 +23,7 @@
 
 .fleet-filters-header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px; /* Daha küçük */
   font-weight: 600;
   color: var(--panel-header-text);
 }
@@ -42,15 +31,15 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px; /* Minimum gap */
 }
 
 .result-count {
-  font-size: 14px;
+  font-size: 10px; /* Çok küçük */
   color: var(--info-text);
   background: #e3f2fd;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 2px 4px; /* Minimum padding */
+  border-radius: 8px;
   font-weight: 500;
 }
 
@@ -58,9 +47,9 @@
   background: #ff6b6b;
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 3px 6px; /* Minimum padding */
+  border-radius: 3px;
+  font-size: 10px; /* Çok küçük */
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -72,11 +61,11 @@
 .close-button {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 16px;
   color: var(--panel-text);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 1px;
+  border-radius: 2px;
   transition: background-color 0.2s;
 }
 
@@ -84,17 +73,17 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
-/* Content */
+/* Content - Minimum spacing */
 .fleet-filters-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 8px 10px; /* Çok küçük padding */
 }
 
-/* Filter Section */
+/* Filter Section - Minimum spacing */
 .filter-section {
-  margin-bottom: 24px;
-  padding-bottom: 20px;
+  margin-bottom: 10px; /* Çok küçük margin */
+  padding-bottom: 8px; /* Çok küçük padding */
   border-bottom: 1px solid var(--panel-border);
 }
 
@@ -103,98 +92,100 @@
 }
 
 .filter-section h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+  margin: 0 0 5px 0; /* Minimum margin */
+  font-size: 12px; /* Çok küçük */
   font-weight: 600;
   color: var(--panel-header-text);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 }
 
-/* Range Inputs */
+/* Range Inputs - Minimum spacing */
 .range-inputs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px; /* Minimum gap */
 }
 
 .range-input {
   flex: 1;
-  padding: 8px 12px;
+  padding: 4px 6px; /* Çok küçük padding */
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--input-bg);
   color: var(--input-text);
-  font-size: 14px;
-  max-width: 80px;
+  font-size: 11px; /* Çok küçük */
+  max-width: 50px; /* Daha da küçük */
 }
 
 .range-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.2);
 }
 
 .range-inputs span {
   color: var(--panel-text);
   font-weight: 500;
+  font-size: 11px;
 }
 
-/* Text Inputs */
+/* Text Inputs - Minimum spacing */
 .text-input,
 .select-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 6px; /* Çok küçük padding */
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--input-bg);
   color: var(--input-text);
-  font-size: 14px;
+  font-size: 11px; /* Çok küçük */
 }
 
 .text-input:focus,
 .select-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.2);
 }
 
 .filter-section small {
   display: block;
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 2px; /* Minimum margin */
+  font-size: 9px; /* Çok küçük */
   color: var(--info-text);
+  line-height: 1.1;
 }
 
-/* Status Filters */
+/* Status Filters - Minimum spacing */
 .status-filters {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px; /* Minimum gap */
 }
 
-/* Checkbox Labels */
+/* Checkbox Labels - Minimum spacing */
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11px; /* Çok küçük */
   color: var(--panel-text);
-  padding: 4px 0;
+  padding: 1px 0; /* Minimum padding */
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 12px; /* Daha küçük */
+  height: 12px;
   cursor: pointer;
 }
 
-/* Status Dots */
+/* Status Dots - Minimum spacing */
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 5px; /* Daha küçük */
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -211,32 +202,32 @@
   background-color: #6c757d;
 }
 
-/* Special Requirements */
+/* Special Requirements - Minimum spacing */
 .special-requirements {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 3px; /* Minimum gap */
 }
 
-/* Filtered Results */
+/* Filtered Results - Minimum spacing */
 .filtered-results {
   background: var(--panel-bg);
   border-top: 1px solid var(--panel-border);
-  max-height: 300px;
+  max-height: 180px; /* Daha küçük */
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
 }
 
 .results-header {
-  padding: 12px 20px;
+  padding: 5px 10px; /* Minimum padding */
   border-bottom: 1px solid var(--panel-border);
   background: #f8f9fa;
 }
 
 .results-header h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 11px; /* Çok küçük */
   font-weight: 600;
   color: var(--panel-header-text);
 }
@@ -244,14 +235,14 @@
 .results-list {
   flex: 1;
   overflow-y: auto;
-  max-height: 240px;
+  max-height: 140px; /* Daha küçük */
 }
 
 .result-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  padding: 4px 10px; /* Minimum padding */
   border-bottom: 1px solid var(--panel-border);
   background: var(--panel-bg);
   transition: background-color 0.2s;
@@ -264,19 +255,19 @@
 .result-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0px; /* Sıfır gap */
 }
 
 .vehicle-id,
 .vehicle-plate,
 .vehicle-route {
-  font-size: 12px;
+  font-size: 10px; /* Çok küçük */
   color: var(--panel-text);
 }
 
 .vehicle-plate {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 11px; /* Çok küçük */
 }
 
 .vehicle-id,
@@ -289,12 +280,12 @@
 }
 
 .status-indicator {
-  padding: 2px 6px;
-  border-radius: 12px;
-  font-size: 10px;
+  padding: 1px 3px; /* Minimum padding */
+  border-radius: 6px;
+  font-size: 8px; /* Çok küçük */
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
 }
 
 .status-indicator.aktif {
@@ -313,16 +304,16 @@
 }
 
 .no-results {
-  padding: 40px 20px;
+  padding: 20px 10px; /* Minimum padding */
   text-align: center;
   color: var(--info-text);
-  font-size: 14px;
+  font-size: 11px; /* Çok küçük */
 }
 
-/* Scrollbar Styling */
+/* Scrollbar - Çok ince */
 .fleet-filters-content::-webkit-scrollbar,
 .results-list::-webkit-scrollbar {
-  width: 6px;
+  width: 3px; /* Çok ince */
 }
 
 .fleet-filters-content::-webkit-scrollbar-track,
@@ -333,7 +324,7 @@
 .fleet-filters-content::-webkit-scrollbar-thumb,
 .results-list::-webkit-scrollbar-thumb {
   background: #dadce0;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .fleet-filters-content::-webkit-scrollbar-thumb:hover,
@@ -375,16 +366,16 @@
   color: #e2e8f0;
 }
 
-/* Responsive */
+/* Responsive - Mobil için */
 @media (max-width: 768px) {
   .fleet-filters-panel {
     width: 100%;
-    right: 0;
   }
   
   .range-inputs {
     flex-direction: column;
     align-items: stretch;
+    gap: 2px;
   }
   
   .range-input {
@@ -393,6 +384,6 @@
   
   .range-inputs span {
     text-align: center;
-    padding: 4px 0;
+    padding: 1px 0;
   }
 }

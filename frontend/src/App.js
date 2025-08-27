@@ -905,6 +905,8 @@ function App() {
 
             {/* ✅ YENİ: Ayarlar ve Filtreler Paneli */}
            {isFleetFiltersPanelOpen && (
+              <div className={`panel-wrapper ${isFleetFiltersPanelOpen ? 'open' : ''}`}>
+
   <FleetFiltersPanel
     isOpen={isFleetFiltersPanelOpen}
     onClose={closeFleetFiltersPanel}
@@ -912,6 +914,7 @@ function App() {
     onFilteredVehiclesChange={handleFilteredVehiclesChange} // Filtrelenmiş sonuçları al
     theme={theme}
   />
+  </div>
 )}
 
             {isFleetTrackingPanelOpen && selectedFleetVehicle && (

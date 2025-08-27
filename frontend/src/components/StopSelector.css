@@ -232,6 +232,7 @@
   margin-bottom: 4px; /* Boşluğu daha da azalttık */
   border-radius: 5px; /* Yuvarlatmayı küçülttük */
   overflow: hidden;
+    z-index: 100;
 }
 
 .stop-item {
@@ -243,8 +244,9 @@
   transition: all 0.2s ease;
   background-color: var(--header-background);
   border: 1px solid var(--border-color);
-  cursor: pointer;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); /* Gölgeyi küçülttük */
+   pointer-events: auto !important;
+  cursor: pointer !important
 }
 
 .stop-item:hover {
@@ -263,6 +265,8 @@
   border-bottom-right-radius: 0;
   border-bottom-color: transparent;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    z-index: 1000 !important;
+
 }
 
 .stop-checkbox-label {
@@ -289,6 +293,8 @@
   position: relative;
   transition: all 0.2s ease;
   box-shadow: inset 0 0.5px 1px rgba(0,0,0,0.05); /* İç gölgeyi küçülttük */
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .stop-checkbox-label input[type="checkbox"]:checked + .checkmark {
