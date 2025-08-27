@@ -1,3 +1,19 @@
+/* Mavi filtre butonları */
+.blue-filters-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background 0.2s;
+}
+.blue-filters-btn:hover {
+  background: #1565c0;
+}
 /* frontend/src/components/FleetFiltersPanel.css */
 
 .fleet-filters-panel {
@@ -30,6 +46,7 @@
 
 .header-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 5px; /* Minimum gap */
 }
@@ -77,6 +94,7 @@
 .fleet-filters-content {
   flex: 1;
   overflow-y: auto;
+
   padding: 8px 10px; /* Çok küçük padding */
 }
 
@@ -85,6 +103,33 @@
   margin-bottom: 10px; /* Çok küçük margin */
   padding-bottom: 8px; /* Çok küçük padding */
   border-bottom: 1px solid var(--panel-border);
+    flex-direction: row;
+
+}
+/* Filtre Grupları için layout */
+.filter-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.filter-row.single {
+  gap: 0;
+}
+.filter-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.filter-section {
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: none;
+}
+.special-requirements {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
 }
 
 .filter-section:last-child {
@@ -161,8 +206,8 @@
 /* Status Filters - Minimum spacing */
 .status-filters {
   display: flex;
-  flex-direction: column;
-  gap: 3px; /* Minimum gap */
+  flex-direction: row;
+  gap: 7px; /* Minimum gap */
 }
 
 /* Checkbox Labels - Minimum spacing */
@@ -254,8 +299,9 @@
 
 .result-main {
   display: flex;
-  flex-direction: column;
-  gap: 0px; /* Sıfır gap */
+  flex-direction: row;
+  align-items: center;
+  gap: 16px; /* Aralarında biraz boşluk */
 }
 
 .vehicle-id,
@@ -386,4 +432,20 @@
     text-align: center;
     padding: 1px 0;
   }
+  .filter-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .special-requirements {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+.vehicle-id,
+.vehicle-plate,
+.vehicle-route {
+  font-size: 11px;
+  color: var(--panel-text);
+  font-weight: 500;
+  
 }
