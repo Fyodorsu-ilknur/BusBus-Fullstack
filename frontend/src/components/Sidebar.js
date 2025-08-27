@@ -8,7 +8,7 @@ function Sidebar({
   onToggleDepartureTimesPanel,
   onToggleStopSelectorPanel,
   onToggleFleetTrackingPanel,
-  // onToggleSettingsPanel, // ✅ KALDIRILDI: Ayarlar paneli için prop
+  onToggleFleetFiltersPanel, // ✅ YENİ: Ayarlar ve Filtreler paneli için prop
   isExpanded
 }) {
   return (
@@ -45,14 +45,13 @@ function Sidebar({
           </button>
         </li>
 
-        {/* ✅ KALDIRILDI: Ayarlar İkonu */}
-        {/*
+        {/* ✅ YENİ EKLENDİ: Ayarlar ve Filtreler İkonu */}
         <li>
-          <button onClick={onToggleSettingsPanel} className="sidebar-item" title="Ayarlar">
-            <span className="material-icons">settings</span>
+          <button onClick={onToggleFleetFiltersPanel} className="sidebar-item" title="Ayarlar ve Filtreler">
+            <span className="material-icons">tune</span>
           </button>
         </li>
-        */}
+
       </ul>
     </div>
   );
