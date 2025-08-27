@@ -2,7 +2,7 @@
 
 /* ✅ ÖNEMLİ: Tıklanabilirlik için override */
 .info-selection-item * {
-    pointer-events: none !important;
+    pointer-events: auto !important;
 }
 
 .info-selection-item {
@@ -149,9 +149,9 @@
 .category-content .description {
     color: var(--secondary-text-color);
     font-size: 0.85em;
-    margin-bottom: 12px;
+    margin-bottom: 1px;
     margin-left: 40px;
-    line-height: 1.3;
+    line-height: 1;
 }
 
 .action-buttons {
@@ -284,8 +284,8 @@ input:checked + .slider:before {
 .detail-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
+    margin-left: 40px;
+    padding: 1px px;
     border-bottom: 1px solid rgba(128, 128, 128, 0.1);
     background-color: rgba(128, 128, 128, 0.02); /* ÇOK HAFİF ARKAPLAN */
     border-radius: 3px;
@@ -307,8 +307,9 @@ input:checked + .slider:before {
 .detail-label {
     font-weight: 500;
     color: var(--secondary-text-color);
-    min-width: 90px;
+    min-width: 70px;
     font-size: 0.8em;
+    margin-left: 10px;
 }
 
 .detail-value {

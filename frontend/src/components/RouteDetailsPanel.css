@@ -1,46 +1,66 @@
 /* frontend/src/components/RouteDetailsPanel.css */
 
 .route-details-panel {
-    padding: 3px;
+    /* StopSelector.css'deki .stop-selector'a benzetiyoruz */
+    height: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    background-color: #ffffff;
-    color: #ffffff;
+    background: var(--panel-background); /* Değişkene bağla */
+    color: var(--text-color); /* Metin rengini genel değişkene bağla */
+    border-radius: 12px; /* Köşe yuvarlaklığı */
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0; /* İç padding'i kaldır, iç elemanlarda ayarlarız */
 }
 
 .panel-header {
+  /* StopSelector.css'deki .stop-selector-header'a benzetiyoruz */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: px;
+  padding: 8px 12px; /* Padding'i küçült */
+  border-bottom: 1px solid var(--border-color); /* Kenarlık rengi değişkene bağla */
+  background: var(--header-background); /* Arka plan rengi değişkene bağla */
+  flex-shrink: 0;
+  margin-bottom: 0px; /* Boşluğu kaldır */
 }
 
 .panel-header h3 {
+  /* StopSelector.css'deki .stop-selector-header h2'ye benzetiyoruz */
   margin: 0;
-  font-size: 0.85em;
-  color: var(--panel-header-text);
+  font-size: 0.95rem; /* Font boyutunu küçült */
+  font-weight: 700;
+  color: var(--header-text-color); /* Renk değişkene bağla */
 }
 
+
 .close-button {
+  /* StopSelector.css'deki .close-button'a benzetiyoruz */
   background: none;
   border: none;
-  color: var(--panel-text);
-  font-size: 0.85em;
+  font-size: 0.9rem; /* Boyutunu küçült */
   cursor: pointer;
-  padding: 2px;
+  color: var(--secondary-text-color); /* Renk değişkene bağla */
+  padding: 3px; /* Padding'i küçült */
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .close-button:hover {
-  color: var(--error-text);
+  background-color: var(--hover-background);
+  color: var(--header-text-color);
 }
-
-
+/* Arama Kısmı Kapsayıcısı */
 .search-dropdown-container {
-    position: relative; /* Dropdown için referans */
-    margin-bottom: 15px; /* Altındaki butonlar/liste ile boşluk */
-    z-index: 5; /* Dropdown diğer elemanların üstünde görünsün */
+    /* StopSelector.css'deki .stop-selector-controls ve .search-container'dan esinlenildi */
+    position: relative;
+    padding: 8px 12px; /* İç padding ekle */
+    border-bottom: 1px solid var(--border-color); /* Kenarlık ekle */
+    margin-bottom: 0px; /* Boşluğu kaldır */
+    z-index: 5;
+    flex-shrink: 0;
 }
+
 
 .search-input-wrapper {
     position: relative;
@@ -48,16 +68,20 @@
     align-items: center;
 }
 
-.bus-number-input { /* Eski bus-number-input, şimdi arama kutusu gibi */
-    width: 100%; /* Tam genişlik */
-    padding: 5px 5px 5px 35px; /* İkon için soldan boşluk */
-    border: 1px solid var(--input-border);
+.bus-number-input {
+    /* StopSelector.css'deki .search-input'a benzetiyoruz */
+    width: 100%; /* %99 yerine %100 */
+    padding: 6px 10px 6px 28px; /* Padding'i küçült ve ikon boşluğunu ayarla */
+    border: 1px solid var(--border-color); /* Renk değişkene bağla */
     border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--search-input-text-color); /* Temaya göre değişir */
-    font-size: 0.85em;
+    background-color: var(--input-background); /* Renk değişkene bağla */
+    color: var(--search-input-text-color);
+    font-size: 0.75rem; /* Font boyutunu küçült */
     transition: border-color 0.2s;
-    box-sizing: border-box; /* Padding genişliğe dahil */
+    box-sizing: border-box;
+    
+    /* background-color: rgb(255, 254, 254) !important; */
+    /* color: #333 !important; */
 }
 
 .bus-number-input::placeholder {
@@ -67,42 +91,48 @@
 .bus-number-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2); /* Gölgeyi küçült */
+}   
+.bus-number-input#daySelect {
+    padding-left: 10px; /* Select elemanında ikon olmadığı için soldaki boşluğu azaltırız */
+    gap: 0; /* Gap'i kaldır */
+    margin-top: 8px; /* Diğer input ile arasında biraz boşluk bırak */
 }
 
 .search-icon {
+    /* StopSelector.css'deki .search-icon'a benzetiyoruz */
     position: absolute;
-    left: 10px; /* Inputun içinde ikon konumu */
+    left: 10px;
+    font-size: 0.85rem; /* İkon boyutunu küçült */
     color: var(--secondary-text-color);
     pointer-events: none;
     z-index: 1;
 }
 
-/* YENİ: Arama Sonuçları Dropdown Listesi */
+/* Arama Sonuçları Dropdown Listesi */
 .route-search-dropdown {
     position: absolute;
-    top: 100%; /* Inputun hemen altında başla */
+    top: 100%;
     left: 0;
     width: 100%;
-    max-height: 200px; /* Maksimum yükseklik, kaydırılabilir olsun */
+    max-height: 200px;
     overflow-y: auto;
-    background-color: var(--input-bg); /* Temaya göre arka plan */
-    border: 1px solid var(--border-color);
-    border-top: none; /* Üst kenarlık olmasın, input ile birleşsin */
+    background-color: var(--input-background); /* Renk değişkene bağla */
+    border: 1px solid var(--border-color); /* Renk değişkene bağla */
+    border-top: none;
     border-radius: 0 0 5px 5px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     list-style: none;
     padding: 0;
     margin: 0;
-    z-index: 10; /* Diğer elemanların üstünde görünsün */
+    z-index: 10;
 }
-
 .route-search-dropdown-item {
-    padding: 0px;
+    padding: 6px 12px; /* Padding'i küçült */
     cursor: pointer;
     transition: background-color 0.2s ease;
-    color: var(--text-color); /* Temaya göre değişir */
-    font-size: 0.85em;
+    color: var(--text-color); /* Renk değişkene bağla */
+    font-size: 0.8rem; /* Font boyutunu küçült */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -117,18 +147,23 @@
 }
 
 .route-search-dropdown-no-results {
-    padding: 1px;
-    font-size: 0.85em;
-    color: var(--secondary-text-color); /* Temaya göre değişir */
+    padding: 6px 12px; /* Padding'i küçült */
+    font-size: 0.8rem;
+    color: var(--secondary-text-color);
     text-align: center;
 }
+/* Gün Seçme Kısmı Kapsayıcısı (DepartureTimesPanel'de kullanılıyor) */
+.input-group:has(#daySelect) {
+    margin-bottom: 8px; /* Yön butonlarına yakınlaştır */
+}
+
 
 /* ... (direction-toggle ve direction-button stilleri aynı kalır) ... */
 
 /* Durak Listesi Başlığı */
 .stop-list-section h4 {
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     font-size: 0.85em;
     color: var(--panel-header-text);
     border-bottom: 1px solid var(--panel-border);
@@ -149,24 +184,27 @@
 .direction-toggle {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 2px;
+    gap: 8px; /* Boşluğu ayarla */
+    margin-bottom: 8px; /* Boşluğu ayarla */
+    padding: 0 12px; /* Yan padding ekle */
+    flex-shrink: 0;
 }
 
 .direction-button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
+    background-color: var(--primary-color); /* Renk değişkene bağla */
+    color: white; /* Metin rengi */
     border: none;
-    padding: 2px 3px;
+    padding: 4px 8px; /* Padding'i küçült */
     text-align: center;
-    border-radius: 5px;
+    border-radius: 4px; /* Yuvarlatmayı küçült */
     cursor: pointer;
-    font-size: 0.85em;
+    font-size: 0.75rem; /* Font boyutunu küçült */
     transition: background-color 0.2s ease, transform 0.1s ease;
     white-space: nowrap;
-    font-weight: bold;
+    font-weight: 600; /* Daha kalın font */
     flex-grow: 1;
-    max-width: 80px;
+    max-width: none; /* Max genişliği kaldır */
+    margin-top: 0px; /* Üst boşluğu kaldır */
 }
 
 .direction-button:hover {
@@ -176,8 +214,8 @@
 
 .direction-button.active {
     background-color: var(--button-hover-bg);
-    border: 1px solid var(--button-border);
-    color: var(--button-text);
+    border: 1px solid var(--primary-color); /* Border rengi değişkene bağla */
+    color: white;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -187,7 +225,8 @@
     overflow-y: auto; /* Kaydırma çubuğu */
     padding-right: 1px;
     min-height: 0;
-    margin-top: 8px; /* Arama kutusu altındaki boşluk */
+    margin-top: 10px; /* Arama kutusu altındaki boşluk */
+    
 }
 
 .stop-list-section h4 {
@@ -197,14 +236,18 @@
     color: var(--panel-header-text);
     border-bottom: 1px solid var(--panel-border);
     padding-bottom: 1px;
+    margin-left: 7px;
+margin-right: 7px;
 }
 
 .stop-list { /* Eskiden durak listesiydi, şimdi güzergah detaylarındaki durak listesi */
     list-style: none;
     padding: 0;
-    margin: 0;
-}
+    margin-bottom: 2px;
+margin-left: 7px;
+margin-right: 7px;
 
+}
 .stop-item {
     background-color: rgb(255, 254, 254);
     padding: 2px 2px;
@@ -212,15 +255,18 @@
     border-radius: 3px;
     font-size: 0.85em;
     color: var(--list-item-text);
-}
+pointer-events: none;}
 
 .route-summary {
     margin-bottom: 1px;
     font-size: 0.85em;
+    font-weight: bold;
     color: var(--panel-text);
-    padding: 1px;
+    padding: 5px;
     background-color: var(--list-item-bg);
     border-radius: 5px;
+    margin-left: 7px;
+margin-right: 7px;
 }
 
 .departure-group { /* Bu panelde kullanılmıyorsa kaldırılabilir */

@@ -1,5 +1,5 @@
 // frontend/src/components/FleetVehicleDetailsPanel.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './FleetVehicleDetailsPanel.css';
 
 function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo = [], onPopupInfoChange }) {
@@ -7,6 +7,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     new Set(selectedPopupInfo.map(info => info.key))
   );
   const [activeCategory, setActiveCategory] = useState('live');
+  const isUpdatingRef = useRef(false); // Döngüsel güncellemeyi engellemek için
 
   const generateVehicleSpecificData = (vehicleId, plate) => {
     const validVehicleId = vehicleId || '0';
@@ -78,54 +79,146 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo || '0000000'}`, icon: '🆔' }
   ] : [];
 
+  // DEBUG VERSİYONU - useEffect
   useEffect(() => {
+    if (isUpdatingRef.current) {
+      console.log('⏸️ useEffect atlandı - kendi güncellemelerimiz (isUpdatingRef.current = true)');
+      return;
+    }
+    
+    console.log('📥 useEffect tetiklendi - Dışarıdan gelen selectedPopupInfo:');
+    console.log('   📋 selectedPopupInfo prop:', selectedPopupInfo.map(info => ({key: info.key, label: info.label})));
+    console.log('   🔄 setState ile güncelleniyor...');
+    
     setSelectedInfoForPopup(new Set(selectedPopupInfo.map(info => info.key)));
   }, [selectedPopupInfo]);
 
-  useEffect(() => {
-    if (!onPopupInfoChange) {
+  // ✅ DÜZELTİLDİ - updatePopupInfo (SENKRON KORUMA)
+  const updatePopupInfo = useCallback(() => {
+    if (!onPopupInfoChange || !selectedVehicle) {
       return;
     }
 
-    if (!selectedVehicle) {
-        onPopupInfoChange([]);
-        return;
-    }
-
+    // ✅ ÖNCE REF'İ SET ET, SONRA POPUP'I GÜNCELLE
+    isUpdatingRef.current = true;
+    
     const updatedSelectedOptions = importantInfoOptions.filter(option => 
       selectedInfoForPopup.has(option.key)
     );
+    
+    console.log('🔍 DEBUG - Popup güncelleme detayları:');
+    console.log('   📊 selectedInfoForPopup Set içeriği:', Array.from(selectedInfoForPopup));
+    console.log('   📊 importantInfoOptions array uzunluğu:', importantInfoOptions.length);
+    console.log('   📊 importantInfoOptions keys:', importantInfoOptions.map(opt => opt.key));
+    console.log('   ✅ Filter sonrası options:', updatedSelectedOptions.map(opt => ({
+      key: opt.key, 
+      label: opt.label,
+      value: opt.value
+    })));
+    console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+    console.log('   🎯 onPopupInfoChange fonksiyonu mevcut mu?', !!onPopupInfoChange);
+    
     onPopupInfoChange(updatedSelectedOptions);
+    
+    // ✅ 500ms BEKLE - useEffect'in geçmesi için daha uzun süre
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+      console.log('🔓 isUpdatingRef.current = false yapıldı');
+    }, 500);
+    
+  }, [onPopupInfoChange, selectedVehicle, selectedInfoForPopup, importantInfoOptions]);
 
-  }, [selectedVehicle, onPopupInfoChange, selectedInfoForPopup, importantInfoOptions]);
-
+  // ✅ KESIN ÇÖZÜM - setState callback ile direkt güncelleme
   const handleInfoToggle = useCallback((infoKey) => {
-    console.log('🟢 Toggle çalıştı:', infoKey);
+    console.log('🎯 TOGGLE BAŞLADI - Key:', infoKey);
+    console.log('   📋 Önceki selectedInfoForPopup:', Array.from(selectedInfoForPopup));
     
     setSelectedInfoForPopup(prevKeys => {
       const newKeys = new Set(prevKeys);
+      let action = '';
+      
       if (newKeys.has(infoKey)) {
         newKeys.delete(infoKey);
-        console.log('🔴 Kaldırıldı:', infoKey);
+        action = 'SİLİNDİ';
       } else {
         newKeys.add(infoKey);
-        console.log('🟢 Eklendi:', infoKey);
+        action = 'EKLENDİ';
       }
-      console.log('📋 Güncel seçili listesi:', Array.from(newKeys));
+      
+      console.log(`   ${action === 'SİLİNDİ' ? '❌' : '✅'} ${action}:`, infoKey);
+      console.log('   📋 Yeni keys (setState callback içinde):', Array.from(newKeys));
+      console.log('   📊 Toplam seçili sayısı:', newKeys.size);
+      
+      // ✅ DİREKT BURADA POPUP'I GÜNCELLE - STATE LAG YOK
+      if (onPopupInfoChange && selectedVehicle) {
+        isUpdatingRef.current = true;
+        
+        const updatedSelectedOptions = importantInfoOptions.filter(option => 
+          newKeys.has(option.key) // ✅ YENİ KEYS'İ KULLAN, ESKİ STATE'İ DEĞİL
+        );
+        
+        console.log('🎯 CALLBACK İÇİNDE POPUP GÜNCELLEME:');
+        console.log('   📋 Kullanılan keys (newKeys):', Array.from(newKeys));
+        console.log('   ✅ Gönderilen options:', updatedSelectedOptions.map(opt => ({
+          key: opt.key, 
+          label: opt.label
+        })));
+        console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+        
+        onPopupInfoChange(updatedSelectedOptions);
+        
+        setTimeout(() => {
+          isUpdatingRef.current = false;
+          console.log('🔓 isUpdatingRef.current = false yapıldı');
+        }, 500);
+      }
+      
       return newKeys;
     });
-  }, []);
+  }, [onPopupInfoChange, selectedVehicle, importantInfoOptions]);
 
   const handleSelectAll = useCallback(() => {
+    console.log('🚀 TÜMÜNÜ SEÇ - BAŞLADI');
     const allKeys = new Set(importantInfoOptions.map(option => option.key));
+    
     setSelectedInfoForPopup(allKeys);
-    console.log('🟢 Tümü seçildi');
-  }, [importantInfoOptions]);
+    
+    // ✅ CALLBACK OLMADAN DİREKT GÜNCELLE - allKeys zaten hazır
+    if (onPopupInfoChange && selectedVehicle) {
+      isUpdatingRef.current = true;
+      
+      const updatedSelectedOptions = importantInfoOptions.filter(option => 
+        allKeys.has(option.key)
+      );
+      
+      console.log('🚀 TÜMÜNÜ SEÇ - Popup güncelleme:');
+      console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+      
+      onPopupInfoChange(updatedSelectedOptions);
+      
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 500);
+    }
+  }, [importantInfoOptions, onPopupInfoChange, selectedVehicle]);
 
   const handleClearAll = useCallback(() => {
+    console.log('🗑️ TEMİZLE - BAŞLADI');
+    
     setSelectedInfoForPopup(new Set());
-    console.log('🔴 Tümü temizlendi');
-  }, []);
+    
+    // ✅ BOŞ ARRAY GÖNDER
+    if (onPopupInfoChange) {
+      isUpdatingRef.current = true;
+      
+      console.log('🗑️ TEMİZLE - Popup güncelleme: Boş array gönderiliyor');
+      onPopupInfoChange([]);
+      
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 500);
+    }
+  }, [onPopupInfoChange]);
 
   if (!selectedVehicle) {
     return null;
@@ -256,21 +349,26 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
                 </div>
                 <div className="info-selection-grid">
                   {importantInfoOptions.map(option => (
-                    <div
+                    <div 
                       key={option.key} 
                       className={`info-selection-item ${selectedInfoForPopup.has(option.key) ? 'selected' : ''}`}
                       onClick={() => handleInfoToggle(option.key)}
+                      style={{
+                        cursor: 'pointer',
+                        userSelect: 'none'
+                      }}
                     >
                       <div className="toggle-switch">
                         <input
                           type="checkbox"
                           checked={selectedInfoForPopup.has(option.key)}
                           readOnly
+                          style={{ pointerEvents: 'none' }}
                         />
-                        <span className="slider round"></span>
+                        <span className="slider round" style={{ pointerEvents: 'none' }}></span>
                       </div>
-                      <span className="info-icon">{option.icon}</span>
-                      <span className="info-label">{option.label}</span>
+                      <span className="info-icon" style={{ pointerEvents: 'none' }}>{option.icon}</span>
+                      <span className="info-label" style={{ pointerEvents: 'none' }}>{option.label}</span>
                     </div>
                   ))}
                 </div>

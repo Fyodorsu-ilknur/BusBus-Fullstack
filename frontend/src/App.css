@@ -44,6 +44,29 @@
   --route-text-secondary-color: #666; 
    --search-input-text-color: #333; 
   --search-input-placeholder-color: #777; 
+
+   --panel-background: #F7F9FC;
+  --header-background: #FFFFFF;
+  --header-text-color: #333C4A;
+  --text-color: #4C576C;
+  --secondary-text-color: #7A899C;
+  --border-color: #E2E8F0;
+  --input-background: #FFFFFF;
+  --hover-background: #EEF2F7;
+  --selected-background: #E3F2FD;
+  --primary-color: #4A90E2;
+  --button-hover-bg: #357ABD;
+  --danger-color: #E74C3C;
+  --danger-hover-color: #C0392B;
+  --search-input-text-color: #4C576C;
+  --search-input-placeholder-color: #A0AEC0;
+
+  /* RouteDetailsPanel.css'de tanımladığınız bazı değişkenler de buraya eklenebilir */
+  --navbar-height: 50px; /* eğer app.css'de yoksa */
+  --sidebar-width: 60px; /* eğer app.css'de yoksa */
+  --main-bg: #f9fafb; /* eğer app.css'de yoksa */
+  --main-text: #333; /* eğer app.css'de yoksa */
+
 }
 
 /* Dark tema Overrides */
@@ -89,6 +112,23 @@
   --route-text-secondary-color: #b0b0b0; 
    --search-input-text-color: #f0f0f0; 
   --search-input-placeholder-color: #b0b0b0; 
+
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --search-input-text-color: #F7FAFC;
+  --search-input-placeholder-color: #CBD5E0;
+  /* Diğer dark theme değişkenleri... */
 }
 
 html, body {
