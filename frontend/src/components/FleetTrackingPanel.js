@@ -131,48 +131,58 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
 
       <div className="fleet-tracking-content">
         {filteredVehicles.length > 0 ? (
-          <ul className="vehicle-tracking-list">
-            {filteredVehicles.map(vehicle => (
-              <li
-                key={vehicle.id}
-                className={`vehicle-tracking-item ${selectedVehicles.some(v => v.id === vehicle.id) ? 'selected' : ''}`}
-                onClick={() => onVehicleSelect(vehicle)} 
-              >
-                <div className="vehicle-item-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedVehicles.some(v => v.id === vehicle.id)}
-                    onChange={() => onVehicleSelect(vehicle)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+          <>
+            {/* Tablo Başlığı */}
+            <div className="vehicle-tracking-header-row">
+              <div className="vehicle-item-left"></div>
+              <div className="vehicle-compact-info">
+                <div className="vehicle-main-info">
+                  <span className="vehicle-header">Araç ID</span>
+                  &nbsp;
+                  <span className="vehicle-header">Plaka</span>
+                  <span className="vehicle-header">Hat No</span>
                 </div>
-                
-                {/* Güncellenmiş araç bilgileri gösterimi */}
-                <div className="vehicle-compact-info"> 
-                  <div className="vehicle-main-info">
-                    <span className="vehicle-id-display">
-                      <strong>Araç ID:</strong> {vehicle.vehicleId}
-                    </span>
-                    <span className="vehicle-plate-display">
-                      <strong>Plaka:</strong> {vehicle.plate}
-                    </span>
-                    <span className="vehicle-route-code">
-                      <strong>Hat No:</strong> {vehicle.routeCode}
-                    </span>
+                <div className="vehicle-status-indicator">
+                  <span className="vehicle-header">Durum</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Araç Listesi */}
+            <ul className="vehicle-tracking-list">
+              {filteredVehicles.map(vehicle => (
+                <li
+                  key={vehicle.id}
+                  className={`vehicle-tracking-item ${selectedVehicles.some(v => v.id === vehicle.id) ? 'selected' : ''}`}
+                  onClick={() => onVehicleSelect(vehicle)} 
+                >
+                  <div className="vehicle-item-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedVehicles.some(v => v.id === vehicle.id)}
+                      onChange={() => onVehicleSelect(vehicle)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
                   
-                  {/* Durum gösterimi - sadece renkli top */}
-                  <div className="vehicle-status-indicator">
-                    <span 
-                      className="status-dot-large" 
-                      style={{backgroundColor: getStatusColor(vehicle.status)}}
-                      title={vehicle.status} // Hover'da tam durum bilgisi
-                    ></span>
+                  <div className="vehicle-compact-info"> 
+                    <div className="vehicle-main-info">
+                      <span className="vehicle-id-display">{vehicle.vehicleId}</span>
+                      <span className="vehicle-plate-display">{vehicle.plate}</span>
+                      <span className="vehicle-route-code">{vehicle.routeCode}</span>
+                    </div>
+                    <div className="vehicle-status-indicator">
+                      <span 
+                        className="status-dot-large" 
+                        style={{backgroundColor: getStatusColor(vehicle.status)}}
+                        title={vehicle.status}
+                      ></span>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : (
           <p className="no-results">
             {searchTerm || statusFilter !== 'all' ? 

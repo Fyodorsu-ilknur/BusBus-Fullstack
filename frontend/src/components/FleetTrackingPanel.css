@@ -404,3 +404,70 @@
 .dark .no-results {
   background: #2d3748 !important;
 }
+
+/* Başlık ve satırlar aynı yapıda hizalanır */
+.vehicle-tracking-header-row,
+.vehicle-tracking-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+/* Checkbox kısmı */
+.vehicle-item-left {
+  width: 40px; 
+  display: flex;
+  justify-content: center;
+}
+
+/* Bilgi kolonları ortak container */
+.vehicle-compact-info {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Ana bilgiler (ID - Plaka - Hat No) */
+.vehicle-main-info {
+  display: flex;
+  flex: 1;
+}
+
+/* Sütun genişlikleri */
+.vehicle-id-display,
+.vehicle-header:nth-child(1) {
+  width: 65px;
+}
+
+.vehicle-plate-display,
+.vehicle-header:nth-child(2) {
+  width: 69px;
+}
+
+.vehicle-route-code,
+.vehicle-header:nth-child(3) {
+  width: 70px;
+}
+
+.vehicle-status-indicator,
+.vehicle-header:nth-child(4) {
+  width: 60px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+/* Başlıklar */
+.vehicle-header {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Durum noktası */
+.status-dot-large {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
