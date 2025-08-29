@@ -1,315 +1,385 @@
 /* frontend/src/components/RouteDetailsPanel.css */
 
-.route-details-panel {
-    /* StopSelector.css'deki .stop-selector'a benzetiyoruz */
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: var(--panel-background); /* Değişkene bağla */
-    color: var(--text-color); /* Metin rengini genel değişkene bağla */
-    border-radius: 12px; /* Köşe yuvarlaklığı */
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 0; /* İç padding'i kaldır, iç elemanlarda ayarlarız */
+/* Dark theme değişkenleri tanımla - ZORLA OVERRIDE */
+body.dark-theme .route-details-panel,
+body.dark-theme .route-details-panel *,
+.dark-theme .route-details-panel,
+.dark-theme .route-details-panel * {
+  --panel-background: #2D3748 !important;
+  --header-background: #1A202C !important;
+  --header-text-color: #E2E8F0 !important;
+  --text-color: #CBD5E0 !important;
+  --secondary-text-color: #A0AEC0 !important;
+  --border-color: #4A5568 !important;
+  --input-background: #4A5568 !important;
+  --hover-background: #4A5568 !important;
+  --selected-background: #2A4365 !important;
+  --primary-color: #63B3ED !important;
+  --button-hover-bg: #4299E1 !important;
+  --danger-color: #FC8181 !important;
+  --danger-hover-color: #E53E3E !important;
+  --search-input-text-color: #F7FAFC !important;
+  --search-input-placeholder-color: #CBD5E0 !important;
+  --panel-header-text: #E2E8F0 !important;
+  --panel-border: #4A5568 !important;
+  --panel-text: #CBD5E0 !important;
+  --list-item-bg: #1A202C !important;
+  --list-item-text: #CBD5E0 !important;
+  --list-item-selected-bg: #2A4365 !important;
+  --info-text: #A0AEC0 !important;
+  --error-text: #FC8181 !important;
 }
 
+.route-details-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-background);
+  color: var(--text-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+/* Panel başlığı */
 .panel-header {
-  /* StopSelector.css'deki .stop-selector-header'a benzetiyoruz */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px; /* Padding'i küçült */
-  border-bottom: 1px solid var(--border-color); /* Kenarlık rengi değişkene bağla */
-  background: var(--header-background); /* Arka plan rengi değişkene bağla */
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--header-background);
   flex-shrink: 0;
-  margin-bottom: 0px; /* Boşluğu kaldır */
+  margin-bottom: 0px;
+}
+
+body.dark-theme .panel-header {
+  background: var(--header-background) !important;
+  border-bottom-color: var(--border-color) !important;
 }
 
 .panel-header h3 {
-  /* StopSelector.css'deki .stop-selector-header h2'ye benzetiyoruz */
   margin: 0;
-  font-size: 0.95rem; /* Font boyutunu küçült */
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--header-text-color); /* Renk değişkene bağla */
+  color: var(--header-text-color);
 }
 
+body.dark-theme .panel-header h3 {
+  color: var(--header-text-color) !important;
+}
 
 .close-button {
-  /* StopSelector.css'deki .close-button'a benzetiyoruz */
   background: none;
   border: none;
-  font-size: 0.9rem; /* Boyutunu küçült */
+  font-size: 0.9rem;
   cursor: pointer;
-  color: var(--secondary-text-color); /* Renk değişkene bağla */
-  padding: 3px; /* Padding'i küçült */
+  color: var(--secondary-text-color);
+  padding: 3px;
   border-radius: 50%;
   transition: background-color 0.2s, color 0.2s;
+}
+
+body.dark-theme .close-button {
+  color: var(--secondary-text-color) !important;
 }
 
 .close-button:hover {
   background-color: var(--hover-background);
   color: var(--header-text-color);
 }
-/* Arama Kısmı Kapsayıcısı */
+
+/* Arama container */
 .search-dropdown-container {
-    /* StopSelector.css'deki .stop-selector-controls ve .search-container'dan esinlenildi */
-    position: relative;
-    padding: 8px 12px; /* İç padding ekle */
-    border-bottom: 1px solid var(--border-color); /* Kenarlık ekle */
-    margin-bottom: 0px; /* Boşluğu kaldır */
-    z-index: 5;
-    flex-shrink: 0;
+  position: relative;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0px;
+  z-index: 5;
+  flex-shrink: 0;
 }
 
+body.dark-theme .search-dropdown-container {
+  border-bottom-color: var(--border-color) !important;
+}
 
 .search-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .bus-number-input {
-    /* StopSelector.css'deki .search-input'a benzetiyoruz */
-    width: 100%; /* %99 yerine %100 */
-    padding: 6px 10px 6px 28px; /* Padding'i küçült ve ikon boşluğunu ayarla */
-    border: 1px solid var(--border-color); /* Renk değişkene bağla */
-    border-radius: 5px;
-    background-color: var(--input-background); /* Renk değişkene bağla */
-    color: var(--search-input-text-color);
-    font-size: 0.75rem; /* Font boyutunu küçült */
-    transition: border-color 0.2s;
-    box-sizing: border-box;
-    
-    /* background-color: rgb(255, 254, 254) !important; */
-    /* color: #333 !important; */
+  width: 100%;
+  padding: 6px 10px 6px 28px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--input-background);
+  color: var(--search-input-text-color);
+  font-size: 0.75rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+body.dark-theme .bus-number-input {
+  background-color: var(--input-background) !important;
+  color: var(--search-input-text-color) !important;
+  border-color: var(--border-color) !important;
 }
 
 .bus-number-input::placeholder {
-    color: var(--search-input-placeholder-color); /* Temaya göre değişir */
+  color: var(--search-input-placeholder-color);
 }
 
 .bus-number-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2); /* Gölgeyi küçült */
-}   
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
+}
+
 .bus-number-input#daySelect {
-    padding-left: 10px; /* Select elemanında ikon olmadığı için soldaki boşluğu azaltırız */
-    gap: 0; /* Gap'i kaldır */
-    margin-top: 8px; /* Diğer input ile arasında biraz boşluk bırak */
+  padding-left: 10px;
+  gap: 0;
+  margin-top: 8px;
 }
 
 .search-icon {
-    /* StopSelector.css'deki .search-icon'a benzetiyoruz */
-    position: absolute;
-    left: 10px;
-    font-size: 0.85rem; /* İkon boyutunu küçült */
-    color: var(--secondary-text-color);
-    pointer-events: none;
-    z-index: 1;
+  position: absolute;
+  left: 10px;
+  font-size: 0.85rem;
+  color: var(--secondary-text-color);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* Arama Sonuçları Dropdown Listesi */
-.route-search-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-    background-color: var(--input-background); /* Renk değişkene bağla */
-    border: 1px solid var(--border-color); /* Renk değişkene bağla */
-    border-top: none;
-    border-radius: 0 0 5px 5px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    z-index: 10;
+body.dark-theme .search-icon {
+  color: var(--secondary-text-color) !important;
 }
+
+/* Arama dropdown */
+.route-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--input-background);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 10;
+}
+
+body.dark-theme .route-search-dropdown {
+  background-color: var(--input-background) !important;
+  border-color: var(--border-color) !important;
+}
+
 .route-search-dropdown-item {
-    padding: 6px 12px; /* Padding'i küçült */
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    color: var(--text-color); /* Renk değişkene bağla */
-    font-size: 0.8rem; /* Font boyutunu küçült */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--text-color);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.dark-theme .route-search-dropdown-item {
+  color: var(--text-color) !important;
 }
 
 .route-search-dropdown-item:hover {
-    background-color: var(--hover-background); /* Temaya göre değişir */
+  background-color: var(--hover-background);
 }
 
 .route-search-dropdown-item strong {
-    color: var(--primary-color); /* Hat numarası mavi olsun */
+  color: var(--primary-color);
 }
 
 .route-search-dropdown-no-results {
-    padding: 6px 12px; /* Padding'i küçült */
-    font-size: 0.8rem;
-    color: var(--secondary-text-color);
-    text-align: center;
-}
-/* Gün Seçme Kısmı Kapsayıcısı (DepartureTimesPanel'de kullanılıyor) */
-.input-group:has(#daySelect) {
-    margin-bottom: 8px; /* Yön butonlarına yakınlaştır */
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: var(--secondary-text-color);
+  text-align: center;
 }
 
-
-/* ... (direction-toggle ve direction-button stilleri aynı kalır) ... */
-
-/* Durak Listesi Başlığı */
-.stop-list-section h4 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 0.85em;
-    color: var(--panel-header-text);
-    border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 1px;
+body.dark-theme .route-search-dropdown-no-results {
+  color: var(--secondary-text-color) !important;
 }
 
-/* Lütfen bir otobüs numarası girin. / Durak bilgisi bulunamadı. mesajları için */
-.info-message {
-    color: var(--info-text); /* Temaya göre değişir */
-    font-size: 0.85em;
-    text-align: center;
-    margin-top: 15px;
-    font-style: italic;
-}
-
-
-
+/* Yön butonları */
 .direction-toggle {
-    display: flex;
-    justify-content: center;
-    gap: 8px; /* Boşluğu ayarla */
-    margin-bottom: 8px; /* Boşluğu ayarla */
-    padding: 0 12px; /* Yan padding ekle */
-    flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  flex-shrink: 0;
 }
 
 .direction-button {
-    background-color: var(--primary-color); /* Renk değişkene bağla */
-    color: white; /* Metin rengi */
-    border: none;
-    padding: 4px 8px; /* Padding'i küçült */
-    text-align: center;
-    border-radius: 4px; /* Yuvarlatmayı küçült */
-    cursor: pointer;
-    font-size: 0.75rem; /* Font boyutunu küçült */
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    white-space: nowrap;
-    font-weight: 600; /* Daha kalın font */
-    flex-grow: 1;
-    max-width: none; /* Max genişliği kaldır */
-    margin-top: 0px; /* Üst boşluğu kaldır */
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+  font-weight: 600;
+  flex-grow: 1;
+  max-width: none;
+  margin-top: 0px;
 }
 
 .direction-button:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
+  background-color: var(--button-hover-bg);
+  transform: translateY(-1px);
 }
 
 .direction-button.active {
-    background-color: var(--button-hover-bg);
-    border: 1px solid var(--primary-color); /* Border rengi değişkene bağla */
-    color: white;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  background-color: var(--button-hover-bg);
+  border: 1px solid var(--primary-color);
+  color: white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Durak Listesi (Artık hat listesi de burada) */
-.stop-list-section { /* Veya route-list-section olarak adlandırılabilir */
-    flex-grow: 1;
-    overflow-y: auto; /* Kaydırma çubuğu */
-    padding-right: 1px;
-    min-height: 0;
-    margin-top: 10px; /* Arama kutusu altındaki boşluk */
-    
+/* Durak listesi bölümü */
+.stop-list-section {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 1px;
+  min-height: 0;
+  margin-top: 10px;
 }
 
 .stop-list-section h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 0.85em;
-    color: var(--panel-header-text);
-    border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 1px;
-    margin-left: 7px;
-margin-right: 7px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 0.85em;
+  color: var(--panel-header-text);
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 1px;
+  margin-left: 7px;
+  margin-right: 7px;
 }
 
-.stop-list { /* Eskiden durak listesiydi, şimdi güzergah detaylarındaki durak listesi */
-    list-style: none;
-    padding: 0;
-    margin-bottom: 2px;
-margin-left: 7px;
-margin-right: 7px;
-
+body.dark-theme .stop-list-section h4 {
+  color: var(--panel-header-text) !important;
+  border-bottom-color: var(--panel-border) !important;
 }
+
+.stop-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 2px;
+  margin-left: 7px;
+  margin-right: 7px;
+}
+
+/* ÖNEMLİ: SABİT RENK KALDIRILDI */
 .stop-item {
-    background-color: rgb(255, 254, 254);
-    padding: 2px 2px;
-    margin-bottom: 1px;
-    border-radius: 3px;
-    font-size: 0.85em;
-    color: var(--list-item-text);
-pointer-events: none;}
+  background-color: var(--list-item-bg); /* rgb(255, 254, 254) yerine değişken */
+  padding: 2px 2px;
+  margin-bottom: 1px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  color: var(--list-item-text);
+  pointer-events: none;
+}
+
+body.dark-theme .stop-item {
+  background-color: var(--list-item-bg) !important;
+  color: var(--list-item-text) !important;
+}
 
 .route-summary {
-    margin-bottom: 1px;
-    font-size: 0.85em;
-    font-weight: bold;
-    color: var(--panel-text);
-    padding: 5px;
-    background-color: var(--list-item-bg);
-    border-radius: 5px;
-    margin-left: 7px;
-margin-right: 7px;
+  margin-bottom: 1px;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: var(--panel-text);
+  padding: 5px;
+  background-color: var(--list-item-bg);
+  border-radius: 5px;
+  margin-left: 7px;
+  margin-right: 7px;
 }
 
-.departure-group { /* Bu panelde kullanılmıyorsa kaldırılabilir */
-    margin-bottom: 2px;
-    padding: 1px;
-    background-color: var(--list-item-bg);
-    border-radius: 5px;
+body.dark-theme .route-summary {
+  color: var(--panel-text) !important;
+  background-color: var(--list-item-bg) !important;
 }
 
-.departure-group h5 { /* Bu panelde kullanılmıyorsa kaldırılabilir */
-    margin-top: 0;
-    color: var(--panel-header-text);
-    border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 1px;
-    margin-bottom: 1px;
+.departure-group {
+  margin-bottom: 2px;
+  padding: 1px;
+  background-color: var(--list-item-bg);
+  border-radius: 5px;
+}
+
+body.dark-theme .departure-group {
+  background-color: var(--list-item-bg) !important;
+}
+
+.departure-group h5 {
+  margin-top: 0;
+  color: var(--panel-header-text);
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+
+body.dark-theme .departure-group h5 {
+  color: var(--panel-header-text) !important;
+  border-bottom-color: var(--panel-border) !important;
 }
 
 .error-message {
-    color: var(--error-text);
-    font-size: 0.85em;
-    text-align: center;
-    margin-top: 1px;
+  color: var(--error-text);
+  font-size: 0.85em;
+  text-align: center;
+  margin-top: 1px;
+}
+
+body.dark-theme .error-message {
+  color: var(--error-text) !important;
 }
 
 .info-message {
-    color: var(--info-text);
-    font-size: 0.85em;
-    text-align: center;
-    margin-top: 5px;
-    font-style: italic;
+  color: var(--info-text);
+  font-size: 0.85em;
+  text-align: center;
+  margin-top: 5px;
+  font-style: italic;
 }
 
+body.dark-theme .info-message {
+  color: var(--info-text) !important;
+}
 
-/* YENİ: Hat Seçim Listesi */
+/* Gün seçimi */
+.input-group:has(#daySelect) {
+  margin-bottom: 8px;
+}
+
+/* Hat seçim listesi */
 .route-selection-display {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-right: 5px;
-    min-height: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+  min-height: 0;
 }
-
 
 .route-selection-item:hover {
-    background-color: var(--list-item-selected-bg);
+  background-color: var(--list-item-selected-bg);
 }
-

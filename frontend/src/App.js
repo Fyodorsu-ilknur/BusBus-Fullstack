@@ -19,7 +19,6 @@ import RouteDetailsPanel from './components/RouteDetailsPanel';
 import DepartureTimesPanel from './components/DepartureTimesPanel';
 import RouteProgressPanel from './components/RouteProgressPanel';
 import StopSelector from './components/StopSelector';
-import RouteNavigationPanel from './components/RouteNavigationPanel';
 import './App.css';
 
 function App() {
@@ -30,6 +29,12 @@ function App() {
   const selectedRouteIds = useSelector(state => state.selectedItems.selectedRouteIds);
   const allStops = useSelector(state => state.selectedItems.allStops);
   const selectedStopIds = useSelector(state => state.selectedItems.selectedStopIds);
+
+  // ✅ YENİ: Dark Mode State - localStorage'dan yükle
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('app-theme');
+    return savedTheme || 'light';
+  });
 
   // Lokal state'ler
   const [vehicles, setVehicles] = useState([]);
@@ -54,7 +59,7 @@ function App() {
   const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false);
   const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false);
   const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false);
-  const [isRouteNavigationPanelOpen, setIsRouteNavigationPanelOpen] = useState(false);
+  
   const [isFleetTrackingPanelOpen, setIsFleetTrackingPanelOpen] = useState(false);
   const [isFleetFiltersPanelOpen, setIsFleetFiltersPanelOpen] = useState(false); // ✅ YENİ: Filtreler paneli
 
@@ -66,13 +71,30 @@ function App() {
   const [routesForSelectedStop, setRoutesForSelectedStop] = useState([]);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [currentAnimatedStop, setCurrentAnimatedStop] = useState(null);
-  const [theme, setTheme] = useState('light');
   const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [isRouteProgressPanelActive, setIsRouteProgressPanelActive] = useState(false);
-  const [navigationRoute, setNavigationRoute] = useState(null);
   const [currentDirection, setCurrentDirection] = useState('1');
   const [animatedDistanceToDestination, setAnimatedDistanceToDestination] = useState(null);
   const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
+
+  // ✅ YENİ: Theme değişikliklerini localStorage'a kaydet
+  
+    useEffect(() => {
+  localStorage.setItem('app-theme', theme);
+  if (theme === 'dark') {
+    document.body.classList.add('dark-theme');
+    document.documentElement.classList.add('dark-theme'); 
+  } else {
+    document.body.classList.remove('dark-theme');
+    document.documentElement.classList.remove('dark-theme'); 
+  }
+}, [theme]);
+  
+
+  // ✅ YENİ: Dark Mode Toggle Fonksiyonu
+  const toggleTheme = useCallback(() => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  }, []);
 
   const handlePopupInfoChange = useCallback((newSelectedInfo) => {
     console.log('Pop-up bilgileri güncelleniyor:', newSelectedInfo);
@@ -295,7 +317,6 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    setNavigationRoute(null);
 
     const lowerCaseTerm = term.toLowerCase().trim();
 
@@ -312,7 +333,7 @@ function App() {
     );
 
     setFilteredItems(currentFilteredItems);
-  }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setNavigationRoute, setSearchTerm]);
+  }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setSearchTerm]);
 
   // -------- Genel Efektler (Resize, İlk Veri Yükleme, Simülasyon) --------
   useEffect(() => {
@@ -458,7 +479,6 @@ function App() {
     setAnimatedTimeToDestination(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setNavigationRoute(null);
   }, [dispatch]);
 
   const closeRouteDetailsPanel = useCallback(() => {
@@ -470,7 +490,6 @@ function App() {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
-    setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
   }, []);
@@ -485,7 +504,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
   }, [dispatch]);
@@ -500,22 +518,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
     dispatch(clearSelectedStops());
-    setNavigationRoute(null);
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
-  }, [dispatch]);
-
-  const closeRouteNavigationPanel = useCallback(() => {
-    setIsRouteNavigationPanelOpen(false);
-    setNavigationRoute(null);
-    setSelectedRoute(null);
-    setSelectedItem(null);
-    setSelectedStop(null);
-    setMapCenter(null);
-    setCurrentAnimatedStop(null);
-    setIsRouteProgressPanelActive(false);
-    setCurrentDirection('1');
-    dispatch(clearSelectedRoutes());
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
   }, [dispatch]);
@@ -538,7 +540,6 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false); // ✅ YENİ: Filtreler panelini kapat
     setIsSidebarExpanded(true);
@@ -550,7 +551,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null); // Diğer panel açıldığında seçimi temizle
@@ -563,7 +563,6 @@ function App() {
     setIsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false); // ✅ YENİ
     setIsSidebarExpanded(true);
@@ -574,7 +573,6 @@ function App() {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
-    setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
@@ -587,7 +585,6 @@ function App() {
     setIsPanelOpen(false);
     setIsRouteDetailsPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false); // ✅ YENİ
     setIsSidebarExpanded(true);
@@ -599,7 +596,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setNavigationRoute(null);
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
@@ -612,7 +608,6 @@ function App() {
     setIsPanelOpen(false);
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false); // ✅ YENİ
     setIsSidebarExpanded(true);
@@ -621,32 +616,6 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    dispatch(clearSelectedRoutes());
-    setCurrentDirection('1');
-    setNavigationRoute(null);
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
-    setSelectedFleetVehicle(null);
-    setSelectedFleetVehicles([]);
-    setSelectedPopupInfo([]);
-  }, [dispatch]);
-
-  const toggleRouteNavigationPanel = useCallback(() => {
-    setIsRouteNavigationPanelOpen(prev => !prev);
-    setIsPanelOpen(false);
-    setIsRouteDetailsPanelOpen(false);
-    setIsDepartureTimesPanelOpen(false);
-    setIsStopSelectorOpen(false);
-    setIsFleetTrackingPanelOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ
-    setIsSidebarExpanded(true);
-    setSelectedItem(null);
-    setSelectedRoute(null);
-    setSelectedStop(null);
-    setMapCenter(null);
-    setCurrentAnimatedStop(null);
-    setIsRouteProgressPanelActive(false);
-    setNavigationRoute(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
@@ -662,7 +631,6 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetFiltersPanelOpen(false); // ✅ YENİ
     setIsSidebarExpanded(true);
     setSelectedItem(null);
@@ -671,7 +639,6 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    setNavigationRoute(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
@@ -688,7 +655,6 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsRouteNavigationPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
@@ -697,7 +663,6 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    setNavigationRoute(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
@@ -715,7 +680,6 @@ function App() {
         setIsRouteDetailsPanelOpen(false);
         setIsDepartureTimesPanelOpen(false);
         setIsStopSelectorOpen(false);
-        setIsRouteNavigationPanelOpen(false);
         setIsFleetTrackingPanelOpen(false);
         setIsFleetFiltersPanelOpen(false); // ✅ YENİ
         setSelectedItem(null);
@@ -726,7 +690,6 @@ function App() {
         setIsRouteProgressPanelActive(false);
         dispatch(clearSelectedRoutes());
         setCurrentDirection('1');
-        setNavigationRoute(null);
         setAnimatedDistanceToDestination(null);
         setAnimatedTimeToDestination(null);
         setSelectedFleetVehicle(null);
@@ -736,10 +699,6 @@ function App() {
       return newExpandedState;
     });
   }, [dispatch]);
-
-  const toggleTheme = useCallback(() => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  }, []);
 
   const handleCurrentStopChange = useCallback((stop) => {
     setCurrentAnimatedStop(stop);
@@ -763,35 +722,15 @@ function App() {
     setIsRouteProgressPanelActive(prev => !prev);
   }, []);
 
-  const handleRouteFound = useCallback((routeData) => {
-    setNavigationRoute(routeData);
-    if (routeData && routeData.segments && routeData.segments.length > 0) {
-      const firstSegment = routeData.segments[0];
-      if (firstSegment.coordinates && firstSegment.coordinates.length > 0) {
-        const firstCoord = firstSegment.coordinates[0];
-        setMapCenter([firstCoord[1], firstCoord[0]]);
-      }
-    }
-    setIsPanelOpen(false);
-    setIsRouteDetailsPanelOpen(false);
-    setIsDepartureTimesPanelOpen(false);
-    setIsStopSelectorOpen(false);
-    setSelectedRoute(null);
-    setSelectedItem(null);
-    setSelectedStop(null);
-    setMapCenter(null);
-    setCurrentAnimatedStop(null);
-    setIsRouteProgressPanelActive(false);
-    dispatch(clearSelectedRoutes());
-    setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
-  }, [dispatch]);
-
   return (
     <Provider store={store}>
-      <div className={`app-layout ${isSidebarExpanded ? 'sidebar-expanded' : ''} ${theme}`}>
-        <Navbar toggleSidebar={toggleSidebarExpansion} toggleTheme={toggleTheme} isMobileView={isMobileView} />
+      <div className={`app-layout ${isSidebarExpanded ? 'sidebar-expanded' : ''} ${theme === 'dark' ? 'dark-theme' : ''}`}>
+        <Navbar 
+          toggleSidebar={toggleSidebarExpansion} 
+          onToggleTheme={toggleTheme}
+          currentTheme={theme}
+          isMobileView={isMobileView} 
+        />
 
         <Sidebar
           onTogglePanel={togglePanel}
@@ -824,11 +763,7 @@ function App() {
                 isPanelOpen={isPanelOpen}
                 isRouteDetailsPanelOpen={isRouteDetailsPanelOpen}
                 isDepartureTimesPanelOpen={isDepartureTimesPanelOpen}
-                isRouteNavigationPanelOpen={isRouteNavigationPanelOpen}
                 isFleetTrackingPanelOpen={isFleetTrackingPanelOpen}
-                navigationRoute={navigationRoute}
-                animatedDistanceToDestination={animatedDistanceToDestination}
-                animatedTimeToDestination={animatedTimeToDestination}
                 selectedPopupInfo={selectedPopupInfo}
                 onPopupInfoChange={handlePopupInfoChange}
               />
@@ -858,13 +793,13 @@ function App() {
 
             {isRouteDetailsPanelOpen && (
               <div className={`panel-wrapper ${isRouteDetailsPanelOpen ? 'open' : ''}`}>
-                <RouteDetailsPanel onClose={closeRouteDetailsPanel} allRoutes={allRoutes} onVehicleClick={handleVehicleClick} />
+                <RouteDetailsPanel onClose={closeRouteDetailsPanel} allRoutes={allRoutes} onVehicleClick={handleVehicleClick} theme={theme} />
               </div>
             )}
 
             {isDepartureTimesPanelOpen && (
               <div className={`panel-wrapper ${isDepartureTimesPanelOpen ? 'open' : ''}`}>
-                <DepartureTimesPanel onClose={closeDepartureTimesPanel} allRoutes={allRoutes} />
+                <DepartureTimesPanel onClose={closeDepartureTimesPanel} allRoutes={allRoutes} theme={theme} />
               </div>
             )}
 
@@ -878,16 +813,7 @@ function App() {
                   onToggleSelectedStop={handleToggleSelectedStop}
                   onClearSelectedStops={handleClearSelectedStops}
                   onSelectAllStops={handleSelectAllStops}
-                />
-              </div>
-            )}
-
-            {isRouteNavigationPanelOpen && (
-              <div className={`panel-wrapper ${isRouteNavigationPanelOpen ? 'open' : ''}`}>
-                <RouteNavigationPanel
-                  onClose={closeRouteNavigationPanel}
-                  allStops={Object.values(allStops)}
-                  onRouteFound={handleRouteFound}
+                  theme={theme}
                 />
               </div>
             )}
@@ -899,6 +825,7 @@ function App() {
                   vehicles={filteredFleetVehicles} // ✅ YENİ: Filtrelenmiş araçları kullan
                   onVehicleSelect={handleFleetVehicleSelect}
                   selectedVehicles={selectedFleetVehicles}
+                  theme={theme}
                 />
               </div>
             )}
@@ -906,16 +833,15 @@ function App() {
             {/* ✅ YENİ: Ayarlar ve Filtreler Paneli */}
            {isFleetFiltersPanelOpen && (
               <div className={`panel-wrapper ${isFleetFiltersPanelOpen ? 'open' : ''}`}>
-
-  <FleetFiltersPanel
-    isOpen={isFleetFiltersPanelOpen}
-    onClose={closeFleetFiltersPanel}
-    vehicles={vehicles} // Ham araç verileri
-    onFilteredVehiclesChange={handleFilteredVehiclesChange} // Filtrelenmiş sonuçları al
-    theme={theme}
-  />
-  </div>
-)}
+                <FleetFiltersPanel
+                  isOpen={isFleetFiltersPanelOpen}
+                  onClose={closeFleetFiltersPanel}
+                  vehicles={vehicles} // Ham araç verileri
+                  onFilteredVehiclesChange={handleFilteredVehiclesChange} // Filtrelenmiş sonuçları al
+                  theme={theme}
+                />
+              </div>
+            )}
 
             {isFleetTrackingPanelOpen && selectedFleetVehicle && (
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''} details-panel-right`}>
@@ -924,6 +850,7 @@ function App() {
                   selectedVehicle={selectedFleetVehicle}
                   selectedPopupInfo={selectedPopupInfo} // Map'e gidecek state'i alıyor
                   onPopupInfoChange={handlePopupInfoChange} // Map'e göndermek için App.js'e güncellenecek
+                  theme={theme}
                 />
               </div>
             )}
@@ -940,6 +867,7 @@ function App() {
             onToggleDirection={handleToggleDirection}
             distanceToDestination={animatedDistanceToDestination}
             timeToDestination={animatedTimeToDestination}
+            theme={theme}
           />
         )}
       </div>

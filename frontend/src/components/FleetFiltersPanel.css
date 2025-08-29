@@ -17,7 +17,7 @@
 /* frontend/src/components/FleetFiltersPanel.css */
 
 .fleet-filters-panel {
-  width: 400px; /* Diğer paneller gibi 400px */
+  width: 450px; /* Diğer paneller gibi 400px */
   height: 100%;
   background: var(--panel-bg);
   border-right: 1px solid var(--panel-border);
