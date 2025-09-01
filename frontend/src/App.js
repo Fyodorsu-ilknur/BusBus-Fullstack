@@ -4,6 +4,8 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
 import FleetTrackingPanel from './components/FleetTrackingPanel';
 import FleetFiltersPanel from './components/FleetFiltersPanel'; // ✅ YENİ: Ayarlar ve Filtreler paneli
+import FilteredVehiclesPanel from './components/FilteredVehiclesPanel'; // ✅ YENİ: Sağ panel
+
 import FleetVehicleDetailsPanel from './components/FleetVehicleDetailsPanel';
 
 import {
@@ -41,6 +43,7 @@ function App() {
   const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null);
   const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]);
   const [filteredFleetVehicles, setFilteredFleetVehicles] = useState([]); // ✅ YENİ: Filtrelenmiş araçlar
+  const [isFilteredVehiclesPanelOpen, setIsFilteredVehiclesPanelOpen] = useState(false); // ✅ YENİ: Sağ panel kontrol
   
   // Pop-up entegrasyonu için state'ler
   const [selectedPopupInfo, setSelectedPopupInfo] = useState([
@@ -78,18 +81,16 @@ function App() {
   const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
 
   // ✅ YENİ: Theme değişikliklerini localStorage'a kaydet
-  
-    useEffect(() => {
-  localStorage.setItem('app-theme', theme);
-  if (theme === 'dark') {
-    document.body.classList.add('dark-theme');
-    document.documentElement.classList.add('dark-theme'); 
-  } else {
-    document.body.classList.remove('dark-theme');
-    document.documentElement.classList.remove('dark-theme'); 
-  }
-}, [theme]);
-  
+  useEffect(() => {
+    localStorage.setItem('app-theme', theme);
+    if (theme === 'dark') {
+      document.body.classList.add('dark-theme');
+      document.documentElement.classList.add('dark-theme'); 
+    } else {
+      document.body.classList.remove('dark-theme');
+      document.documentElement.classList.remove('dark-theme'); 
+    }
+  }, [theme]);
 
   // ✅ YENİ: Dark Mode Toggle Fonksiyonu
   const toggleTheme = useCallback(() => {
@@ -101,10 +102,31 @@ function App() {
     setSelectedPopupInfo(newSelectedInfo);
   }, []);
 
-  // ✅ YENİ: Filtrelenmiş araçları güncelleme fonksiyonu
+  // ✅ YENİ: Filtrelenmiş araçları güncelleme fonksiyonu - GÜNCELLENDİ
   const handleFilteredVehiclesChange = useCallback((filtered) => {
     console.log('Filtrelenmiş araçlar güncelleniyor:', filtered.length);
     setFilteredFleetVehicles(filtered);
+    // ✅ YENİ: Eğer filtrelenmiş araç varsa sağ paneli aç
+    if (filtered.length > 0) {
+      setIsFilteredVehiclesPanelOpen(true);
+    } else {
+      setIsFilteredVehiclesPanelOpen(false);
+    }
+  }, []);
+
+  // ✅ YENİ: Sağ panel kapatma handler'ı
+  const closeFilteredVehiclesPanel = useCallback(() => {
+    setIsFilteredVehiclesPanelOpen(false);
+  }, []);
+
+  // ✅ YENİ: Filtrelenmiş panelden araç seçme handler'ı
+  const handleFilteredVehicleSelect = useCallback((vehicle) => {
+    // Seçilen aracı ana filo takip panelindeki seçime ekle
+    handleFleetVehicleSelect(vehicle);
+    
+    // Seçilen aracın detaylarını göster
+    setSelectedFleetVehicle(vehicle);
+    setMapCenter(vehicle.location ? [vehicle.location.lng, vehicle.location.lat] : null);
   }, []);
 
   // -------- Genel Kullanım Fonksiyonları --------
@@ -530,9 +552,12 @@ function App() {
     setSelectedPopupInfo([]); // Panel kapanırken pop-up bilgilerini temizle
   }, []);
 
-  // ✅ YENİ: Filtreler panel kapatma fonksiyonu
+  // ✅ YENİ: Filtreler panel kapatma fonksiyonu - GÜNCELLENDİ
   const closeFleetFiltersPanel = useCallback(() => {
     setIsFleetFiltersPanelOpen(false);
+    // ✅ YENİ: Filtreler kapanırken sağ paneli de kapat
+    setIsFilteredVehiclesPanelOpen(false);
+    setFilteredFleetVehicles([]);
   }, []);
 
   const togglePanel = useCallback(() => {
@@ -541,7 +566,8 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ: Filtreler panelini kapat
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -553,9 +579,9 @@ function App() {
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-    setSelectedFleetVehicle(null); // Diğer panel açıldığında seçimi temizle
+    setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
-    setSelectedPopupInfo([]); // Diğer panel açıldığında pop-up bilgilerini temizle
+    setSelectedPopupInfo([]);
   }, [dispatch]);
 
   const toggleRouteDetailsPanel = useCallback(() => {
@@ -564,7 +590,8 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -586,7 +613,8 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -609,7 +637,8 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -631,7 +660,8 @@ function App() {
     setIsRouteDetailsPanelOpen(false);
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
-    setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -643,7 +673,7 @@ function App() {
     setCurrentDirection('1');
     setAnimatedDistanceToDestination(null);
     setAnimatedTimeToDestination(null);
-    setSelectedFleetVehicle(null); // Panel açıldığında seçimi temizle
+    setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
   }, [dispatch]);
@@ -656,6 +686,7 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -822,7 +853,7 @@ function App() {
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
                 <FleetTrackingPanel
                   onClose={closeFleetTrackingPanel}
-                  vehicles={filteredFleetVehicles} // ✅ YENİ: Filtrelenmiş araçları kullan
+                  vehicles={vehicles} // ✅ GÜNCELLENDİ: Tüm araçlar (filtrelenmiş değil)
                   onVehicleSelect={handleFleetVehicleSelect}
                   selectedVehicles={selectedFleetVehicles}
                   theme={theme}
@@ -831,13 +862,13 @@ function App() {
             )}
 
             {/* ✅ YENİ: Ayarlar ve Filtreler Paneli */}
-           {isFleetFiltersPanelOpen && (
+            {isFleetFiltersPanelOpen && (
               <div className={`panel-wrapper ${isFleetFiltersPanelOpen ? 'open' : ''}`}>
                 <FleetFiltersPanel
                   isOpen={isFleetFiltersPanelOpen}
                   onClose={closeFleetFiltersPanel}
                   vehicles={vehicles} // Ham araç verileri
-                  onFilteredVehiclesChange={handleFilteredVehiclesChange} // Filtrelenmiş sonuçları al
+                  onFilteredVehiclesChange={handleFilteredVehiclesChange} // ✅ YENİ: Callback
                   theme={theme}
                 />
               </div>
@@ -870,6 +901,15 @@ function App() {
             theme={theme}
           />
         )}
+
+        {/* ✅ YENİ: Sağ Taraf Filtrelenmiş Araçlar Paneli */}
+        <FilteredVehiclesPanel
+          filteredVehicles={filteredFleetVehicles}
+          isOpen={isFilteredVehiclesPanelOpen}
+          onClose={closeFilteredVehiclesPanel}
+          onVehicleSelect={handleFilteredVehicleSelect}
+          theme={theme}
+        />
       </div>
     </Provider>
   );

@@ -2,12 +2,10 @@
 import React from 'react';
 import './Navbar.css';
 
-// onToggleSidebarExpansion yerine toggleSidebar olarak değiştirildi
 function Navbar({ toggleSidebar, onToggleTheme, currentTheme }) {
   return (
     <nav className="navbar-container">
       <div className="navbar-left">
-        {/* onClick handler'ı toggleSidebar olarak değiştirildi */}
         <button className="hamburger-icon-button" onClick={toggleSidebar} title="Sidebar Aç/Kapat">
           <span className="material-icons">menu</span>
         </button>

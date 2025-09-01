@@ -7,7 +7,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     new Set(selectedPopupInfo.map(info => info.key))
   );
   const [activeCategory, setActiveCategory] = useState('live');
-  const isUpdatingRef = useRef(false); // Döngüsel güncellemeyi engellemek için
+  const isUpdatingRef = useRef(false); 
 
   const generateVehicleSpecificData = (vehicleId, plate) => {
     const validVehicleId = vehicleId || '0';
@@ -79,7 +79,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     { key: 'samId', label: 'SAM ID', value: selectedVehicle.samId || `SAM${vehicleData.personnelNo || '0000000'}`, icon: '🆔' }
   ] : [];
 
-  // DEBUG VERSİYONU - useEffect
   useEffect(() => {
     if (isUpdatingRef.current) {
       console.log('⏸️ useEffect atlandı - kendi güncellemelerimiz (isUpdatingRef.current = true)');
@@ -93,13 +92,11 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     setSelectedInfoForPopup(new Set(selectedPopupInfo.map(info => info.key)));
   }, [selectedPopupInfo]);
 
-  // ✅ DÜZELTİLDİ - updatePopupInfo (SENKRON KORUMA)
   const updatePopupInfo = useCallback(() => {
     if (!onPopupInfoChange || !selectedVehicle) {
       return;
     }
 
-    // ✅ ÖNCE REF'İ SET ET, SONRA POPUP'I GÜNCELLE
     isUpdatingRef.current = true;
     
     const updatedSelectedOptions = importantInfoOptions.filter(option => 
@@ -120,7 +117,6 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     
     onPopupInfoChange(updatedSelectedOptions);
     
-    // ✅ 500ms BEKLE - useEffect'in geçmesi için daha uzun süre
     setTimeout(() => {
       isUpdatingRef.current = false;
       console.log('🔓 isUpdatingRef.current = false yapıldı');
@@ -128,7 +124,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     
   }, [onPopupInfoChange, selectedVehicle, selectedInfoForPopup, importantInfoOptions]);
 
-  // ✅ KESIN ÇÖZÜM - setState callback ile direkt güncelleme
+  // setState callback ile direkt güncelleme
   const handleInfoToggle = useCallback((infoKey) => {
     console.log('🎯 TOGGLE BAŞLADI - Key:', infoKey);
     console.log('   📋 Önceki selectedInfoForPopup:', Array.from(selectedInfoForPopup));
@@ -145,31 +141,30 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
         action = 'EKLENDİ';
       }
       
-      console.log(`   ${action === 'SİLİNDİ' ? '❌' : '✅'} ${action}:`, infoKey);
-      console.log('   📋 Yeni keys (setState callback içinde):', Array.from(newKeys));
-      console.log('   📊 Toplam seçili sayısı:', newKeys.size);
+      console.log(`   ${action === 'SİLİNDİ' ? ':(' : ':)'} ${action}:`, infoKey);
+      console.log('    Yeni keys (setState callback içinde):', Array.from(newKeys));
+      console.log('    Toplam seçili sayısı:', newKeys.size);
       
-      // ✅ DİREKT BURADA POPUP'I GÜNCELLE - STATE LAG YOK
       if (onPopupInfoChange && selectedVehicle) {
         isUpdatingRef.current = true;
         
         const updatedSelectedOptions = importantInfoOptions.filter(option => 
-          newKeys.has(option.key) // ✅ YENİ KEYS'İ KULLAN, ESKİ STATE'İ DEĞİL
+          newKeys.has(option.key) 
         );
         
-        console.log('🎯 CALLBACK İÇİNDE POPUP GÜNCELLEME:');
-        console.log('   📋 Kullanılan keys (newKeys):', Array.from(newKeys));
-        console.log('   ✅ Gönderilen options:', updatedSelectedOptions.map(opt => ({
+        console.log(' CALLBACK İÇİNDE POPUP GÜNCELLEME:');
+        console.log('    Kullanılan keys (newKeys):', Array.from(newKeys));
+        console.log('    Gönderilen options:', updatedSelectedOptions.map(opt => ({
           key: opt.key, 
           label: opt.label
         })));
-        console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+        console.log('    GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
         
         onPopupInfoChange(updatedSelectedOptions);
         
         setTimeout(() => {
           isUpdatingRef.current = false;
-          console.log('🔓 isUpdatingRef.current = false yapıldı');
+          console.log(' isUpdatingRef.current = false yapıldı');
         }, 500);
       }
       
@@ -178,12 +173,11 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
   }, [onPopupInfoChange, selectedVehicle, importantInfoOptions]);
 
   const handleSelectAll = useCallback(() => {
-    console.log('🚀 TÜMÜNÜ SEÇ - BAŞLADI');
+    console.log(' TÜMÜNÜ SEÇ - BAŞLADI');
     const allKeys = new Set(importantInfoOptions.map(option => option.key));
     
     setSelectedInfoForPopup(allKeys);
     
-    // ✅ CALLBACK OLMADAN DİREKT GÜNCELLE - allKeys zaten hazır
     if (onPopupInfoChange && selectedVehicle) {
       isUpdatingRef.current = true;
       
@@ -191,8 +185,8 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
         allKeys.has(option.key)
       );
       
-      console.log('🚀 TÜMÜNÜ SEÇ - Popup güncelleme:');
-      console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+      console.log(' TÜMÜNÜ SEÇ - Popup güncelleme:');
+      console.log('    GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
       
       onPopupInfoChange(updatedSelectedOptions);
       
@@ -207,7 +201,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     
     setSelectedInfoForPopup(new Set());
     
-    // ✅ BOŞ ARRAY GÖNDER
+    //  BOŞ ARRAY 
     if (onPopupInfoChange) {
       isUpdatingRef.current = true;
       

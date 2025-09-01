@@ -102,7 +102,7 @@
 
 @media (max-width: 768px) {
     .navbar-container {
-        height: var(--navbar-height); /* Mobilde navbar yüksekliini değişken üzinden al */
+        height: var(--navbar-height); 
         padding: 0 12px;
     }
 

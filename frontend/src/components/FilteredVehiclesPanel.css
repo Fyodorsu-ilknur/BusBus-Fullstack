@@ -1,31 +1,475 @@
-.filtered-results {
-  padding: 10px;
-  background: #f9fafb;
-  border-left: 1px solid #e5e7eb;
-  height: 100%;
-  overflow-y: auto;
+/* FleetTrackingPanel.css */
+
+:root {
+  --panel-background: #F7F9FC;
+  --header-background: #FFFFFF;
+  --header-text-color: #333C4A;
+  --text-color: #4C576C;
+  --secondary-text-color: #7A899C;
+  --border-color: #E2E8F0;
+  --input-background: #FFFFFF;
+  --hover-background: #EEF2F7;
+  --selected-background: #E3F2FD;
+  --primary-color: #4A90E2;
+  --button-hover-bg: #357ABD;
+  --danger-color: #E74C3C;
+  --danger-hover-color: #C0392B;
+  --success-color: #28a745; 
+  --out-of-service-color: #6c757d;
 }
 
-.results-header {
+.dark, .dark-theme {
+  --panel-background: #2D3748;
+  --header-background: #1A202C;
+  --header-text-color: #E2E8F0;
+  --text-color: #CBD5E0;
+  --secondary-text-color: #A0AEC0;
+  --border-color: #4A5568;
+  --input-background: #4A5568;
+  --hover-background: #4A5568;
+  --selected-background: #2A4365;
+  --primary-color: #63B3ED;
+  --button-hover-bg: #4299E1;
+  --danger-color: #FC8181;
+  --danger-hover-color: #E53E3E;
+  --success-color: #68d391;
+  --out-of-service-color: #a0aec0;
+}
+
+
+/* Ana Panel Konteyneri */
+.fleet-tracking-panel {
+   width: 450px;
+   height: 100%;
+   background: var(--panel-background);
+   display: flex;
+   flex-direction: column;
+   border-radius: 12px;
+   overflow: hidden;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fleet-tracking-header {
+   padding: 12px 18px;
+   border-bottom: 1px solid var(--border-color);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   background: var(--header-background);
+   flex-shrink: 0;
+}
+
+.fleet-tracking-header h2 {
+   margin: 0;
+   font-size: 1rem;
+   color: var(--header-text-color);
+   font-weight: 700;
+}
+
+.close-button {
+   background: none;
+   border: none;
+   font-size: 1rem;
+   cursor: pointer;
+   color: var(--secondary-text-color);
+   padding: 5px;
+   border-radius: 50%;
+   line-height: 1;
+   transition: background-color 0.2s, color 0.2s;
+}
+
+.close-button:hover {
+  background-color: var(--hover-background);
+  color: var(--header-text-color);
+}
+
+.fleet-tracking-controls {
+   padding: 3px 4px;
+   border-bottom: 1px solid var(--border-color);
+   flex-shrink: 0;
+   background: var(--panel-background);
+}
+
+.fleet-search-input {
+   width: 100%;
+   padding: 8px 12px 8px 12px;
+   border: 1px solid var(--border-color);
+   border-radius: 6px;
+   font-size: 0.85rem;
+   margin-bottom: 4px;
+   background: var(--input-background);
+   color: var(--text-color);
+   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.fleet-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.fleet-selection-buttons {
+   display: flex;
+   gap: 2px;
+   margin-bottom: 4px;
+}
+
+.selection-btn {
+   flex: 1;
+   padding: 2px 4px;
+   border: none;
+   border-radius: 6px;
+   background: var(--primary-color);
+   color: white;
+   font-size: 0.85rem;
+   font-weight: 600;
+   cursor: pointer;
+   transition: background-color 0.2s ease;
+}
+
+.selection-btn:hover {
+   background: var(--button-hover-bg);
+}
+
+.selection-btn.clear {
+    background-color: var(--panel-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+.selection-btn.clear:hover {
+    background-color: var(--hover-background);
+    border-color: var(--secondary-text-color);
+}
+
+.fleet-filters {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 2px;
+}
+
+.filter-btn {
+   display: flex;
+   align-items: center;
+   gap: 16px;
+   padding: 3px 7px;
+   border: 1px solid var(--border-color);
+   border-radius: 16px; 
+   background: var(--header-background);
+   color: var(--text-color);
+   font-size: 0.8rem;
+   cursor: pointer;
+   transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+   background: var(--hover-background);
+   border-color: var(--secondary-text-color);
+}
+
+.filter-btn.active {
+   background: var(--primary-color);
+   color: white;
+   border-color: var(--primary-color);
+   font-weight: 600;
+}
+
+.status-dot {
+   width:8px;
+   height: 8px;
+   border-radius: 50%;
+}
+
+/* Araç Listesi Alanı */
+.fleet-tracking-content {
+   flex: 1;
+   overflow-y: auto;
+   padding: 2px 4px; 
+   background: var(--panel-background);
+}
+
+.vehicle-tracking-list {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+}
+
+/* Her Bir Araç Satır */
+.vehicle-tracking-item {
+   display: flex;
+   align-items: center;
+   padding: 2px 3px;
+   cursor: pointer;
+   transition: all 0.2s ease;
+   background: var(--header-background);
+   border: 1px solid var(--border-color);
+   border-radius: 8px;
+   margin-bottom: 3px; 
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.vehicle-tracking-item:hover {
+   background-color: var(--hover-background);
+   border-color: var(--primary-color);
+   transform: translateY(-1px);
+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+}
+
+.vehicle-tracking-item.selected {
+   background-color: var(--selected-background);
+   border-color: var(--primary-color);
+   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.vehicle-item-left {
+   margin-right: 12px;
+   flex-shrink: 0;
+}
+
+.vehicle-item-left input[type="checkbox"] {
+   width: 16px;
+   height: 16px;
+   cursor: pointer;
+   accent-color: var(--primary-color);
+}
+
+.vehicle-compact-info {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   flex: 1;
+   min-width: 0;
+}
+
+.vehicle-main-info {
+   display: flex;
+   flex-direction: row;
+   gap: 18px;
+   font-size: 0.9rem;
+   min-width: 0;
+   flex: 1;
+   align-items: center;
+}
+
+.vehicle-id-display, .vehicle-plate-display, .vehicle-route-code {
+   display: flex;
+   flex-direction: column;
+   min-width: 0;
+}
+
+/* (ID, Plaka, Hat No) */
+.vehicle-id-display strong, .vehicle-plate-display strong, .vehicle-route-code strong {
+   color: var(--secondary-text-color);
+   font-weight: 500;
+   font-size: 0.75rem;
+   margin-bottom: 2px;
+}
+
+.vehicle-id-display span:not(strong), 
+.vehicle-plate-display span:not(strong), 
+.vehicle-route-code span:not(strong) {
+   font-size: 0.9rem;
+   font-weight: 600;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   color: var(--text-color);
+}
+
+.vehicle-status-indicator {
+   display: flex;
+   align-items: center;
+   margin-left: 12px;
+   flex-shrink: 0;
+}
+
+.status-dot-large {
+   width: 14px;
+   height: 14px;
+   border-radius: 50%;
+   flex-shrink: 0;
+   box-shadow: 0 0 5px 1px;
+}
+
+.status-dot-large.active {
+    background-color: var(--success-color);
+    box-shadow-color: rgba(40, 167, 69, 0.5);
+}
+.status-dot-large.maintenance {
+    background-color: var(--danger-color);
+    box-shadow-color: rgba(231, 76, 60, 0.5);
+}
+.status-dot-large.out-of-service {
+    background-color: var(--out-of-service-color);
+    box-shadow-color: rgba(108, 117, 125, 0.5);
+}
+
+
+.no-results {
+   padding: 30px;
+   text-align: center;
+   color: var(--secondary-text-color);
+   font-size: 0.9rem;
+}
+
+.fleet-tracking-content::-webkit-scrollbar {
+   width: 6px;
+}
+
+.fleet-tracking-content::-webkit-scrollbar-track {
+   background: var(--panel-background);
+}
+
+.fleet-tracking-content::-webkit-scrollbar-thumb {
+   background: var(--border-color);
+   border-radius: 3px;
+}
+
+.fleet-tracking-content::-webkit-scrollbar-thumb:hover {
+   background: var(--secondary-text-color);
+}
+
+.filtered-vehicles-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filtered-vehicles-content::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, #f1f3f4);
+  border-radius: 3px;
+}
+
+.filtered-vehicles-content::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #dadce0);
+  border-radius: 3px;
+}
+
+.filtered-vehicles-content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #bdc1c6);
+}
+
+
+.filtered-vehicles-panel {
+  position: fixed;
+  top: var(--navbar-height, 60px);
+  right: 12px;
+  width: 220px;
+  max-height: calc(100vh - var(--navbar-height, 60px) - 24px);
+  background: var(--panel-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filtered-vehicles-header {
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--header-background);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
-.results-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.results-list {
-  list-style: none;
-  padding: 0;
+.filtered-vehicles-header h3 {
   margin: 0;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--header-text-color);
 }
 
-.result-item {
-  padding: 6px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.85rem;
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.result-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 3px 2px;
+  border-radius: 8px;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.filtered-vehicles-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px;
+  max-height: calc(100vh - 140px);
+}
+
+.vehicles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vehicle-item {
+  padding: 1px;
+  background: var(--header-background);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vehicle-item:hover {
+  background: var(--hover-background);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vehicle-single-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1px;
+}
+
+.vehicle-id {
+  font-size: 0.85em;
+  color: var(--secondary-text-color);
+  font-weight: 500;
+  min-width: 30px;
+}
+
+.vehicle-plate {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--text-color);
+  flex: 1;
+}
+
+.no-vehicles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 5px;
+  text-align: center;
+  color: var(--secondary-text-color);
+}
+
+.no-vehicles-icon {
+  font-size: 0.9em;
+  margin-bottom: 1px;
+  opacity: 0.6;
+}
+
+.no-vehicles-text h4 {
+  margin: 0 0 2px 0;
+  font-size: 0.85em;
+  color: var(--text-color);
+}
+
+.no-vehicles-text p {
+  margin: 0;
+  font-size: 0.85em;
+  line-height: 1;
 }

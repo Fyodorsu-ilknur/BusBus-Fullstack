@@ -6,12 +6,12 @@
   border-radius: 5px;
   font-size: 0.8em;
   position: absolute;
-  bottom: calc(100% + 5px); /* Otobüs ikonunun biraz üstünde */
+  bottom: calc(100% + 5px); 
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  pointer-events: none; /* Harita etkileşimlerini engellemesin */
-  z-index: 11; /* Otobüs ikonundan ve diğer markerlardan daha yüksek */
+  pointer-events: none;
+  z-index: 11; 
 }
 
 .bus-popup div {
@@ -31,7 +31,7 @@
   flex-shrink: 1; 
   flex-grow: 0; 
   overflow: hidden;
-  white-space: nowrap; /* Tek satırda kalsın dieyw */
+  white-space: nowrap; 
   text-overflow: ellipsis; /* Tasarsa uc notka */
 }
 
@@ -189,7 +189,6 @@
   transition: filter 0.2s ease-in-out;
 }
 
-/* Map.css - Filo Takip için ek stiller */
 
 /* Animasyonlu araç konteyneri */
 .animated-vehicle-container {
@@ -206,7 +205,6 @@
   justify-content: center;
 }
 
-/* Araç durum noktası */
 .vehicle-status-dot {
   position: absolute;
   top: -2px;
@@ -219,7 +217,6 @@
   z-index: 10;
 }
 
-/* Pop-up stilleri */
 .vehicle-popup {
   position: absolute;
   bottom: 50px;
@@ -249,7 +246,6 @@
   border-top: 6px solid white;
 }
 
-/* Bus popup info (mevcut popup için) */
 .bus-popup-info {
   font-size: 12px;
   line-height: 1.4;
@@ -260,7 +256,6 @@
   font-weight: 600;
 }
 
-/* Araç animasyon geçişleri */
 .animated-vehicle-container img,
 .static-vehicle-container img {
   transition: all 0.3s ease;
@@ -272,7 +267,6 @@
   filter: brightness(1.2);
 }
 
-/* Rota popup */
 .route-popup-content {
   padding: 8px 12px;
   color: white;
@@ -282,7 +276,6 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* Durak popup */
 .stop-popup {
   position: absolute;
   bottom: 45px;
@@ -311,7 +304,6 @@
   border-top: 4px solid rgba(0,0,0,0.8);
 }
 
-/* Pulse animasyonu */
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -327,7 +319,6 @@
   }
 }
 
-/* Araç seçim efektleri */
 .animated-vehicle-container img[style*="scale(1.1)"],
 .static-vehicle-container img[style*="scale(1.1)"] {
   border: 2px solid #007bff;
@@ -335,7 +326,6 @@
   animation: pulse 2s infinite;
 }
 
-/* Dark theme desteği */
 .dark .vehicle-popup {
   background-color: #2d3748;
   border-color: #4a5568;
@@ -371,12 +361,10 @@
   }
 }
 
-/* Harita kontrollerini gizle (isteğe bağlı) */
 .maplibregl-ctrl-top-right {
   display: none;
 }
 
-/* Bus popup (animasyonlu otobüs için) */
 .bus-popup {
   position: absolute;
   bottom: 50px;

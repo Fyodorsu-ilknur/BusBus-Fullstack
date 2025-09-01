@@ -1,17 +1,16 @@
-/* FleetTrackingPanel.css - Yazılar Büyütülmüş ve Gri Boşluklar Kaldırılmış */
 .fleet-tracking-panel {
    width: 450px;
    height: 100vh;
-   background: var(--panel-background-color, #ffffff); /* Gri boşluk kaldırıldı */
+   background: var(--panel-background-color, #ffffff); 
    border-right: 1px solid var(--panel-border-color, #ddd);
    display: flex;
    flex-direction: column;
    overflow: hidden;
 }
 
-/* Header - Kompakt ve Büyütülmüş */
+
 .fleet-tracking-header {
-   padding: 3px 15px; /* 8px 12px'den büyütüldü */
+   padding: 3px 15px; 
    border-bottom: 1px solid var(--header-border-color, #eee);
    display: flex;
    justify-content: space-between;
@@ -22,7 +21,7 @@
 
 .fleet-tracking-header h2 {
    margin: 0;
-   font-size: 18px; /* 16px'den 18px'e büyütüldü */
+   font-size: 18px; 
    color: var(--header-text-color, #333);
    font-weight: 600;
 }
@@ -32,26 +31,26 @@
    color: var(--close-button-text-color, white);
    border: none;
    border-radius: 4px;
-   padding: 1px 10px; /* 4px 8px'den büyütüldü */
+   padding: 1px 10px; 
    cursor: pointer;
-   font-size: 13px; /* 11px'den 13px'e büyütüldü */
+   font-size: 13px; 
 }
 
-/* Kontroller - Kompakt ve Büyütülmüş */
+/* Kontroller*/
 .fleet-tracking-controls {
-   padding: 8px 10px; /* 8px 12px'den büyütüldü */
+   padding: 8px 10px; 
    border-bottom: 1px solid var(--controls-border-color, #eee);
    flex-shrink: 0;
-   background: var(--controls-background-color, #ffffff); /* Gri boşluk engellendi */
+   background: var(--controls-background-color, #ffffff); 
 }
 
 .fleet-search-input {
    width: 100%;
-   padding: 10px 12px; /* 8px 10px'den büyütüldü */
+   padding: 10px 12px; 
    border: 1px solid var(--input-border-color, #ddd);
    border-radius: 6px;
-   font-size: 14px; /* 12px'den 14px'e büyütüldü */
-   margin-bottom: 10px; /* 8px'den 10px'a büyütüldü */
+   font-size: 14px; 
+   margin-bottom: 10px; 
    background: var(--input-background-color, #ffffff);
    color: var(--input-text-color, #333);
 }
@@ -59,19 +58,19 @@
 .fleet-filters {
    display: flex;
    flex-wrap: wrap;
-   gap: 2px; /* 4px'den 6px'a büyütüldü */
+   gap: 2px; 
 }
 
 .filter-btn {
    display: flex;
    align-items: center;
-   gap: 3px; /* 4px'den 6px'a büyütüldü */
-   padding: 3px 4px; /* 6px 10px'den büyütüldü */
+   gap: 3px; 
+   padding: 3px 4px;
    border: 1px solid var(--filter-btn-border-color, #ddd);
    border-radius: 12px;
-   background: var(--filter-btn-background-color, #ffffff); /* Gri boşluk engellendi */
+   background: var(--filter-btn-background-color, #ffffff); 
    color: var(--filter-btn-text-color, #333);
-   font-size: 13px; /* 11px'den 13px'e büyütüldü */
+   font-size: 13px;
    cursor: pointer;
    transition: all 0.2s ease;
    flex-shrink: 0;
@@ -89,27 +88,26 @@
 }
 
 .status-dot {
-   width: 10px; /* 8px'den 10px'e büyütüldü */
-   height: 10px; /* 8px'den 10px'e büyütüldü */
+   width: 10px; 
+   height: 10px; 
    border-radius: 50%;
    flex-shrink: 0;
 }
 
-/* Seçim butonları - Kompakt ve Büyütülmüş */
 .fleet-selection-buttons {
    display: flex;
-   gap: 5px; /* 6px'den 8px'e büyütüldü */
-   margin-bottom: 10px; /* 8px'den 10px'a büyütüldü */
+   gap: 5px; 
+   margin-bottom: 10px; 
 }
 
 .selection-btn {
    flex: 1;
-   padding: 3px 4px; /* 6px 10px'den büyütüldü */
+   padding: 3px 4px; 
    border: 1px solid var(--selection-btn-border-color, #007bff);
    border-radius: 4px;
-   background: var(--selection-btn-background-color, #ffffff); /* Gri boşluk engellendi */
+   background: var(--selection-btn-background-color, #ffffff); 
    color: var(--selection-btn-text-color, #007bff);
-   font-size: 13px; /* 11px'den 13px'e büyütüldü */
+   font-size: 13px; 
    cursor: pointer;
    transition: all 0.2s ease;
 }
@@ -119,14 +117,13 @@
    color: var(--selection-btn-hover-text-color, white);
 }
 
-/* Özet - Kompakt ve Büyütülmüş */
 .fleet-summary {
    display: flex;
-   gap: 15px; /* 12px'den 15px'e büyütüldü */
-   padding: 1px 12px; /* 8px 10px'den büyütüldü */
+   gap: 15px; 
+   padding: 1px 12px; 
    background: var(--summary-background-color, #f8f9fa);
    border-radius: 6px;
-   font-size: 13px; /* 11px'den 13px'e büyütüldü */
+   font-size: 13px; 
 }
 
 .summary-item {
@@ -138,15 +135,15 @@
 
 .summary-label {
    color: var(--summary-label-color, #666);
-   font-size: 11px; /* 9px'den 11px'e büyütüldü */
+   font-size: 11px; 
    text-transform: uppercase;
-   margin-bottom: 3px; /* 2px'den 3px'e büyütüldü */
+   margin-bottom: 3px; 
 }
 
 .summary-value {
    font-weight: bold;
-   font-size: 15px; /* 13px'den 15px'e büyütüldü */
-   color: var(--summary-value-color, #333); /* Varsayılan değer eklendi */
+   font-size: 15px; 
+   color: var(--summary-value-color, #333); 
 }
 
 .summary-value.active {
@@ -161,12 +158,12 @@
    color: var(--summary-value-out-of-service-color, #6c757d);
 }
 
-/* Araç listesi - Optimize edilmiş ve Büyütülmüş */
+/* Araç listesi */
 .fleet-tracking-content {
    flex: 1;
    overflow-y: auto;
    padding: 0;
-   background: var(--content-background-color, #ffffff); /* Gri boşluk tamamen kaldırıldı */
+   background: var(--content-background-color, #ffffff); 
 }
 
 .vehicle-tracking-list {
@@ -175,18 +172,18 @@
    margin: 0px;
    
    height: 100%;
-   background: var(--list-background-color, #ffffff); /* Gri boşluk tamamen kaldırıldı */
+   background: var(--list-background-color, #ffffff); 
 }
 
 .vehicle-tracking-item {
    display: flex;
    align-items: center;
-   padding: 1px 5px; /* 8px 10px'den büyütüldü */
+   padding: 1px 5px;
    border-bottom: 1px solid var(--item-border-color, #f0f0f0);
    cursor: pointer;
    transition: background-color 0.2s ease;
-   background: var(--item-background-color, #ffffff); /* GRİ BOŞLUK TAMAMEN KALDIRILDI */
-   margin: 0; /* Herhangi bir margin kaldırıldı */
+   background: var(--item-background-color, #ffffff); 
+   margin: 0; 
 }
 
 .vehicle-tracking-item:hover {
@@ -199,16 +196,16 @@
 }
 
 .vehicle-item-left {
-   margin-right: 8px; /* 6px'den 8px'e büyütüldü */
+   margin-right: 8px; 
    flex-shrink: 0;
 }
 
 .vehicle-item-left input[type="checkbox"] {
-   width: 14px; /* 12px'den 14px'e büyütüldü */
-   height: 14px; /* 12px'den 14px'e büyütüldü */
+   width: 14px;
+   height: 14px; 
    cursor: pointer;
-   background: var(--checkbox-background-color, #ffffff); /* Checkbox background */
-   border-color: var(--checkbox-border-color, #ccc); /* Checkbox border */
+   background: var(--checkbox-background-color, #ffffff); 
+   border-color: var(--checkbox-border-color, #ccc); 
 }
 
 .vehicle-compact-info {
@@ -219,12 +216,11 @@
    min-width: 0;
 }
 
-/* YAN YANA DÜZENLENMİŞ ARAÇ BİLGİLERİ - BÜYÜTÜLMÜŞ */
 .vehicle-main-info {
    display: flex;
-   flex-direction: row; /* Yan yana dizim */
-   gap: 15px; /* 12px'den 15px'e büyütüldü */
-   font-size: 14px; /* 12px'den 14px'e büyütüldü */
+   flex-direction: row;
+   gap: 15px; 
+   font-size: 14px; 
    min-width: 0;
    flex: 1;
    align-items: center;
@@ -241,12 +237,12 @@
 .vehicle-id-display strong, .vehicle-plate-display strong, .vehicle-route-code strong {
    color: var(--vehicle-info-label-color, #666);
    font-weight: 500;
-   font-size: 12px; /* 10px'den 12px'e büyütüldü */
-   margin-bottom: 2px; /* 1px'den 2px'e büyütüldü */
+   font-size: 12px; 
+   margin-bottom: 2px; 
 }
 
 .vehicle-id-display span:not(strong), .vehicle-plate-display span:not(strong), .vehicle-route-code span:not(strong) {
-   font-size: 13px; /* 11px'den 13px'e büyütüldü */
+   font-size: 13px; 
    font-weight: 600;
    white-space: nowrap;
    overflow: hidden;
@@ -254,32 +250,30 @@
    color: var(--vehicle-info-value-color, #333);
 }
 
-/* Durum göstergesi - Kompakt ve Büyütülmüş */
 .vehicle-status-indicator {
    display: flex;
    align-items: center;
-   margin-left: 8px; /* 6px'den 8px'e büyütüldü */
+   margin-left: 8px; 
    flex-shrink: 0;
 }
 
 .status-dot-large {
-   width: 12px; /* 10px'den 12px'e büyütüldü */
-   height: 12px; /* 10px'den 12px'e büyütüldü */
+   width: 12px; 
+   height: 12px; 
    border-radius: 50%;
    flex-shrink: 0;
 }
 
 .no-results {
-   padding: 25px; /* 20px'den 25px'e büyütüldü */
+   padding: 25px; 
    text-align: center;
    color: var(--no-results-text-color, #666);
-   font-size: 14px; /* 12px'den 14px'e büyütüldü */
-   background: var(--no-results-background-color, #ffffff); /* Gri boşluk engellendi */
+   font-size: 14px; 
+   background: var(--no-results-background-color, #ffffff); 
 }
 
-/* Scrollbar Styling */
 .fleet-tracking-content::-webkit-scrollbar {
-   width: 6px; /* 4px'den 6px'a büyütüldü */
+   width: 6px; 
 }
 
 .fleet-tracking-content::-webkit-scrollbar-track {
@@ -288,34 +282,29 @@
 
 .fleet-tracking-content::-webkit-scrollbar-thumb {
    background: var(--scrollbar-thumb-color, #dadce0);
-   border-radius: 3px; /* 2px'den 3px'e büyütüldü */
+   border-radius: 3px; 
 }
 
 .fleet-tracking-content::-webkit-scrollbar-thumb:hover {
    background: var(--scrollbar-thumb-hover-color, #bdc1c6);
 }
 
-/* Dark theme değişken tanımları */
 .dark, .dark-theme {
-   /* Genel Panel */
    --panel-background-color: #2d3748;
    --panel-border-color: #4a5568;
    --header-text-color: #e2e8f0;
 
-   /* Header */
    --header-background-color: #1a202c;
    --header-border-color: #4a5568;
    --close-button-background: #c53030;
    --close-button-text-color: #e2e8f0;
 
-   /* Kontroller */
    --controls-background-color: #2d3748;
    --controls-border-color: #4a5568;
    --input-background-color: #4a5568;
    --input-border-color: #718096;
    --input-text-color: #e2e8f0;
 
-   /* Filtre Butonları */
    --filter-btn-background-color: #4a5568;
    --filter-btn-border-color: #718096;
    --filter-btn-text-color: #e2e8f0;
@@ -325,14 +314,12 @@
    --filter-btn-active-text-color: white;
    --filter-btn-active-border-color: #4299e1;
 
-   /* Seçim Butonları */
    --selection-btn-background-color: #4a5568;
    --selection-btn-border-color: #4299e1;
    --selection-btn-text-color: #4299e1;
    --selection-btn-hover-background: #4299e1;
    --selection-btn-hover-text-color: white;
 
-   /* Özet */
    --summary-background-color: #374151;
    --summary-label-color: #a0aec0;
    --summary-value-color: #e2e8f0;
@@ -340,7 +327,6 @@
    --summary-value-maintenance-color: #fc8181;
    --summary-value-out-of-service-color: #a0aec0;
 
-   /* Araç Listesi */
    --content-background-color: #2d3748;
    --list-background-color: #2d3748;
    --item-background-color: #2d3748;
@@ -349,79 +335,70 @@
    --item-selected-background-color: #4a5568;
    --item-selected-border-color: #4299e1;
 
-   /* Checkbox */
    --checkbox-background-color: #4a5568;
    --checkbox-border-color: #718096;
 
-   /* Araç Bilgileri */
    --vehicle-info-text-color: #e2e8f0;
    --vehicle-info-label-color: #a0aec0;
    --vehicle-info-value-color: #e2e8f0;
 
-   /* Sonuç Yok */
    --no-results-background-color: #2d3748;
    --no-results-text-color: #a0aec0;
 
-   /* Scrollbar */
    --scrollbar-track-color: #374151;
    --scrollbar-thumb-color: #4a5568;
    --scrollbar-thumb-hover-color: #5a677e;
 
-   /* Başlık rengi */
    --vehicle-header-text-color: #e2e8f0;
 }
 
-/* Responsive - Büyütülmüş */
+
 @media (max-width: 768px) {
    .fleet-tracking-panel {
        width: 100vw;
    }
 
    .vehicle-main-info {
-       gap: 8px; /* 4px'den 8px'e büyütüldü */
+       gap: 8px; 
    }
 
    .vehicle-id-display strong, .vehicle-plate-display strong, .vehicle-route-code strong {
-       font-size: 10px; /* 7px'den 10px'e büyütüldü */
+       font-size: 10px; 
    }
 
    .vehicle-id-display span:not(strong), .vehicle-plate-display span:not(strong), .vehicle-route-code span:not(strong) {
-       font-size: 11px; /* 8px'den 11px'e büyütüldü */
+       font-size: 11px; 
    }
 
    .fleet-tracking-header h2 {
-       font-size: 16px; /* Mobile'da da büyütüldü */
+       font-size: 16px; 
    }
 
    .fleet-search-input {
-       font-size: 13px; /* Mobile'da da büyütüldü */
+       font-size: 13px; 
    }
 
    .filter-btn {
-       font-size: 12px; /* Mobile'da da büyütüldü */
+       font-size: 12px; 
    }
 }
 
-/* Ek gri boşluk önleme kuralları */
 * {
    box-sizing: border-box;
 }
 
-/* Başlık ve satırlar aynı yapıda hizalanır */
 .vehicle-tracking-header-row, .vehicle-tracking-item {
    display: flex;
    align-items: center;
    padding: 6px 10px;
 }
 
-/* Checkbox kısmı */
 .vehicle-item-left {
    width: 40px;
    display: flex;
    justify-content: center;
 }
 
-/* Bilgi kolonları ortak container */
 .vehicle-compact-info {
    display: flex;
    flex: 1;
@@ -435,7 +412,6 @@
    flex: 1;
 }
 
-/* Sütun genişlikleri */
 .vehicle-id-display, .vehicle-header:nth-child(1) {
    width: 65px;
 }
@@ -455,14 +431,12 @@
    justify-content: center;
 }
 
-/* Başlıklar */
 .vehicle-header {
    font-weight: bold;
    font-size: 14px;
-   color: var(--vehicle-header-text-color, #333); /* Başlık rengi için değişken eklendi */
+   color: var(--vehicle-header-text-color, #333); 
 }
 
-/* Durum noktası */
 .status-dot-large {
    display: inline-block;
    width: 14px;
@@ -470,7 +444,6 @@
    border-radius: 50%;
 }
 
-/* Dark mode için başlık rengi */
 .dark .vehicle-header, .dark-theme .vehicle-header {
    color: var(--vehicle-header-text-color, #e2e8f0);
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import './RouteDetailsPanel.css'; 
 
-function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
+function DepartureTimesPanel({ onClose, allRoutes }) { 
   const [selectedBusNumber, setSelectedBusNumber] = useState('');
   const [selectedDay, setSelectedDay] = useState('monday'); 
   const [departureData, setDepartureData] = useState(null); 
@@ -10,7 +10,7 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
   const [isLoading, setIsLoading] = useState(false);
   const [displayDirection, setDisplayDirection] = useState('gidis'); 
 
-  // 🚌 YENİ: Arama ve hat listesi özellikleri
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRoutes, setFilteredRoutes] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -30,7 +30,7 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
   useEffect(() => {
     const routesArray = Object.values(allRoutes || {}); // allRoutes obje olarak geliyor, diziye çeviriyoruz
     if (searchTerm.trim() === '') {
-      setFilteredRoutes(routesArray); // Arama boşsa tüm rotaları göster
+      setFilteredRoutes(routesArray); 
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
       const filtered = routesArray.filter(route =>
@@ -81,23 +81,21 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
     fetchDepartureTimes();
   }, [fetchDepartureTimes]);
 
-  // 🚌 YENİ: Arama kutusuna yazıldığında veya odaklanıldığında
+  // Arama kutusuna yazıldığında veya odaklanıldığında
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
-    setSearchTerm(value); // Arama terimini güncelle
-    setSelectedBusNumber(''); // Manuel girişi temizle
-    setShowDropdown(true); // Dropdown'u göster
+    setSearchTerm(value); 
+    setSelectedBusNumber(''); 
+    setShowDropdown(true); 
   };
-
-  // 🚌 YENİ: Listedeki bir hatta tıklandığında
+// Listedeki bir hatta tıklandığında
   const handleRouteSelectionFromList = (route) => {
-    setSelectedBusNumber(route.route_number); // Input değerini ayarla
-    setSearchTerm(route.route_number); // Arama kutusunu seçilen hat numarasıyla doldur
-    setShowDropdown(false); // Dropdown'u gizle
-    setDepartureData(null); // Önceki detayları temizle
+    setSelectedBusNumber(route.route_number); 
+    setSearchTerm(route.route_number); 
+    setShowDropdown(false);
+    setDepartureData(null); 
   };
-
-  // 🚌 YENİ: Inputtan odak kaybedildiğinde dropdown'u gizle
+  //Inputtan odak kaybedildiğinde dropdown'u gizler
   const handleInputBlur = (e) => {
     setTimeout(() => {
       if (searchInputRef.current && !searchInputRef.current.contains(document.activeElement)) {
@@ -105,17 +103,16 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
       }
     }, 100);
   };
-     
-  // 🚌 YENİ: Inputa odaklanıldığında dropdown'u göster
+  // Inputa odaklanıldığında dropdown'u gösterir
   const handleInputFocus = () => {
     setShowDropdown(true);
   };
 
-  // Eski handler (manuel giriş için korundu)
+  // Eski handler
   const handleBusNumberChange = (e) => {
     const value = e.target.value.trim();
     setSelectedBusNumber(value);
-    setSearchTerm(value); // Arama terimini de güncelle
+    setSearchTerm(value);
   };
 
   const handleDayChange = (e) => {
@@ -129,7 +126,6 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
         <button onClick={onClose} className="close-button">X</button>
       </div>
 
-      {/* 🚌 YENİ: Otobüs Numarası Inputu (Arama Özelliği ile) */}
       <div className="input-group search-dropdown-container">
         <label htmlFor="busNumberInput">Otobüs Numarası:</label>
         <div className="search-input-wrapper">
@@ -137,7 +133,7 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
           <input
             id="busNumberInput"
             type="text"
-            value={searchTerm} // Input değeri searchTerm olacak
+            value={searchTerm} 
             onChange={handleSearchInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
@@ -147,7 +143,6 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
           />
         </div>
 
-        {/* 🚌 YENİ: Arama Sonuçları Dropdown */}
         {showDropdown && filteredRoutes.length > 0 && (
           <ul className="route-search-dropdown">
             {filteredRoutes.map(route => (
@@ -157,7 +152,6 @@ function DepartureTimesPanel({ onClose, allRoutes }) { // allRoutes prop eklendi
                 className="route-search-dropdown-item"
               >
                 <strong>{route.route_number}</strong> - {route.route_name || `${route.start_point} → ${route.end_point}`}
-                {/* ♿ Erişilebilirlik ikonları */}
                 <div className="route-accessibility-icons">
                   {route.wheelchair_accessible && (
                     <span className="accessibility-icon wheelchair" title="Tekerlekli sandalye erişimi">♿</span>

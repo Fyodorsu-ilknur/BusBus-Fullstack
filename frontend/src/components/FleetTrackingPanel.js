@@ -4,9 +4,8 @@ import './FleetTrackingPanel.css';
 
 function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedVehicles = [] }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // Durum filtresi
+  const [statusFilter, setStatusFilter] = useState('all'); 
 
-  // Durum renk kodları (küçük renkli top için)
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'aktif/çalışıyor':
@@ -17,11 +16,10 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
       case 'servis dışı':
         return '#6c757d'; // Gri
       default:
-        return '#ffc107'; // Sarı (bilinmeyen durumlar için)
+        return '#ffc107'; // Sarı (bilinmeyen )
     }
   };
 
-  // YENİ: Tümünü seç fonksiyonu
   const handleSelectAll = () => {
     const filteredList = filteredVehicles;
     filteredList.forEach(vehicle => {
@@ -31,20 +29,19 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
     });
   };
 
-  // YENİ: Tümünü temizle fonksiyonu
   const handleClearAll = () => {
     selectedVehicles.forEach(vehicle => {
-      onVehicleSelect(vehicle); // Toggle fonksiyonu olduğu için tekrar çağırarak seçimi kaldırır
+      onVehicleSelect(vehicle); 
+      
+      // !!! Toggle fonksiyonu olduğu için tekrar çağırarak seçimi kaldırır
     });
   };
 
-  // Filtreleme mantığı
   const filteredVehicles = vehicles.filter(vehicle => {
     // Arama filtresi
     const matchesSearch = (vehicle.plate && vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (vehicle.vehicleId && String(vehicle.vehicleId).toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // Durum filtresi  
     const matchesStatus = statusFilter === 'all' || 
       (statusFilter === 'aktif' && vehicle.status?.toLowerCase().includes('aktif')) ||
       (statusFilter === 'bakimda' && vehicle.status?.toLowerCase().includes('bakımda')) ||
@@ -53,7 +50,6 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
     return matchesSearch && matchesStatus;
   });
 
-  // Durum sayıları
   const totalVehicles = vehicles.length;
   const activeVehicles = vehicles.filter(v => v.status?.toLowerCase().includes('aktif')).length;
   const maintenanceVehicles = vehicles.filter(v => v.status?.toLowerCase().includes('bakımda')).length;
@@ -75,7 +71,6 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         
-        {/* YENİ: Seçim Butonları */}
         <div className="fleet-selection-buttons">
           <button 
             className="selection-btn"
@@ -93,7 +88,6 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
           </button>
         </div>
         
-        {/* Durum Filtreleri */}
         <div className="fleet-filters">
           <button 
             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
@@ -122,10 +116,6 @@ function FleetTrackingPanel({ onClose, vehicles = [], onVehicleSelect, selectedV
             <span className="status-dot" style={{backgroundColor: '#6c757d'}}></span>
             Servis Dışı ({outOfServiceVehicles})
           </button>
-        </div>
-        
-        {/* Özet Bilgiler */}
-        <div className="fleet-summary">
         </div>
       </div>
 

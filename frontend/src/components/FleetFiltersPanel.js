@@ -5,77 +5,58 @@ import './FleetFiltersPanel.css';
 function FleetFiltersPanel({
   isOpen,
   onClose,
-  vehicles = [], // Filo takip panelinden gelecek tüm araç verileri
-  onFilteredVehiclesChange, // Filtrelenmiş araçları parent'a gönder
+  vehicles = [], 
+  onFilteredVehiclesChange, 
   theme
 }) {
   // Filtre state'leri
   const [filters, setFilters] = useState({
-    // Motor sıcaklığı aralığı
     motorTempMin: '',
     motorTempMax: '',
 
-    // Hız aralığı
     speedMin: '',
     speedMax: '',
 
-    // Yakıt seviyesi aralığı
     fuelMin: '',
     fuelMax: '',
 
-    // Araç yaşı aralığı
     vehicleAgeMin: '',
     vehicleAgeMax: '',
 
-    // Kilometre aralığı
     mileageMin: '',
     mileageMax: '',
-
-    // Durum filtreleri
     status: {
       aktif: true,
       bakimda: true,
       'servis-disi': true
     },
+    wheelchairAccessible: false, 
+    airConditioning: false, 
+    wifiEnabled: false, 
 
-    // Özel gereksinimler
-    wheelchairAccessible: false, // Tekerlekli sandalye uygunluğu
-    airConditioning: false, // Klima
-    wifiEnabled: false, // WiFi
+    routeNumbers: '', 
 
-    // Hat filtreleri
-    routeNumbers: '', // Virgülle ayrılmış hat numaraları
+    vehicleType: 'all', 
 
-    // Araç tipi
-    vehicleType: 'all', // 'all', 'standard', 'articulated', 'electric'
-
-    // Kapasite aralığı
     capacityMin: '',
     capacityMax: '',
 
-    // Son bakım tarihi (gün olarak)
     lastMaintenanceDays: '',
 
-    // Yakıt tipi
-    fuelType: 'all' // 'all', 'diesel', 'electric', 'hybrid', 'cng'
+    fuelType: 'all' 
   });
 
-  // Filtrelenmiş araçları hesapla
+  // Filtrelenmiş araçları hesaplar
   const filteredVehicles = useMemo(() => {
     return vehicles.filter(vehicle => {
-      // Motor sıcaklığı filtresi
       if (filters.motorTempMin && vehicle.motorTemp < parseFloat(filters.motorTempMin)) return false;
       if (filters.motorTempMax && vehicle.motorTemp > parseFloat(filters.motorTempMax)) return false;
-
-      // Hız filtresi
       if (filters.speedMin && vehicle.speed < parseFloat(filters.speedMin)) return false;
       if (filters.speedMax && vehicle.speed > parseFloat(filters.speedMax)) return false;
 
-      // Yakıt seviyesi filtresi
       if (filters.fuelMin && vehicle.fuelLevel < parseFloat(filters.fuelMin)) return false;
       if (filters.fuelMax && vehicle.fuelLevel > parseFloat(filters.fuelMax)) return false;
 
-      // Araç yaşı filtresi
       if (filters.vehicleAgeMin && vehicle.age < parseInt(filters.vehicleAgeMin)) return false;
       if (filters.vehicleAgeMax && vehicle.age > parseInt(filters.vehicleAgeMax)) return false;
 
@@ -83,53 +64,44 @@ function FleetFiltersPanel({
       if (filters.mileageMin && vehicle.mileage < parseInt(filters.mileageMin)) return false;
       if (filters.mileageMax && vehicle.mileage > parseInt(filters.mileageMax)) return false;
 
-      // Durum filtresi
       const vehicleStatus = vehicle.status?.toLowerCase().replace(' ', '-') || 'aktif';
       if (!filters.status[vehicleStatus]) return false;
 
-      // Tekerlekli sandalye uygunluğu
       if (filters.wheelchairAccessible && !vehicle.wheelchairAccessible) return false;
 
       // Klima filtresi
       if (filters.airConditioning && !vehicle.airConditioning) return false;
 
-      // WiFi filtresi
       if (filters.wifiEnabled && !vehicle.wifiEnabled) return false;
 
-      // Hat numaraları filtresi
       if (filters.routeNumbers) {
         const routeList = filters.routeNumbers.split(',').map(r => r.trim());
         if (!routeList.includes(vehicle.routeCode)) return false;
       }
 
-      // Araç tipi filtresi
       if (filters.vehicleType !== 'all' && vehicle.type !== filters.vehicleType) return false;
 
-      // Kapasite filtresi
       if (filters.capacityMin && vehicle.capacity < parseInt(filters.capacityMin)) return false;
       if (filters.capacityMax && vehicle.capacity > parseInt(filters.capacityMax)) return false;
 
-      // Son bakım tarihi filtresi
+      // Son bakım 
       if (filters.lastMaintenanceDays) {
         const daysSinceLastMaintenance = vehicle.daysSinceLastMaintenance || 0;
         if (daysSinceLastMaintenance > parseInt(filters.lastMaintenanceDays)) return false;
       }
-
-      // Yakıt tipi filtresi
       if (filters.fuelType !== 'all' && vehicle.fuelType !== filters.fuelType) return false;
 
       return true;
     });
   }, [vehicles, filters]);
 
-  // Filtrelenmiş araçları parent component'e gönder
   useEffect(() => {
     if (onFilteredVehiclesChange) {
       onFilteredVehiclesChange(filteredVehicles);
     }
   }, [filteredVehicles, onFilteredVehiclesChange]);
 
-  // Filtre değerini güncelle
+  // Filtre değerini güncel
   const updateFilter = (key, value) => {
     setFilters(prev => ({
       ...prev,
@@ -137,7 +109,7 @@ function FleetFiltersPanel({
     }));
   };
 
-  // Durum filtresi güncelle
+  // Durum filtresi güncel
   const updateStatusFilter = (status, checked) => {
     setFilters(prev => ({
       ...prev,
@@ -148,7 +120,6 @@ function FleetFiltersPanel({
     }));
   };
 
-  // Tüm filtreleri temizle
   const clearAllFilters = () => {
     setFilters({
       motorTempMin: '',
@@ -162,9 +133,9 @@ function FleetFiltersPanel({
       mileageMin: '',
       mileageMax: '',
       status: {
-        aktif: true,
-        bakimda: true,
-        'servis-disi': true
+        aktif: false,
+        bakimda: false,
+        'servis-disi': false
       },
       wheelchairAccessible: false,
       airConditioning: false,
@@ -178,7 +149,6 @@ function FleetFiltersPanel({
     });
   };
 
-  // Tüm filtreleri seç - BURAYA TAŞINDI
   const selectAllFilters = () => {
     setFilters(prev => ({
       ...prev,
@@ -187,9 +157,25 @@ function FleetFiltersPanel({
         bakimda: true,
         'servis-disi': true
       },
-      wheelchairAccessible: true,
-      airConditioning: true,
-      wifiEnabled: true
+      wheelchairAccessible: false,
+      airConditioning: false,
+      wifiEnabled: false,
+      motorTempMin: '',
+      motorTempMax: '',
+      speedMin: '',
+      speedMax: '',
+      fuelMin: '',
+      fuelMax: '',
+      vehicleAgeMin: '',
+      vehicleAgeMax: '',
+      mileageMin: '',
+      mileageMax: '',
+      capacityMin: '',
+      capacityMax: '',
+      lastMaintenanceDays: '',
+      routeNumbers: '',
+      vehicleType: 'all',
+      fuelType: 'all'
     }));
   };
 
@@ -209,7 +195,6 @@ function FleetFiltersPanel({
           <button onClick={clearAllFilters} className="blue-filters-btn">
             Temizle
           </button>
-          {/* Dikkat: Burada bir tane onClose butonu yeterli olmalı. */}
           <button onClick={onClose} className="close-button">×</button>
         </div>
       </div>
@@ -234,7 +219,7 @@ function FleetFiltersPanel({
           </div>
         </div>
 
-        {/* Hız & Yakıt Seviyesi yan yana */}
+        {/* Hız & Yakıt */}
         <div className="filter-row">
           <div className="filter-section" style={{flex:1}}>
             <h3>Hız (km/h)</h3>
@@ -254,27 +239,7 @@ function FleetFiltersPanel({
           </div>
         </div>
 
-        {/* Araç Yaşı & Kilometre yan yana */}
-        <div className="filter-row">
-          <div className="filter-section" style={{flex:1}}>
-            <h3>Araç Yaşı (Yıl)</h3>
-            <div className="range-inputs">
-              <input type="number" placeholder="Min" value={filters.vehicleAgeMin} onChange={(e) => updateFilter('vehicleAgeMin', e.target.value)} className="range-input" />
-              <span>-</span>
-              <input type="number" placeholder="Max" value={filters.vehicleAgeMax} onChange={(e) => updateFilter('vehicleAgeMax', e.target.value)} className="range-input" />
-            </div>
-          </div>
-          <div className="filter-section" style={{flex:1}}>
-            <h3>Kilometre</h3>
-            <div className="range-inputs">
-              <input type="number" placeholder="Min" value={filters.mileageMin} onChange={(e) => updateFilter('mileageMin', e.target.value)} className="range-input" />
-              <span>-</span>
-              <input type="number" placeholder="Max" value={filters.mileageMax} onChange={(e) => updateFilter('mileageMax', e.target.value)} className="range-input" />
-            </div>
-          </div>
-        </div>
-
-        {/* Motor Sıcaklığı & Yolcu Kapasitesi yan yana */}
+        {/* Motor Sıcaklığı & Araç Yaş*/}
         <div className="filter-row">
           <div className="filter-section" style={{flex:1}}>
             <h3>Motor Sıcaklığı (°C)</h3>
@@ -285,7 +250,27 @@ function FleetFiltersPanel({
             </div>
           </div>
           <div className="filter-section" style={{flex:1}}>
-            <h3>Yolcu Kapasitesi</h3>
+            <h3>Araç Yaşı</h3>
+            <div className="range-inputs">
+              <input type="number" placeholder="Min" value={filters.vehicleAgeMin} onChange={(e) => updateFilter('vehicleAgeMin', e.target.value)} className="range-input" />
+              <span>-</span>
+              <input type="number" placeholder="Max" value={filters.vehicleAgeMax} onChange={(e) => updateFilter('vehicleAgeMax', e.target.value)} className="range-input" />
+            </div>
+          </div>
+        </div>
+
+        {/* Kilometre & Kapasite  */}
+        <div className="filter-row">
+          <div className="filter-section" style={{flex:1}}>
+            <h3>Kilometre</h3>
+            <div className="range-inputs">
+              <input type="number" placeholder="Min" value={filters.mileageMin} onChange={(e) => updateFilter('mileageMin', e.target.value)} className="range-input" />
+              <span>-</span>
+              <input type="number" placeholder="Max" value={filters.mileageMax} onChange={(e) => updateFilter('mileageMax', e.target.value)} className="range-input" />
+            </div>
+          </div>
+          <div className="filter-section" style={{flex:1}}>
+            <h3>Kapasite</h3>
             <div className="range-inputs">
               <input type="number" placeholder="Min" value={filters.capacityMin} onChange={(e) => updateFilter('capacityMin', e.target.value)} className="range-input" />
               <span>-</span>
@@ -294,23 +279,25 @@ function FleetFiltersPanel({
           </div>
         </div>
 
-        {/* Özel Gereksinimler yan yana */}
+        {/* Özellikler */}
         <div className="filter-section">
-          <h3>Özel Gereksinimler</h3>
-          <div className="special-requirements">
+          <h3>Araç Özellikleri</h3>
+          <div className="checkbox-group">
             <label className="checkbox-label">
-              <input type="checkbox" checked={filters.wheelchairAccessible} onChange={(e) => updateFilter('wheelchairAccessible', e.target.checked)} /> ♿ Tekerlekli Sandalye Uygun
+              <input type="checkbox" checked={filters.wheelchairAccessible} onChange={(e) => updateFilter('wheelchairAccessible', e.target.checked)} />
+              ♿ Tekerlekli Sandalye Uygun
             </label>
             <label className="checkbox-label">
-              <input type="checkbox" checked={filters.airConditioning} onChange={(e) => updateFilter('airConditioning', e.target.checked)} /> ❄️ Klima
+              <input type="checkbox" checked={filters.airConditioning} onChange={(e) => updateFilter('airConditioning', e.target.checked)} />
+              ❄️ Klima
             </label>
             <label className="checkbox-label">
-              <input type="checkbox" checked={filters.wifiEnabled} onChange={(e) => updateFilter('wifiEnabled', e.target.checked)} /> 📶 WiFi
+              <input type="checkbox" checked={filters.wifiEnabled} onChange={(e) => updateFilter('wifiEnabled', e.target.checked)} />
+              📶 WiFi
             </label>
           </div>
         </div>
-
-        {/* Hat Numaraları, Son Bakım, Araç Tipi, Yakıt Tipi alt alta */}
+        
         <div className="filter-section">
           <h3>Hat Numaraları</h3>
           <input type="text" placeholder="Örn: 1, 5, 10, 25" value={filters.routeNumbers} onChange={(e) => updateFilter('routeNumbers', e.target.value)} className="text-input" />
@@ -319,7 +306,6 @@ function FleetFiltersPanel({
         <div className="filter-section">
           <h3>Son Bakım</h3>
           <input type="number" placeholder="Son X gün içinde" value={filters.lastMaintenanceDays} onChange={(e) => updateFilter('lastMaintenanceDays', e.target.value)} className="text-input" />
-          <small>Son bakımı belirtilen gün sayısı içinde olanları gösterir</small>
         </div>
         <div className="filter-section">
           <h3>Araç Tipi</h3>
@@ -342,34 +328,6 @@ function FleetFiltersPanel({
         </div>
       </div>
 
-      {/* Filtrelenmiş Sonuçlar */}
-      <div className="filtered-results">
-        <div className="results-header">
-          <h3>Filtrelenmiş Araçlar ({filteredVehicles.length})</h3>
-        </div>
-        <div className="results-list">
-          {filteredVehicles.length > 0 ? (
-            filteredVehicles.map(vehicle => (
-              <div key={vehicle.id} className="result-item">
-                <div className="result-main">
-                  <span className="vehicle-id">ID: {vehicle.id}</span>
-                  <span className="vehicle-plate">{vehicle.plate}</span>
-                  <span className="vehicle-route">Hat: {vehicle.routeCode}</span>
-                </div>
-                <div className="result-status">
-                  <span className={`status-indicator ${vehicle.status?.toLowerCase().replace(' ', '-')}`}>
-                    {vehicle.status}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="no-results">
-              Filtrelere uygun araç bulunamadı
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
