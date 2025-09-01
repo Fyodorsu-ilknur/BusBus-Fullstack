@@ -53,8 +53,6 @@ app.get('/api/routes', async (req, res) => {
     }
 });
 
-
-
 // API Endpoint durakalrı dondurecek
 app.get('/api/stops', async (req, res) => {
     
@@ -91,7 +89,154 @@ app.get('/api/stops', async (req, res) => {
     }
 });
 
+// API Endpoint: Durak arama (tüm duraklar arasından arama)
+app.get('/api/stops/search', async (req, res) => {
+    const searchTerm = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
 
+    if (!searchTerm.trim()) {
+        return res.status(400).json({ error: 'Arama terimi boş olamaz.' });
+    }
+
+    try {
+        // Arama query'si - durak adı veya ID'ye göre arama
+        const searchQuery = `
+            SELECT stop_id, stop_name, stop_lat, stop_lon 
+            FROM stops 
+            WHERE LOWER(stop_name) LIKE LOWER($1) 
+               OR stop_id::text LIKE $2
+            ORDER BY 
+                CASE 
+                    WHEN LOWER(stop_name) = LOWER($3) THEN 1
+                    WHEN LOWER(stop_name) LIKE LOWER($4) THEN 2
+                    WHEN stop_id::text = $5 THEN 3
+                    ELSE 4
+                END,
+                stop_name ASC
+            LIMIT $6 OFFSET $7
+        `;
+        
+        const searchPattern = `%${searchTerm}%`;
+        const exactTerm = searchTerm;
+        const startPattern = `${searchTerm}%`;
+        
+        const result = await pool.query(searchQuery, [
+            searchPattern,
+            searchPattern,
+            exactTerm,
+            startPattern,
+            searchTerm,
+            limit,
+            offset
+        ]);
+
+        const formattedStops = result.rows.map(row => ({
+            id: row.stop_id,
+            name: row.stop_name,
+            lat: parseFloat(row.stop_lat),
+            lng: parseFloat(row.stop_lon),
+            district: ''
+        }));
+
+        // Toplam arama sonucu sayısını al
+        const countQuery = `
+            SELECT COUNT(*) 
+            FROM stops 
+            WHERE LOWER(stop_name) LIKE LOWER($1) 
+               OR stop_id::text LIKE $2
+        `;
+        const countResult = await pool.query(countQuery, [searchPattern, searchPattern]);
+        const totalResults = parseInt(countResult.rows[0].count);
+
+        res.json({
+            stops: formattedStops,
+            total: totalResults,
+            hasMore: (offset + formattedStops.length) < totalResults,
+            searchTerm: searchTerm
+        });
+
+    } catch (err) {
+        console.error('Durak arama hatası:', err.stack);
+        res.status(500).json({ error: 'Durak arama işleminde hata oluştu.' });
+    }
+});
+
+// API Endpoint: Tüm durak sayısını döndür (Tümünü Seç için)
+app.get('/api/stops/count', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT COUNT(*) FROM stops');
+        const totalStops = parseInt(result.rows[0].count);
+        
+        res.json({ 
+            total: totalStops 
+        });
+        
+    } catch (err) {
+        console.error('Durak sayısı alınırken hata:', err.stack);
+        res.status(500).json({ error: 'Durak sayısı alınamadı.' });
+    }
+});
+
+// API Endpoint: Tüm durak ID'lerini döndür (Tümünü Seç için)
+app.get('/api/stops/all-ids', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT stop_id FROM stops ORDER BY stop_name ASC');
+        const stopIds = result.rows.map(row => row.stop_id);
+        
+        res.json({ 
+            stopIds: stopIds,
+            total: stopIds.length
+        });
+        
+    } catch (err) {
+        console.error('Tüm durak ID\'leri alınırken hata:', err.stack);
+        res.status(500).json({ error: 'Durak ID\'leri alınamadı.' });
+    }
+});
+
+// API Endpoint: Batch olarak durak bilgilerini al (performans için)
+app.post('/api/stops/batch', async (req, res) => {
+    const { stopIds } = req.body;
+    
+    if (!stopIds || !Array.isArray(stopIds) || stopIds.length === 0) {
+        return res.status(400).json({ error: 'Geçerli durak ID listesi gönderilmedi.' });
+    }
+    
+    // Çok fazla ID gönderilmesini engellemek için
+    if (stopIds.length > 1000) {
+        return res.status(400).json({ error: 'Tek seferde en fazla 1000 durak sorgulanabilir.' });
+    }
+
+    try {
+        const query = `
+            SELECT stop_id, stop_name, stop_lat, stop_lon 
+            FROM stops 
+            WHERE stop_id = ANY($1::text[])
+            ORDER BY stop_name ASC
+        `;
+        
+        const result = await pool.query(query, [stopIds]);
+        
+        const formattedStops = result.rows.map(row => ({
+            id: row.stop_id,
+            name: row.stop_name,
+            lat: parseFloat(row.stop_lat),
+            lng: parseFloat(row.stop_lon),
+            district: ''
+        }));
+
+        res.json({
+            stops: formattedStops,
+            requested: stopIds.length,
+            found: formattedStops.length
+        });
+
+    } catch (err) {
+        console.error('Batch durak sorgusu hatası:', err.stack);
+        res.status(500).json({ error: 'Batch durak sorgusu başarısız.' });
+    }
+});
 
 app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
     const { routeNumber, direction } = req.params;

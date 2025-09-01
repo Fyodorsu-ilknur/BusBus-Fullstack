@@ -10,7 +10,7 @@ import FleetVehicleDetailsPanel from './components/FleetVehicleDetailsPanel';
 
 import {
   setAllRoutes, clearSelectedRoutes, toggleSelectedRoute, selectAllRoutes,
-  toggleSelectedStop, clearSelectedStops, setAllStops, selectAllStops
+  toggleSelectedStop, clearSelectedStops, setAllStops, selectAllStops, selectMultipleStops // ✅ YENİ: selectMultipleStops eklendi
 } from './store/selectedItemsSlice';
 
 import Navbar from './components/Navbar';
@@ -146,6 +146,11 @@ function App() {
     dispatch(selectAllStops());
   }, [dispatch]);
 
+  // ✅ YENİ: Toplu durak seçimi için optimize edilmiş fonksiyon
+  const handleSelectMultipleStops = useCallback((stopIds) => {
+    dispatch(selectMultipleStops(stopIds));
+  }, [dispatch]);
+
   const handleClearSelectedStops = useCallback(() => {
     dispatch(clearSelectedStops());
   }, [dispatch]);
@@ -264,7 +269,8 @@ function App() {
     if (item?.route_number) {
         try {
           let fullRouteData = item;
-          if (!item.directions || !item.directions['1'] || !item.directions['2']) {
+          // Bu kontrol sayesinde, güzergah detayı daha önce çekilmemişse API'den istenir.
+          if (!item.directions || !item.directions['1'] || item.directions['1'].length === 0) {
              console.log("Item üzerinde directions bulunamadı, API'den çekiliyor:", item.route_number);
              const response1 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/1`);
              const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
@@ -368,9 +374,12 @@ function App() {
     };
   }, []);
 
+  // ✅ DEĞİŞİKLİK BURADA BAŞLIYOR: Bu useEffect, artık sayfa yüklenirken yüzlerce API isteği yapmayacak.
+  // Sadece tek bir istek ile ana hat listesini alacak.
   useEffect(() => {
-    const fetchRoutesAndDirections = async () => {
+    const fetchRoutes = async () => {
       try {
+        // 1. Adım: Sadece ana hat listesini çek.
         const res = await fetch('http://localhost:5000/api/routes');
         const data = await res.json();
 
@@ -389,46 +398,24 @@ function App() {
           return;
         }
 
-        const processedRoutes = await Promise.all(initialRoutes.map(async (route) => {
-          let routeWithDirections = { ...route };
-          if (!route.directions) {
-            try {
-              const response1 = await fetch(`http://localhost:5000/api/route-details/${route.route_number}/1`);
-              const data1 = response1.ok ? await response1.json() : { coordinates: [], stops: [] };
-
-              const response2 = await fetch(`http://localhost:5000/api/route-details/${route.route_number}/2`);
-              const data2 = response2.ok ? await response2.json() : { coordinates: [], stops: [] };
-
-              routeWithDirections.directions = {
-                '1': data1.coordinates || [],
-                '2': data2.coordinates || []
-              };
-              routeWithDirections.directionsStops = {
-                '1': data1.stops || [],
-                '2': data2.stops || []
-              };
-            } catch (error) {
-              console.warn(`Rota ${route.route_number} için directions verisi çekilemedi:`, error);
-              routeWithDirections.directions = { '1': [], '2': [] };
-              routeWithDirections.directionsStops = { '1': [], '2': [] };
-            }
-          }
-          return {
-            ...routeWithDirections,
-            start_point: routeWithDirections.start_point || '',
-            end_point: routeWithDirections.end_point || ''
-          };
-        }));
-
-        processedRoutes.forEach(route => {
+        // 2. Adım: Güzergah detaylarını çekmeden, sadece listeyi işle.
+        // Detaylar, kullanıcı hatta tıkladığında `handleVehicleClick` içinde çekilecek.
+        initialRoutes.forEach(route => {
           if (route && route.id) {
-            routesObject[route.id] = route;
+            routesObject[route.id] = {
+              ...route,
+              start_point: route.start_point || '',
+              end_point: route.end_point || '',
+              // Diğer bileşenlerde hata olmaması için bu alanları boş olarak başlatalım
+              directions: { '1': [], '2': [] }, 
+              directionsStops: { '1': [], '2': [] }
+            };
           }
         });
 
         dispatch(setAllRoutes(routesObject));
         setFilteredItems(Object.values(routesObject));
-        console.log("İşlenmiş rotalar dizisi (App.js, with directions):", Object.values(routesObject));
+        console.log("Sadece ana hat listesi yüklendi (performanslı yöntem):", Object.values(routesObject));
 
       } catch (err) {
         console.error("Hat verisi alınırken hata oluştu (App.js):", err);
@@ -437,8 +424,9 @@ function App() {
       }
     };
 
-    fetchRoutesAndDirections();
+    fetchRoutes();
   }, [dispatch, setFilteredItems]);
+  // ✅ DEĞİŞİKLİK BURADA BİTİYOR.
 
   useEffect(() => {
     if (vehicles.length === 0 && Object.keys(allRoutes).length > 0) {
@@ -703,6 +691,31 @@ function App() {
     setSelectedPopupInfo([]);
   }, [dispatch]);
 
+  const handleMenuClick = useCallback((menuItem) => {
+    switch (menuItem) {
+      case 'vehicle-list':
+        togglePanel();
+        break;
+      case 'route-details':
+        toggleRouteDetailsPanel();
+        break;
+      case 'departure-times':
+        toggleDepartureTimesPanel();
+        break;
+      case 'stop-selector':
+        toggleStopSelectorPanel();
+        break;
+      case 'fleet-tracking':
+        toggleFleetTrackingPanel();
+        break;
+      case 'fleet-filters':
+        toggleFleetFiltersPanel();
+        break;
+      default:
+        console.log('Bilinmeyen menü öğesi:', menuItem);
+    }
+  }, [togglePanel, toggleRouteDetailsPanel, toggleDepartureTimesPanel, toggleStopSelectorPanel, toggleFleetTrackingPanel, toggleFleetFiltersPanel]);
+
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
       const newExpandedState = !prev;
@@ -713,6 +726,7 @@ function App() {
         setIsStopSelectorOpen(false);
         setIsFleetTrackingPanelOpen(false);
         setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+        setIsFilteredVehiclesPanelOpen(false);
         setSelectedItem(null);
         setSelectedRoute(null);
         setSelectedStop(null);
@@ -764,13 +778,9 @@ function App() {
         />
 
         <Sidebar
-          onTogglePanel={togglePanel}
-          onToggleRouteDetailsPanel={toggleRouteDetailsPanel}
-          onToggleDepartureTimesPanel={toggleDepartureTimesPanel}
-          onToggleStopSelectorPanel={toggleStopSelectorPanel}
-          onToggleFleetTrackingPanel={toggleFleetTrackingPanel}
-          onToggleFleetFiltersPanel={toggleFleetFiltersPanel} // ✅ YENİ: Filtreler paneli prop'u
+          onMenuClick={handleMenuClick}
           isExpanded={isSidebarExpanded}
+          theme={theme}
         />
 
         <div className="main-container">
@@ -844,6 +854,7 @@ function App() {
                   onToggleSelectedStop={handleToggleSelectedStop}
                   onClearSelectedStops={handleClearSelectedStops}
                   onSelectAllStops={handleSelectAllStops}
+                  onSelectMultipleStops={handleSelectMultipleStops} // ✅ YENİ: Prop eklendi
                   theme={theme}
                 />
               </div>

@@ -31,6 +31,13 @@ const selectedItemsSlice = createSlice({
     setSelectedStopIds: (state, action) => {
       state.selectedStopIds = action.payload;
     },
+    // ✅ YENİ: Toplu seçim için optimize edilmiş action
+    selectMultipleStops: (state, action) => {
+      const newStopIds = action.payload;
+      // Set kullanarak duplicate kontrolü yapıyoruz
+      const uniqueStopIds = [...new Set([...state.selectedStopIds, ...newStopIds])];
+      state.selectedStopIds = uniqueStopIds;
+    },
     // Otobüs Hatları için reducer'lar
     toggleSelectedRoute: (state, action) => {
         const routeId = action.payload;
@@ -59,8 +66,9 @@ export const {
     toggleSelectedStop,
     clearSelectedStops,
     setAllStops,
-    selectAllStops, // Bu artık doğru şekilde tanımlandı
-    setSelectedStopIds, // Yeni eklenen action
+    selectAllStops, 
+    setSelectedStopIds, 
+    selectMultipleStops, // ✅ YENİ: Export eklendi
     toggleSelectedRoute,
     clearSelectedRoutes,
     selectAllRoutes,
