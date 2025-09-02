@@ -15,3 +15,4 @@ root.render(
     </Provider>
   </React.StrictMode>
 );
+//redux windowindirmeyi unutma
