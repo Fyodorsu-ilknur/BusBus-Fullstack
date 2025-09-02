@@ -883,8 +883,8 @@ function MapComponent({
       )}
 
       {/* Redux Durakları  */}
-      {mapLoaded && !isRouteNavigationPanelOpen && selectedStops.map(stopId => {
-        const stop = allStops.find(s => s.id === stopId);
+     {mapLoaded && !isRouteNavigationPanelOpen && Array.isArray(allStops) && selectedStops.map(stopId => {
+  const stop = allStops.find(s => s.id === stopId);
         const isOnSelectedAnimatedRoute = selectedRoute?.directionsStops?.[currentDirection]?.some(routeStop => routeStop.id === stopId);
 
         if (stop && !isOnSelectedAnimatedRoute && typeof stop.lat === 'number' && typeof stop.lng === 'number') {

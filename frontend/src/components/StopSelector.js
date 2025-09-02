@@ -25,9 +25,9 @@ const StopSelector = ({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   
-  // Normal pagination için state'ler
+  // Normal pagination için state'ler - ARTIRILDI
   const [currentPage, setCurrentPage] = useState(0);
-  const [stopsPerPage] = useState(50);
+  const [stopsPerPage] = useState(100); // 50'den 100'e çıkarıldı
   const [hasMoreStops, setHasMoreStops] = useState(true);
 
   // Arama sonuçları için ayrı state'ler
@@ -45,7 +45,7 @@ const StopSelector = ({
   // Debounce için timer
   const [searchTimer, setSearchTimer] = useState(null);
 
-  // Normal durakları çekme fonksiyonu
+  // Normal durakları çekme fonksiyonu - OPTIMIZE EDİLDİ
   const fetchStops = useCallback(async (pageToLoad) => {
     if (pageToLoad === 0 && searchTerm === '') {
         setLoading(true);
@@ -55,7 +55,10 @@ const StopSelector = ({
     
     try {
         const offset = pageToLoad * stopsPerPage;
-        const response = await fetch(`http://localhost:5000/api/stops?limit=${stopsPerPage}&offset=${offset}`);
+        // İlk yükleme veya "Tümünü Seç" için daha fazla veri çek
+        const limitToUse = pageToLoad === 0 ? Math.min(1000, stopsPerPage * 10) : stopsPerPage;
+        
+        const response = await fetch(`http://localhost:5000/api/stops?limit=${limitToUse}&offset=${offset}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -65,11 +68,13 @@ const StopSelector = ({
             if (pageToLoad === 0) {
                 // İlk sayfa - tüm durakları değiştir
                 dispatch(setAllStops(data.stops || []));
+                console.log(`İlk yükleme: ${data.stops?.length || 0} durak yüklendi`);
             } else {
                 // Sonraki sayfalar - mevcut durakları güncelle
                 dispatch(setAllStops(prevStops => {
                     const existingStopIds = new Set(prevStops.map(stop => stop.id));
                     const uniqueNewStops = (data.stops || []).filter(stop => !existingStopIds.has(stop.id));
+                    console.log(`Sayfa ${pageToLoad}: ${uniqueNewStops.length} yeni durak eklendi`);
                     return [...prevStops, ...uniqueNewStops];
                 }));
             }
@@ -84,7 +89,7 @@ const StopSelector = ({
     }
   }, [dispatch, stopsPerPage, searchTerm]);
 
-  // Arama fonksiyonu - YENİ!
+  // Arama fonksiyonu - OPTIMIZE EDİLDİ
   const searchStops = useCallback(async (searchQuery, pageToLoad = 0) => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -98,14 +103,22 @@ const StopSelector = ({
 
     try {
       const offset = pageToLoad * stopsPerPage;
-      const response = await fetch(`http://localhost:5000/api/stops/search?q=${encodeURIComponent(searchQuery)}&limit=${stopsPerPage}&offset=${offset}`);
+      // Arama için de daha büyük limit
+      const searchLimit = pageToLoad === 0 ? 500 : stopsPerPage;
+      
+      const response = await fetch(`http://localhost:5000/api/stops/search?q=${encodeURIComponent(searchQuery)}&limit=${searchLimit}&offset=${offset}`);
       const data = await response.json();
 
       if (response.ok) {
         if (pageToLoad === 0) {
           setSearchResults(data.stops || []);
+          console.log(`Arama sonucu: ${data.stops?.length || 0} durak bulundu`);
         } else {
-          setSearchResults(prev => [...prev, ...(data.stops || [])]);
+          setSearchResults(prev => {
+            const newResults = [...prev, ...(data.stops || [])];
+            console.log(`Arama sayfası ${pageToLoad}: Toplam ${newResults.length} sonuç`);
+            return newResults;
+          });
         }
         setHasMoreSearchResults(data.hasMore);
         setSearchPage(pageToLoad);
@@ -123,18 +136,57 @@ const StopSelector = ({
     }
   }, [stopsPerPage]);
 
-  // Toplam durak sayısını çek - YENİ!
+  // Toplam durak sayısını çek
   const fetchTotalStopCount = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/stops/count');
       const data = await response.json();
       if (response.ok) {
         setTotalStopCount(data.total);
+        console.log(`Toplam durak sayısı: ${data.total}`);
       }
     } catch (error) {
       console.error('Toplam durak sayısı alınırken hata:', error);
     }
   }, []);
+
+  // İlk 100 durak yükleme (görüntüleme için)
+  const fetchInitialStops = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/stops?limit=100&offset=0');
+      const data = await response.json();
+      
+      if (response.ok) {
+        dispatch(setAllStops(data.stops || []));
+        console.log(`İlk 100 durak yüklendi: ${data.stops?.length || 0} adet`);
+        setHasMoreStops(data.hasMore);
+      } else {
+        console.error('İlk duraklar çekilirken hata:', data.error);
+      }
+    } catch (error) {
+      console.error('İlk duraklar çekilirken genel hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [dispatch]);
+
+  // "Tümünü Seç" için 1000 durağı önceden yükleme
+  const preloadStopsForSelectAll = useCallback(async () => {
+    console.log('Tümünü seç için duraklar önceden yükleniyor...');
+    try {
+      const response = await fetch('http://localhost:5000/api/stops?limit=1000&offset=0');
+      const data = await response.json();
+      
+      if (response.ok && data.stops) {
+        dispatch(setAllStops(data.stops));
+        console.log(`Tümünü seç için ${data.stops.length} durak yüklendi`);
+        setHasMoreStops(data.hasMore);
+      }
+    } catch (error) {
+      console.error('Tümünü seç için durak yükleme hatası:', error);
+    }
+  }, [dispatch]);
 
   const fetchStopRoutes = useCallback(async (stopId) => {
     if (stopRoutes[stopId]) {
@@ -166,15 +218,16 @@ const StopSelector = ({
     }
   }, [stopRoutes]);
 
-  // İlk yükleme
+  // İlk yükleme - GÜNCELLENDI: Sadece 100 durak göster
   useEffect(() => {
     if (currentPage === 0 && allStops.length === 0 && searchTerm === '') {
-      fetchStops(0);
-      fetchTotalStopCount(); // YENİ!
+      // İlk başta sadece 100 durağı yükle (görüntüleme için)
+      fetchInitialStops();
+      fetchTotalStopCount();
     }
-  }, [currentPage, allStops.length, searchTerm, fetchStops, fetchTotalStopCount]);
+  }, [currentPage, allStops.length, searchTerm, fetchInitialStops, fetchTotalStopCount]);
 
-  // Arama ve filtreleme mantığı - YENİ!
+  // Arama ve filtreleme mantığı
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredStops(allStops);
@@ -201,7 +254,7 @@ const StopSelector = ({
     }
   }, [searchTerm, allStops, searchStops]);
 
-  // Gösterilecek durakları belirle - YENİ!
+  // Gösterilecek durakları belirle
   const displayedStops = useMemo(() => {
     if (searchTerm.trim() !== '') {
       return searchResults;
@@ -237,7 +290,7 @@ const StopSelector = ({
     setExpandedStopId(null); // Arama yaparken detayları kapat
   };
 
-  // ✅ SÜPER OPTIMIZE EDİLMİŞ "Tümünü Seç" fonksiyonu
+  // ✅ SÜPER OPTIMIZE EDİLMİŞ "Tümünü Seç" fonksiyonu - GÜNCELLENDİ
   const handleSelectAllStopsClick = async () => {
     setIsSelectingAll(true);
     
@@ -249,40 +302,55 @@ const StopSelector = ({
           .filter(id => !selectedStopIds.includes(id));
         
         if (newSelections.length > 0 && onSelectMultipleStops) {
-          // ✅ YENİ: Toplu seçim kullan (çok daha hızlı!)
           onSelectMultipleStops(newSelections);
           console.log(`${newSelections.length} arama sonucu toplu seçildi`);
         }
       } else {
-        // Tüm durakları seç
+        // Önce mevcut 1000 durağı kontrol et, yoksa yükle
+        if (allStops.length < 1000) {
+          console.log('1000 durak yükleniyor...');
+await preloadStopsForSelectAll();        }
+        
+        // Artık tüm durağı API'den çekmek yerine mevcut 1000'i kullan
         try {
-          const response = await fetch('http://localhost:5000/api/stops/all-ids');
-          const data = await response.json();
+          // Optimizasyon: API yerine mevcut yüklü durakları kullan
+          const availableStopIds = allStops.map(stop => stop.id);
+          const newSelections = availableStopIds.filter(id => !selectedStopIds.includes(id));
           
-          if (response.ok && data.stopIds) {
-            const newSelections = data.stopIds.filter(id => !selectedStopIds.includes(id));
-            
-            if (newSelections.length > 0 && onSelectMultipleStops) {
-              // ✅ YENİ: Toplu seçim kullan (performans optimizasyonu!)
-              onSelectMultipleStops(newSelections);
-              console.log(`${newSelections.length} yeni durak toplu seçildi`);
-            }
+          if (newSelections.length > 0 && onSelectMultipleStops) {
+            onSelectMultipleStops(newSelections);
+            console.log(`${newSelections.length} yüklü durak toplu seçildi (Toplam yüklü: ${allStops.length})`);
           } else {
-            throw new Error('API yanıtı hatalı');
+            // Fallback: API'den tüm ID'leri çek
+            const response = await fetch('http://localhost:5000/api/stops/all-ids?limit=1000');
+            const data = await response.json();
+            
+            if (response.ok && data.stopIds) {
+              const apiSelections = data.stopIds.filter(id => !selectedStopIds.includes(id));
+              
+              if (apiSelections.length > 0 && onSelectMultipleStops) {
+                onSelectMultipleStops(apiSelections);
+                console.log(`${apiSelections.length} durak API'den toplu seçildi`);
+              }
+            } else {
+              throw new Error('API yanıtı hatalı');
+            }
           }
         } catch (error) {
           console.error('Tümünü seç API hatası:', error);
           
-          // Fallback: Eski yöntem (tek tek seçim)
+          // Son fallback: Yüklü durakları tek tek seç
           const newSelections = allStops
             .filter(stop => !selectedStopIds.includes(stop.id))
             .map(stop => stop.id);
             
-          if (newSelections.length > 0 && onSelectMultipleStops) {
-            onSelectMultipleStops(newSelections);
-          } else {
-            // Son çare: tek tek seç
-            newSelections.forEach(stopId => onToggleSelectedStop(stopId));
+          if (newSelections.length > 0) {
+            if (onSelectMultipleStops) {
+              onSelectMultipleStops(newSelections);
+            } else {
+              // Çok son çare: tek tek seç (performans düşük!)
+              newSelections.forEach(stopId => onToggleSelectedStop(stopId));
+            }
           }
           
           console.log(`Fallback: ${newSelections.length} yüklü durak seçildi`);
@@ -295,7 +363,16 @@ const StopSelector = ({
     }
   };
 
-  // Scroll handler - hem normal liste hem arama için
+  // YENİ: Daha fazla durak yükleme fonksiyonu
+  const loadMoreStops = useCallback(async () => {
+    if (allStops.length < 1000 && hasMoreStops) {
+      const nextPage = Math.floor(allStops.length / stopsPerPage);
+      setCurrentPage(nextPage);
+      await fetchStops(nextPage);
+    }
+  }, [allStops.length, hasMoreStops, stopsPerPage, fetchStops]);
+
+  // Scroll handler - GÜNCELLENDI
   const handleScroll = useCallback((e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
@@ -309,16 +386,12 @@ const StopSelector = ({
         }
       } else {
         // Normal liste için daha fazla veri yükle
-        if (hasMoreStops) {
-          const nextPage = currentPage + 1;
-          setCurrentPage(nextPage);
-          fetchStops(nextPage);
-        }
+        loadMoreStops();
       }
     }
   }, [
-    hasMoreStops, hasMoreSearchResults, isLoadingMore, isSearching,
-    searchTerm, currentPage, searchPage, fetchStops, searchStops
+    hasMoreSearchResults, isLoadingMore, isSearching,
+    searchTerm, searchPage, searchStops, loadMoreStops
   ]);
 
   const handleStopNameClick = useCallback(async (stop) => {
@@ -343,17 +416,18 @@ const StopSelector = ({
     }
   };
 
-  // Tümünü seç butonunu göster/gizle mantığı - YENİ!
+  // Tümünü seç butonunu göster/gizle mantığı - GÜNCELLENDI
   const shouldShowSelectAllButton = useMemo(() => {
     if (searchTerm.trim() !== '') {
       // Arama yapılıyorsa ve arama sonuçlarında seçilmeyen duraklar varsa
       const unselectedSearchResults = searchResults.filter(stop => !selectedStopIds.includes(stop.id));
       return unselectedSearchResults.length > 0;
     } else {
-      // Normal listede - toplam durak sayısından fazlası seçilmemişse
-      return selectedStopIds.length < totalStopCount && totalStopCount > 0;
+      // Normal listede - en az 1000 durak varsa ve hepsi seçilmemişse
+      const availableToSelect = allStops.filter(stop => !selectedStopIds.includes(stop.id));
+      return availableToSelect.length > 0;
     }
-  }, [searchTerm, searchResults, selectedStopIds, totalStopCount]);
+  }, [searchTerm, searchResults, selectedStopIds, allStops]);
 
   return (
     <div className="stop-selector">
@@ -398,7 +472,8 @@ const StopSelector = ({
                 disabled={isSelectingAll}
               >
                 {isSelectingAll ? 'Seçiliyor...' : 
-                 searchTerm.trim() !== '' ? 'Bulunanları Seç' : 'Tümünü Seç'}
+                 searchTerm.trim() !== '' ? 'Bulunanları Seç' : 
+                 `Tümünü Seç (${Math.min(1000, allStops.length)})`}
               </button>
             )}
             {selectedStopIds.length > 0 && (
@@ -493,9 +568,14 @@ const StopSelector = ({
             )}
 
             {/* Liste sonu mesajı */}
-            {searchTerm.trim() === '' && !hasMoreStops && allStops.length > 0 && (
+            {searchTerm.trim() === '' && !hasMoreStops && allStops.length > 0 && allStops.length < 200 && (
               <div className="end-of-list">
-                <p>Tüm duraklar yüklendi ({allStops.length} durak)</p>
+                <p>Yüklenen duraklar ({allStops.length} durak gösteriliyor)</p>
+              </div>
+            )}
+            {searchTerm.trim() === '' && allStops.length >= 1000 && (
+              <div className="end-of-list">
+                <p>1000 durak yüklendi - Scroll yaparak daha fazla yükleyebilirsiniz</p>
               </div>
             )}
             {searchTerm.trim() !== '' && !hasMoreSearchResults && searchResults.length > 0 && (

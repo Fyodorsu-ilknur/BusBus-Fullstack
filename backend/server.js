@@ -53,15 +53,20 @@ app.get('/api/routes', async (req, res) => {
     }
 });
 
-// API Endpoint durakalrı dondurecek
+// API Endpoint durakalrı dondurecek - OPTIMIZE EDİLDİ
 app.get('/api/stops', async (req, res) => {
     
     const limit = parseInt(req.query.limit) || 100;
     const offset = parseInt(req.query.offset) || 0;
 
+    // ✅ Güvenlik kontrolü - maksimum limit 2000
+    const actualLimit = Math.min(limit, 2000);
+    
+    console.log(`📊 Durak çekiliyor: limit=${actualLimit}, offset=${offset}`);
+
     try {
         let query = `SELECT stop_id, stop_name, stop_lat, stop_lon FROM stops ORDER BY stop_name ASC LIMIT $1 OFFSET $2`;
-        const params = [limit, offset];
+        const params = [actualLimit, offset];
 
         const result = await pool.query(query, params);
 
@@ -73,14 +78,19 @@ app.get('/api/stops', async (req, res) => {
             district: '' 
         }));
 
-       
-        const totalCountResult = await pool.query('SELECT COUNT(*) FROM stops');
-        const totalStops = parseInt(totalCountResult.rows[0].count);
+        // ✅ Performans için sadece gerektiğinde toplam sayıyı hesapla
+        let totalStops = 0;
+        if (offset === 0) {
+            const totalCountResult = await pool.query('SELECT COUNT(*) FROM stops');
+            totalStops = parseInt(totalCountResult.rows[0].count);
+        }
+
+        console.log(`✅ ${formattedStops.length} durak döndürüldü`);
 
         res.json({
             stops: formattedStops,
             total: totalStops,
-            hasMore: (offset + formattedStops.length) < totalStops 
+            hasMore: formattedStops.length === actualLimit // Eğer istenen kadar döndü ise daha fazlası var demektir
         });
 
     } catch (err) {
@@ -89,15 +99,20 @@ app.get('/api/stops', async (req, res) => {
     }
 });
 
-// API Endpoint: Durak arama (tüm duraklar arasından arama)
+// API Endpoint: Durak arama (tüm duraklar arasından arama) - OPTIMIZE EDİLDİ
 app.get('/api/stops/search', async (req, res) => {
     const searchTerm = req.query.q || '';
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
 
+    // ✅ Arama için maksimum limit 1000
+    const actualLimit = Math.min(limit, 1000);
+
     if (!searchTerm.trim()) {
         return res.status(400).json({ error: 'Arama terimi boş olamaz.' });
     }
+
+    console.log(`🔍 Durak araması: "${searchTerm}", limit=${actualLimit}, offset=${offset}`);
 
     try {
         // Arama query'si - durak adı veya ID'ye göre arama
@@ -127,7 +142,7 @@ app.get('/api/stops/search', async (req, res) => {
             exactTerm,
             startPattern,
             searchTerm,
-            limit,
+            actualLimit,
             offset
         ]);
 
@@ -139,20 +154,25 @@ app.get('/api/stops/search', async (req, res) => {
             district: ''
         }));
 
-        // Toplam arama sonucu sayısını al
-        const countQuery = `
-            SELECT COUNT(*) 
-            FROM stops 
-            WHERE LOWER(stop_name) LIKE LOWER($1) 
-               OR stop_id::text LIKE $2
-        `;
-        const countResult = await pool.query(countQuery, [searchPattern, searchPattern]);
-        const totalResults = parseInt(countResult.rows[0].count);
+        // ✅ Performans için sadece ilk sayfa için toplam sayıyı hesapla
+        let totalResults = 0;
+        if (offset === 0) {
+            const countQuery = `
+                SELECT COUNT(*) 
+                FROM stops 
+                WHERE LOWER(stop_name) LIKE LOWER($1) 
+                   OR stop_id::text LIKE $2
+            `;
+            const countResult = await pool.query(countQuery, [searchPattern, searchPattern]);
+            totalResults = parseInt(countResult.rows[0].count);
+        }
+
+        console.log(`🔍 Arama sonucu: ${formattedStops.length} durak bulundu`);
 
         res.json({
             stops: formattedStops,
             total: totalResults,
-            hasMore: (offset + formattedStops.length) < totalResults,
+            hasMore: formattedStops.length === actualLimit,
             searchTerm: searchTerm
         });
 
@@ -168,6 +188,8 @@ app.get('/api/stops/count', async (req, res) => {
         const result = await pool.query('SELECT COUNT(*) FROM stops');
         const totalStops = parseInt(result.rows[0].count);
         
+        console.log(`📊 Toplam durak sayısı: ${totalStops}`);
+        
         res.json({ 
             total: totalStops 
         });
@@ -178,15 +200,30 @@ app.get('/api/stops/count', async (req, res) => {
     }
 });
 
-// API Endpoint: Tüm durak ID'lerini döndür (Tümünü Seç için)
+// API Endpoint: Tüm durak ID'lerini döndür (Tümünü Seç için) - OPTIMIZE EDİLDİ
 app.get('/api/stops/all-ids', async (req, res) => {
+    const limit = parseInt(req.query.limit) || 1000; // ✅ Varsayılan limit 1000
+    const offset = parseInt(req.query.offset) || 0;
+    
+    // ✅ Güvenlik: maksimum 2000 ID döndür
+    const actualLimit = Math.min(limit, 2000);
+    
+    console.log(`🎯 Tüm durak ID'leri çekiliyor: limit=${actualLimit}, offset=${offset}`);
+    
     try {
-        const result = await pool.query('SELECT stop_id FROM stops ORDER BY stop_name ASC');
+        const result = await pool.query(
+            'SELECT stop_id FROM stops ORDER BY stop_name ASC LIMIT $1 OFFSET $2', 
+            [actualLimit, offset]
+        );
+        
         const stopIds = result.rows.map(row => row.stop_id);
+        
+        console.log(`✅ ${stopIds.length} durak ID'si döndürüldü`);
         
         res.json({ 
             stopIds: stopIds,
-            total: stopIds.length
+            total: stopIds.length,
+            hasMore: stopIds.length === actualLimit
         });
         
     } catch (err) {
@@ -195,7 +232,35 @@ app.get('/api/stops/all-ids', async (req, res) => {
     }
 });
 
-// API Endpoint: Batch olarak durak bilgilerini al (performans için)
+// ✅ YENİ: Hızlı durak ID'leri endpoint'i (sadece ID'ler, coğrafi veri yok)
+app.get('/api/stops/ids-only', async (req, res) => {
+    const limit = parseInt(req.query.limit) || 1000;
+    const actualLimit = Math.min(limit, 5000); // Sadece ID olduğu için daha yüksek limit
+    
+    console.log(`⚡ Sadece durak ID'leri çekiliyor: limit=${actualLimit}`);
+    
+    try {
+        const result = await pool.query(
+            'SELECT stop_id FROM stops ORDER BY stop_id ASC LIMIT $1', 
+            [actualLimit]
+        );
+        
+        const stopIds = result.rows.map(row => row.stop_id);
+        
+        console.log(`⚡ ${stopIds.length} durak ID'si hızla döndürüldü`);
+        
+        res.json({ 
+            stopIds: stopIds,
+            count: stopIds.length
+        });
+        
+    } catch (err) {
+        console.error('Hızlı durak ID\'leri alınırken hata:', err.stack);
+        res.status(500).json({ error: 'Durak ID\'leri alınamadı.' });
+    }
+});
+
+// API Endpoint: Batch olarak durak bilgilerini al (performans için) - OPTIMIZE EDİLDİ
 app.post('/api/stops/batch', async (req, res) => {
     const { stopIds } = req.body;
     
@@ -203,10 +268,12 @@ app.post('/api/stops/batch', async (req, res) => {
         return res.status(400).json({ error: 'Geçerli durak ID listesi gönderilmedi.' });
     }
     
-    // Çok fazla ID gönderilmesini engellemek için
-    if (stopIds.length > 1000) {
-        return res.status(400).json({ error: 'Tek seferde en fazla 1000 durak sorgulanabilir.' });
+    // ✅ Limit artırıldı: 2000'e kadar
+    if (stopIds.length > 2000) {
+        return res.status(400).json({ error: 'Tek seferde en fazla 2000 durak sorgulanabilir.' });
     }
+
+    console.log(`📦 Batch durak sorgusu: ${stopIds.length} durak`);
 
     try {
         const query = `
@@ -225,6 +292,8 @@ app.post('/api/stops/batch', async (req, res) => {
             lng: parseFloat(row.stop_lon),
             district: ''
         }));
+
+        console.log(`📦 Batch sonucu: ${formattedStops.length}/${stopIds.length} durak bulundu`);
 
         res.json({
             stops: formattedStops,
@@ -434,5 +503,6 @@ app.get('/api/stop-routes/:stopId', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+    console.log(`🚀 Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+    console.log(`📊 Maksimum durak limitleri: Normal=2000, Batch=2000, IDs-only=5000`);
 });
