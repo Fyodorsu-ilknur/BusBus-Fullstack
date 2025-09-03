@@ -24,6 +24,33 @@ import RouteProgressPanel from './components/RouteProgressPanel';
 import StopSelector from './components/StopSelector';
 import './App.css';
 
+const logVehiclePosition = async (vehicle) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/vehicle-history/log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        vehicleId: vehicle.id,
+        lat: vehicle.location.lat,
+        lng: vehicle.location.lng,
+        speed: vehicle.speed,
+        direction: 0, // Şimdilik sabit, sonra hesaplanabilir
+        status: vehicle.status,
+        routeCode: vehicle.routeCode || null
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Logging hatası:', response.status);
+    }
+  } catch (error) {
+    // Logging hatalarını sessizce geç, ana uygulamayı etkilemesin
+    console.warn('Araç logging hatası:', error);
+  }
+};
+
 function App() {
   const dispatch = useDispatch();
 
@@ -454,32 +481,38 @@ function App() {
       console.log(`394 araç oluşturuldu. ${routesList.length} farklı rota kullanıldı.`);
     }
 
-    const intervalId = setInterval(() => {
-      setVehicles(prevVehicles => {
-        return prevVehicles.map(vehicle => {
-          const isSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
-          if (selectedFleetVehicles.length > 0 && !isSelected) {
-            return vehicle;
-          }
+   const intervalId = setInterval(() => {
+  setVehicles(prevVehicles => {
+    return prevVehicles.map(vehicle => {
+      const isSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
+      if (selectedFleetVehicles.length > 0 && !isSelected) {
+        return vehicle;
+      }
 
-          const newLocation = getRandomLocation();
-          const newSpeed = getRandomSpeed();
-          const now = new Date();
-          const newOdometer = vehicle.odometer + Math.floor(Math.random() * 5) + 1;
-          
-          return {
-            ...vehicle,
-            speed: newSpeed,
-            location: {
-              lat: newLocation[1],
-              lng: newLocation[0]
-            },
-            lastGpsTime: now.toLocaleTimeString('tr-TR'),
-            odometer: newOdometer,
-          };
-        });
-      });
-    }, 60000);
+      const newLocation = getRandomLocation();
+      const newSpeed = getRandomSpeed();
+      const now = new Date();
+      const newOdometer = vehicle.odometer + Math.floor(Math.random() * 5) + 1;
+      
+      const updatedVehicle = {
+        ...vehicle,
+        speed: newSpeed,
+        location: {
+          lat: newLocation[1],
+          lng: newLocation[0]
+        },
+        lastGpsTime: now.toLocaleTimeString('tr-TR'),
+        odometer: newOdometer,
+      };
+
+      if (vehicle.status?.toLowerCase().includes('aktif')) {
+        logVehiclePosition(updatedVehicle);
+      }
+
+      return updatedVehicle; 
+    });
+  });
+}, 60000);
 
     return () => clearInterval(intervalId);
 

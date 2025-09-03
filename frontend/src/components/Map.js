@@ -1288,6 +1288,7 @@ function MapComponent({
           </Marker>
         );
       })}
+      
 
       {mapLoaded && !isFleetTrackingPanelOpen && selectedFleetVehicle && selectedFleetVehicle.location && !animatedFleetPositions[selectedFleetVehicle.id] && (
         <Marker

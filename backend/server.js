@@ -502,6 +502,242 @@ app.get('/api/stop-routes/:stopId', async (req, res) => {
     }
 });
 
+// Geçmiş İzleme API Endpoints - server.js dosyanızın sonuna ekleyin
+
+// 1. Araç konum loglarını kaydetme
+app.post('/api/vehicle-history/log', async (req, res) => {
+    const { vehicleId, lat, lng, speed, direction, status, routeCode } = req.body;
+    
+    try {
+        const result = await pool.query(
+            `INSERT INTO vehicle_location_logs 
+             (vehicle_id, latitude, longitude, speed, direction, status, route_code) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) 
+             RETURNING id, timestamp`,
+            [vehicleId, lat, lng, speed || 0, direction || 0, status || 'active', routeCode]
+        );
+        
+        res.json({ 
+            success: true, 
+            logId: result.rows[0].id, 
+            timestamp: result.rows[0].timestamp 
+        });
+    } catch (err) {
+        console.error('Araç konum logu kaydedilirken hata:', err.stack);
+        res.status(500).json({ error: 'Konum logu kaydedilemedi.' });
+    }
+});
+
+// 2. Belirli araç için geçmiş verileri getirme
+app.get('/api/vehicle-history/:vehicleId', async (req, res) => {
+    const { vehicleId } = req.params;
+    const { startDate, endDate, limit = 1000 } = req.query;
+    
+    try {
+        let query = `
+            SELECT id, vehicle_id, latitude, longitude, timestamp, speed, direction, status, route_code
+            FROM vehicle_location_logs 
+            WHERE vehicle_id = $1
+        `;
+        let params = [vehicleId];
+        let paramIndex = 2;
+        
+        // Tarih filtreleri
+        if (startDate) {
+            query += ` AND timestamp >= $${paramIndex}`;
+            params.push(startDate);
+            paramIndex++;
+        }
+        
+        if (endDate) {
+            query += ` AND timestamp <= $${paramIndex}`;
+            params.push(endDate + ' 23:59:59'); // Günün sonuna kadar
+            paramIndex++;
+        }
+        
+        query += ` ORDER BY timestamp DESC LIMIT $${paramIndex}`;
+        params.push(parseInt(limit));
+        
+        const result = await pool.query(query, params);
+        
+        const historyData = result.rows.map(row => ({
+            id: row.id,
+            vehicleId: row.vehicle_id,
+            latitude: parseFloat(row.latitude),
+            longitude: parseFloat(row.longitude),
+            timestamp: row.timestamp,
+            speed: row.speed,
+            direction: row.direction,
+            status: row.status,
+            routeCode: row.route_code
+        }));
+        
+        res.json(historyData);
+    } catch (err) {
+        console.error(`Araç geçmiş verileri alınırken hata (Vehicle ID: ${vehicleId}):`, err.stack);
+        res.status(500).json({ error: 'Geçmiş verileri alınamadı.' });
+    }
+});
+
+// 3. Belirli tarih aralığındaki tüm araç logları
+app.get('/api/vehicle-history', async (req, res) => {
+    const { startDate, endDate, vehicleIds, limit = 500 } = req.query;
+    
+    try {
+        let query = `
+            SELECT vehicle_id, latitude, longitude, timestamp, speed, status, route_code,
+                   COUNT(*) OVER() as total_count
+            FROM vehicle_location_logs 
+            WHERE 1=1
+        `;
+        let params = [];
+        let paramIndex = 1;
+        
+        if (startDate) {
+            query += ` AND timestamp >= $${paramIndex}`;
+            params.push(startDate);
+            paramIndex++;
+        }
+        
+        if (endDate) {
+            query += ` AND timestamp <= $${paramIndex}`;
+            params.push(endDate + ' 23:59:59');
+            paramIndex++;
+        }
+        
+        if (vehicleIds) {
+            const vehicleArray = vehicleIds.split(',');
+            query += ` AND vehicle_id = ANY($${paramIndex}::text[])`;
+            params.push(vehicleArray);
+            paramIndex++;
+        }
+        
+        query += ` ORDER BY timestamp DESC LIMIT $${paramIndex}`;
+        params.push(parseInt(limit));
+        
+        const result = await pool.query(query, params);
+        
+        res.json({
+            logs: result.rows,
+            total: result.rows.length > 0 ? result.rows[0].total_count : 0,
+            hasMore: result.rows.length === parseInt(limit)
+        });
+    } catch (err) {
+        console.error('Tüm araç geçmiş verileri alınırken hata:', err.stack);
+        res.status(500).json({ error: 'Geçmiş verileri alınamadı.' });
+    }
+});
+
+// 4. Güzergah kesiti analizi
+app.get('/api/vehicle-history/:vehicleId/route-segment', async (req, res) => {
+    const { vehicleId } = req.params;
+    const { startLat, startLng, endLat, endLng, startTime, endTime, radius = 0.001 } = req.query;
+    
+    try {
+        const query = `
+            SELECT id, vehicle_id, latitude, longitude, timestamp, speed, status, route_code
+            FROM vehicle_location_logs 
+            WHERE vehicle_id = $1
+            AND timestamp BETWEEN $2 AND $3
+            AND (
+                -- Başlangıç noktasına yakın olan kayıtlar
+                (ABS(latitude - $4) < $6 AND ABS(longitude - $5) < $6)
+                OR
+                -- Bitiş noktasına yakın olan kayıtlar  
+                (ABS(latitude - $7) < $6 AND ABS(longitude - $8) < $6)
+                OR
+                -- Başlangıç ve bitiş arasındaki kayıtlar (basit rectangular area)
+                (latitude BETWEEN LEAST($4, $7) AND GREATEST($4, $7) 
+                 AND longitude BETWEEN LEAST($5, $8) AND GREATEST($5, $8))
+            )
+            ORDER BY timestamp ASC
+        `;
+        
+        const params = [
+            vehicleId, startTime, endTime,
+            parseFloat(startLat), parseFloat(startLng), 
+            parseFloat(radius),
+            parseFloat(endLat), parseFloat(endLng)
+        ];
+        
+        const result = await pool.query(query, params);
+        
+        res.json({
+            vehicleId,
+            routeSegment: {
+                startPoint: { lat: parseFloat(startLat), lng: parseFloat(startLng) },
+                endPoint: { lat: parseFloat(endLat), lng: parseFloat(endLng) },
+                timeRange: { start: startTime, end: endTime }
+            },
+            logs: result.rows,
+            totalPoints: result.rows.length
+        });
+    } catch (err) {
+        console.error(`Güzergah kesiti analizi hatası (Vehicle ID: ${vehicleId}):`, err.stack);
+        res.status(500).json({ error: 'Güzergah kesiti analizi yapılamadı.' });
+    }
+});
+
+// 5. Araç geçmiş istatistikleri
+app.get('/api/vehicle-history/:vehicleId/stats', async (req, res) => {
+    const { vehicleId } = req.params;
+    const { startDate, endDate } = req.query;
+    
+    try {
+        let query = `
+            SELECT 
+                COUNT(*) as total_records,
+                MIN(timestamp) as first_record,
+                MAX(timestamp) as last_record,
+                AVG(speed) as avg_speed,
+                MAX(speed) as max_speed,
+                MIN(speed) as min_speed,
+                COUNT(DISTINCT route_code) as routes_used,
+                COUNT(DISTINCT DATE(timestamp)) as days_active
+            FROM vehicle_location_logs 
+            WHERE vehicle_id = $1
+        `;
+        let params = [vehicleId];
+        let paramIndex = 2;
+        
+        if (startDate) {
+            query += ` AND timestamp >= $${paramIndex}`;
+            params.push(startDate);
+            paramIndex++;
+        }
+        
+        if (endDate) {
+            query += ` AND timestamp <= $${paramIndex}`;
+            params.push(endDate + ' 23:59:59');
+            paramIndex++;
+        }
+        
+        const result = await pool.query(query, params);
+        const stats = result.rows[0];
+        
+        res.json({
+            vehicleId,
+            statistics: {
+                totalRecords: parseInt(stats.total_records),
+                firstRecord: stats.first_record,
+                lastRecord: stats.last_record,
+                avgSpeed: stats.avg_speed ? parseFloat(stats.avg_speed).toFixed(2) : 0,
+                maxSpeed: stats.max_speed || 0,
+                minSpeed: stats.min_speed || 0,
+                routesUsed: parseInt(stats.routes_used),
+                daysActive: parseInt(stats.days_active)
+            }
+        });
+    } catch (err) {
+        console.error(`Araç istatistikleri alınırken hata (Vehicle ID: ${vehicleId}):`, err.stack);
+        res.status(500).json({ error: 'Araç istatistikleri alınamadı.' });
+    }
+});
+
+
+
+
+
 app.listen(PORT, () => {
     console.log(`🚀 Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
     console.log(`📊 Maksimum durak limitleri: Normal=2000, Batch=2000, IDs-only=5000`);
