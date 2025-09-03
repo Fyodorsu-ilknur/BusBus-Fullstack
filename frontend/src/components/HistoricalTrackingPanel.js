@@ -20,9 +20,11 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
   
   const intervalRef = useRef(null);
 
-  // Gerçek araçları ve rotaları kullan
-  const availableVehicles = vehicles.filter(v => v.status === 'Aktif').slice(0, 20); // Sadece aktif araçlar, ilk 20
-  const availableRoutes = Object.values(allRoutes).slice(0, 15); // İlk 15 rota
+  // Gerçek araçları ve rotaları kullan - TÜM aktif araçları göster
+  const availableVehicles = vehicles.filter(v => 
+    v.status && (v.status.toLowerCase().includes('aktif') || v.status.toLowerCase() === 'aktif')
+  ); // TÜM aktif araçlar
+  const availableRoutes = Object.values(allRoutes); // TÜM rotalar
 
   // Gerçek güzergah koordinatlarını API'den çek
   const fetchRouteCoordinates = async (routeNumber, direction = '1') => {
@@ -147,7 +149,7 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
     
     // Ana haritaya veri gönder
     if (onHistoricalDataChange) {
-      onHistoricalDataChange(data, vehicleData, routeData);
+      onHistoricalDataChange(data, vehicleData, 0, routeData);
     }
   };
 
@@ -169,12 +171,12 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
           if (onHistoricalDataChange) {
             const vehicleData = availableVehicles.find(v => v.id === selectedVehicle);
             const routeData = availableRoutes.find(r => r.route_number === (selectedRoute || vehicleData?.routeCode));
-            onHistoricalDataChange(historicalData, vehicleData, routeData, nextIndex);
+            onHistoricalDataChange(historicalData, vehicleData, nextIndex, routeData);
           }
           
           return nextIndex;
         });
-      }, 1000 / playbackSpeed);
+      }, 1000 / playbackSpeed); // Hıza göre interval
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -186,7 +188,7 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
         clearInterval(intervalRef.current);
       }
     };
-  }, [isPlaying, playbackSpeed, historicalData, onHistoricalDataChange, selectedVehicle, selectedRoute]);
+  }, [isPlaying, playbackSpeed, historicalData, onHistoricalDataChange, selectedVehicle, selectedRoute, availableVehicles, availableRoutes]);
 
   const handlePlay = () => {
     if (historicalData.length === 0) {
@@ -206,7 +208,7 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
       if (onHistoricalDataChange) {
         const vehicleData = availableVehicles.find(v => v.id === selectedVehicle);
         const routeData = availableRoutes.find(r => r.route_number === (selectedRoute || vehicleData?.routeCode));
-        onHistoricalDataChange(historicalData, vehicleData, routeData, 0);
+        onHistoricalDataChange(historicalData, vehicleData, 0, routeData);
       }
     }
   };
@@ -219,7 +221,7 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
     if (onHistoricalDataChange) {
       const vehicleData = availableVehicles.find(v => v.id === selectedVehicle);
       const routeData = availableRoutes.find(r => r.route_number === (selectedRoute || vehicleData?.routeCode));
-      onHistoricalDataChange(historicalData, vehicleData, routeData, index);
+      onHistoricalDataChange(historicalData, vehicleData, index, routeData);
     }
   };
 

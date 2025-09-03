@@ -52,11 +52,16 @@ function MapComponent({
   animatedTimeToDestination,
   selectedPopupInfo = [], 
   
+  // ✅ YENİ: Geçmiş izleme props'ları
+  historicalTrackingData = [],
+  currentHistoricalVehicle,
+  currentHistoricalIndex = 0,
+  isHistoricalMode = false,
+  
 }) {
   const mapRef = useRef();
 
   const [mapLoaded, setMapLoaded] = useState(false);
-
 
   const userInteractedFleetZoomRef = useRef(false);
 
@@ -71,6 +76,10 @@ function MapComponent({
   const [selectedRoutesData, setSelectedRoutesData] = useState({});
   const [routePopup, setRoutePopup] = useState(null);
   const [hoveredRoute, setHoveredRoute] = useState(null);
+
+  // ✅ YENİ: Geçmiş izleme state'leri
+  const [historicalPassedRoute, setHistoricalPassedRoute] = useState(null);
+  const [historicalFutureRoute, setHistoricalFutureRoute] = useState(null);
 
   const selectedStops = useSelector(state => state.selectedItems?.selectedStopIds || []);
   const allStops = useSelector(state => state.selectedItems?.allStops || []);
@@ -91,7 +100,6 @@ function MapComponent({
       const map = mapRef.current.getMap();
 
       const handleUserInteraction = () => {
-        // Kullanıcı haritayı manuel olarak hareket ettirdiğinde, otomatik zoom'u engeller.
         userInteractedFleetZoomRef.current = true; 
       };
 
@@ -122,7 +130,7 @@ function MapComponent({
     switch (status?.toLowerCase()) {
       case 'aktif/çalışıyor':
       case 'aktif':
-        return '#28a745'; // 
+        return '#28a745'; 
       case 'bakımda':
         return '#dc3545';   
       case 'servis dışı':
@@ -131,6 +139,7 @@ function MapComponent({
         return '#ffc107'; 
     }
   };
+
   const getPopupContent = useCallback((vehicle) => {
     if (!selectedPopupInfo || selectedPopupInfo.length === 0) {
       return []; 
@@ -194,11 +203,10 @@ function MapComponent({
     try {
       if (vehicle.routeCode && vehicle.routeData) {
         if (vehicle.routeData.directions && vehicle.routeData.directions['1'] && vehicle.routeData.directions['1'].length > 0) {
-          return vehicle.routeData.directions['1'].map(coord => [coord[0], coord[1]]); // Maplibre [lat, lng] bekler
+          return vehicle.routeData.directions['1'].map(coord => [coord[0], coord[1]]);
         }
       }
       
-      // Server'dan çek
       const response = await fetch(`http://localhost:5000/api/route-details/${vehicle.routeCode}/1`);
       if (response.ok) {
         const routeData = await response.json();
@@ -248,7 +256,6 @@ function MapComponent({
     }
   }, [selectedFleetVehicle, animatedFleetPositions, mapLoaded, isFleetTrackingPanelOpen]);
 
-
   useEffect(() => {
     if (!isFleetTrackingPanelOpen || selectedFleetVehicles.length === 0) {
       Object.values(fleetAnimationIntervals.current).forEach(intervalId => {
@@ -260,7 +267,6 @@ function MapComponent({
     }
 
     selectedFleetVehicles.forEach(async (vehicle) => {
-      // Sadece aktif olan araçları animasyona dahil eter
       if (!vehicle.status?.toLowerCase().includes('aktif')) {
         if (fleetAnimationIntervals.current[vehicle.id]) {
           clearInterval(fleetAnimationIntervals.current[vehicle.id]);
@@ -300,7 +306,6 @@ function MapComponent({
           }
         }));
 
-        // Animasyon interval'ini başlatırr
         const intervalId = setInterval(() => {
           currentIndex = (currentIndex + 1) % route.length;
           
@@ -402,7 +407,6 @@ function MapComponent({
       }
     }
   }, [mapCenter, zoomLevel, mapLoaded]);
-
 
   useEffect(() => {
     if (!isPanelOpen || !selectedVehicle || !selectedRoute || isRouteDetailsPanelOpen || isDepartureTimesPanelOpen || isRouteNavigationPanelOpen) {
@@ -590,6 +594,141 @@ function MapComponent({
       }
     };
   }, [selectedRoute, selectedVehicle, mapLoaded, onCurrentStopChange, currentDirection, isPanelOpen, isRouteDetailsPanelOpen, isDepartureTimesPanelOpen, isRouteNavigationPanelOpen, onAnimatedDataChange, selectedStops, allStops]);
+
+  // ✅ YENİ: Geçmiş İzleme Animasyonu
+  useEffect(() => {
+    if (isHistoricalMode && historicalTrackingData.length > 0 && currentHistoricalIndex >= 0 && mapLoaded && mapRef.current) {
+      const currentPoint = historicalTrackingData[currentHistoricalIndex];
+      
+      if (currentPoint && currentPoint.location && Array.isArray(currentPoint.location) && currentPoint.location.length === 2) {
+        mapRef.current.flyTo({
+          center: [currentPoint.location[1], currentPoint.location[0]],
+          zoom: Math.max(mapRef.current.getMap().getZoom(), 14),
+          duration: 500
+        });
+        
+        const passedPath = historicalTrackingData.slice(0, currentHistoricalIndex + 1);
+        const passedCoordinates = passedPath
+          .filter(point => point.location && Array.isArray(point.location) && point.location.length === 2)
+          .map(point => [point.location[1], point.location[0]]);
+        
+        if (historicalPassedRoute) {
+          try {
+            mapRef.current.getMap().removeLayer('historical-passed-route');
+            mapRef.current.getMap().removeSource('historical-passed-route-source');
+          } catch (e) {}
+          setHistoricalPassedRoute(null);
+        }
+        
+        if (passedCoordinates.length > 1) {
+          const passedRouteData = {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: passedCoordinates
+            }
+          };
+          
+          try {
+            mapRef.current.getMap().addSource('historical-passed-route-source', {
+              type: 'geojson',
+              data: passedRouteData
+            });
+            
+            mapRef.current.getMap().addLayer({
+              id: 'historical-passed-route',
+              type: 'line',
+              source: 'historical-passed-route-source',
+              layout: { 'line-join': 'round', 'line-cap': 'round' },
+              paint: { 'line-color': '#FF0000', 'line-width': 5, 'line-opacity': 0.8 }
+            });
+            
+            setHistoricalPassedRoute('historical-passed-route');
+          } catch (e) {
+            console.warn('Geçmiş rota çizimi hatası:', e);
+          }
+        }
+        
+        if (currentHistoricalIndex < historicalTrackingData.length - 1) {
+          const futurePath = historicalTrackingData.slice(currentHistoricalIndex);
+          const futureCoordinates = futurePath
+            .filter(point => point.location && Array.isArray(point.location) && point.location.length === 2)
+            .map(point => [point.location[1], point.location[0]]);
+          
+          if (historicalFutureRoute) {
+            try {
+              mapRef.current.getMap().removeLayer('historical-future-route');
+              mapRef.current.getMap().removeSource('historical-future-route-source');
+            } catch (e) {}
+            setHistoricalFutureRoute(null);
+          }
+          
+          if (futureCoordinates.length > 1) {
+            const futureRouteData = {
+              type: 'Feature',
+              geometry: {
+                type: 'LineString',
+                coordinates: futureCoordinates
+              }
+            };
+            
+            try {
+              mapRef.current.getMap().addSource('historical-future-route-source', {
+                type: 'geojson',
+                data: futureRouteData
+              });
+              
+              mapRef.current.getMap().addLayer({
+                id: 'historical-future-route',
+                type: 'line',
+                source: 'historical-future-route-source',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                  'line-color': '#CCCCCC',
+                  'line-width': 3,
+                  'line-opacity': 0.6,
+                  'line-dasharray': [5, 10]
+                }
+              });
+              
+              setHistoricalFutureRoute('historical-future-route');
+            } catch (e) {
+              console.warn('Gelecek rota çizimi hatası:', e);
+            }
+          }
+        }
+      }
+    } else if (!isHistoricalMode) {
+      if (historicalPassedRoute) {
+        try {
+          mapRef.current?.getMap().removeLayer('historical-passed-route');
+          mapRef.current?.getMap().removeSource('historical-passed-route-source');
+        } catch (e) {}
+        setHistoricalPassedRoute(null);
+      }
+      
+      if (historicalFutureRoute) {
+        try {
+          mapRef.current?.getMap().removeLayer('historical-future-route');
+          mapRef.current?.getMap().removeSource('historical-future-route-source');
+        } catch (e) {}
+        setHistoricalFutureRoute(null);
+      }
+    }
+  }, [isHistoricalMode, historicalTrackingData, currentHistoricalIndex, mapLoaded]);
+
+  useEffect(() => {
+    return () => {
+      if (mapRef.current && mapRef.current.getMap()) {
+        try {
+          mapRef.current.getMap().removeLayer('historical-passed-route');
+          mapRef.current.getMap().removeSource('historical-passed-route-source');
+          mapRef.current.getMap().removeLayer('historical-future-route');
+          mapRef.current.getMap().removeSource('historical-future-route-source');
+        } catch (e) {}
+      }
+          };
+  }, []);
 
   const formatTime = useCallback((totalSeconds) => {
     if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
@@ -793,7 +932,7 @@ function MapComponent({
       onMouseMove={onMouseMove}
       interactiveLayerIds={multipleRoutesData.map(route => `route-layer-${route.id}`)}
     >
-      {/* Tekli Seçili Rota  */}
+      {/* Tekli Seçili Rota */}
       {mapLoaded && singleSelectedRouteGeoJSON && (
         <Source id="route-data" type="geojson" data={singleSelectedRouteGeoJSON}>
           <Layer
@@ -805,7 +944,7 @@ function MapComponent({
         </Source>
       )}
 
-      {/* Çoklu Seçili Rota*/}
+      {/* Çoklu Seçili Rota */}
       {mapLoaded && multipleRoutesData.length > 0 && multipleRoutesData.map((routeData) => (
         <Source
           key={routeData.id}
@@ -882,9 +1021,9 @@ function MapComponent({
         })
       )}
 
-      {/* Redux Durakları  */}
-     {mapLoaded && !isRouteNavigationPanelOpen && Array.isArray(allStops) && selectedStops.map(stopId => {
-  const stop = allStops.find(s => s.id === stopId);
+      {/* Redux Durakları */}
+      {mapLoaded && !isRouteNavigationPanelOpen && Array.isArray(allStops) && selectedStops.map(stopId => {
+        const stop = allStops.find(s => s.id === stopId);
         const isOnSelectedAnimatedRoute = selectedRoute?.directionsStops?.[currentDirection]?.some(routeStop => routeStop.id === stopId);
 
         if (stop && !isOnSelectedAnimatedRoute && typeof stop.lat === 'number' && typeof stop.lng === 'number') {
@@ -938,8 +1077,6 @@ function MapComponent({
 
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicleId);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
-        
-        // Pop-up'ın gösterilip gösterilmeyeceği  selectedFleetVehicle'a ve selectedPopupInfo'ya bağladım
         const isPopupVisible = selectedFleetVehicle?.id === vehicle.id && selectedPopupInfo.length > 0;
 
         if (!isMultiSelected || !isActive) return null;
@@ -1097,7 +1234,7 @@ function MapComponent({
                 }}
               />
 
-              {isPopupVisible && ( // Sadece seçili ve bilgisi varsa
+              {isPopupVisible && ( 
                 <Popup
                   longitude={vehicle.location.lng}
                   latitude={vehicle.location.lat}
@@ -1163,61 +1300,60 @@ function MapComponent({
             alt={`Seçili Araç ${selectedFleetVehicle.plate || selectedFleetVehicle.id}`}
             style={{ width: '40px', height: '40px', cursor: 'default' }}
           />
-          {/*Otomatik Pop-up */}
           {selectedFleetVehicle && selectedPopupInfo.length > 0 && (
-                <Popup
-                  longitude={selectedFleetVehicle.location.lng}
-                  latitude={selectedFleetVehicle.location.lat}
-                  anchor="bottom"
-                  closeButton={false}
-                  closeOnClick={false} 
-                  offset={[0, -45]}
-                >
-                  <div style={{
-                    padding: '8px',
-                    minWidth: '200px',
-                    background: 'white',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{
+            <Popup
+              longitude={selectedFleetVehicle.location.lng}
+              latitude={selectedFleetVehicle.location.lat}
+              anchor="bottom"
+              closeButton={false}
+              closeOnClick={false} 
+              offset={[0, -45]}
+            >
+              <div style={{
+                padding: '8px',
+                minWidth: '200px',
+                background: 'white',
+                borderRadius: '8px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '8px',
+                  borderBottom: '1px solid #e2e8f0',
+                  paddingBottom: '4px'
+                }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                    {selectedFleetVehicle.plate}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {getPopupContent(selectedFleetVehicle).map(info => (
+                    <div key={info.key} style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      marginBottom: '8px',
-                      borderBottom: '1px solid #e2e8f0',
-                      paddingBottom: '4px'
+                      gap: '6px',
+                      fontSize: '12px'
                     }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
-                        {selectedFleetVehicle.plate}
+                      <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
+                        {info.icon}
+                      </span>
+                      <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
+                        {info.label}:
+                      </span>
+                      <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
+                        {info.value}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {getPopupContent(selectedFleetVehicle).map(info => (
-                        <div key={info.key} style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '12px'
-                        }}>
-                          <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
-                            {info.icon}
-                          </span>
-                          <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
-                            {info.label}:
-                          </span>
-                          <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
-                            {info.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </Popup>
-              )}
+                  ))}
+                </div>
+              </div>
+            </Popup>
+          )}
         </Marker>
       )}
 
-      {/* Navigasyon Rotası Katmanları (Nasıl Giderim paneli için)    NASIL GİDEİRMİ KALDIRDIM*/}  
+      {/* Navigasyon Rotası Katmanları */}
       {mapLoaded && isRouteNavigationPanelOpen && navigationRouteGeoJSON.bus && (
         <Source id="navigation-bus-route" type="geojson" data={navigationRouteGeoJSON.bus}>
           <Layer
@@ -1249,7 +1385,7 @@ function MapComponent({
         </Source>
       )}
 
-      {/*Navigasyon Başlangıç  Bitiş */}
+      {/* Navigasyon Başlangıç Bitiş */}
       {mapLoaded && isRouteNavigationPanelOpen && navigationStartEndMarkers.start && (
         <Marker
           longitude={navigationStartEndMarkers.start.lng}
@@ -1284,7 +1420,7 @@ function MapComponent({
         </Marker>
       )}
 
-      {/* Animasyonlu Otobüs  */}
+      {/* Animasyonlu Otobüs */}
       {mapLoaded && animatedBusPosition && typeof animatedBusPosition.lat === 'number' && typeof animatedBusPosition.lng === 'number' && selectedRoute && selectedVehicle && isPanelOpen && (
         <Marker
           longitude={animatedBusPosition.lng}
@@ -1308,8 +1444,81 @@ function MapComponent({
           )}
         </Marker>
       )}
+
+      {/* ✅ YENİ: Geçmiş İzleme Otobüs Marker'ı */}
+      {mapLoaded && isHistoricalMode && historicalTrackingData.length > 0 && currentHistoricalIndex >= 0 && historicalTrackingData[currentHistoricalIndex] && (
+        <Marker
+          longitude={historicalTrackingData[currentHistoricalIndex].location[1]}
+          latitude={historicalTrackingData[currentHistoricalIndex].location[0]}
+          anchor="center"
+        >
+          <div style={{ 
+            position: 'relative', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center' 
+          }}>
+            <img
+              src={busIconUrl}
+              alt="Geçmiş Otobüs"
+              style={{
+                width: '45px',
+                height: '45px',
+                filter: 'hue-rotate(45deg) brightness(1.2)',
+                border: '3px solid #FF6B35',
+                borderRadius: '50%',
+                boxShadow: '0 0 15px rgba(255, 107, 53, 0.6)',
+                animation: 'pulse 2s infinite'
+              }}
+            />
+            
+            {/* Geçmiş veri popup bilgisi */}
+            <div style={{
+              position: 'absolute',
+              top: '-70px',
+              background: 'rgba(255, 107, 53, 0.95)',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+              zIndex: 1000,
+              minWidth: '120px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '11px', opacity: 0.9, marginBottom: '2px' }}>
+                {historicalTrackingData[currentHistoricalIndex].timestamp}
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: '700' }}>
+                {historicalTrackingData[currentHistoricalIndex].speed} km/h
+              </div>
+              <div style={{ fontSize: '10px', opacity: 0.9, marginTop: '2px' }}>
+                {historicalTrackingData[currentHistoricalIndex].passengerCount} yolcu
+              </div>
+            </div>
+            
+            {/* Geçmiş mod göstergesi */}
+            <div style={{
+              position: 'absolute',
+              bottom: '-25px',
+              background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
+              color: 'white',
+              fontSize: '9px',
+              padding: '3px 8px',
+              borderRadius: '12px',
+              fontWeight: '700',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: '0 2px 6px rgba(255, 107, 53, 0.4)'
+            }}>
+              GEÇMİŞ
+            </div>
+          </div>
+        </Marker>
+      )}
     </Map>
   );
 }
-
 export default MapComponent;
