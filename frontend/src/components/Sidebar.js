@@ -2,47 +2,79 @@
 import React from 'react';
 import './Sidebar.css';
 
-function Sidebar({
-  onMenuClick, // Yeni prop sistemi
-  isExpanded
-}) {
+function Sidebar({ onMenuClick, isExpanded, theme }) {
   return (
-    <div className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
+    <div className={`sidebar ${isExpanded ? 'expanded' : ''} ${theme === 'dark' ? 'dark' : ''}`}>
       <ul className="sidebar-icons">
 
         <li>
-          <button onClick={() => onMenuClick('vehicle-list')} className="sidebar-item" title="Hat Güzergah Takip">
+          <button 
+            onClick={() => onMenuClick('vehicle-list')} 
+            className="sidebar-item" 
+            title="Hat Güzergah Takip"
+          >
             <span className="material-icons">grid_view</span>
           </button>
         </li>
 
         <li>
-          <button onClick={() => onMenuClick('route-details')} className="sidebar-item" title="Güzergah Detayları">
+          <button 
+            onClick={() => onMenuClick('route-details')} 
+            className="sidebar-item" 
+            title="Güzergah Detayları"
+          >
             <span className="material-icons">alt_route</span>
           </button>
         </li>
 
         <li>
-          <button onClick={() => onMenuClick('departure-times')} className="sidebar-item" title="Kalkış Saatleri">
+          <button 
+            onClick={() => onMenuClick('departure-times')} 
+            className="sidebar-item" 
+            title="Kalkış Saatleri"
+          >
             <span className="material-icons">schedule</span>
           </button>
         </li>
 
         <li>
-          <button onClick={() => onMenuClick('stop-selector')} className="sidebar-item" title="Durak Seçimi">
+          <button 
+            onClick={() => onMenuClick('stop-selector')} 
+            className="sidebar-item" 
+            title="Durak Seçimi"
+          >
             <span className="material-icons">location_on</span>
           </button>
         </li>
 
         <li>
-          <button onClick={() => onMenuClick('fleet-tracking')} className="sidebar-item" title="Filo Takip">
+          <button 
+            onClick={() => onMenuClick('fleet-tracking')} 
+            className="sidebar-item" 
+            title="Filo Takip"
+          >
             <span className="material-icons">directions_bus</span>
           </button>
         </li>
 
         <li>
-          <button onClick={() => onMenuClick('fleet-filters')} className="sidebar-item" title="Ayarlar ve Filtreler">
+          <button 
+            onClick={() => onMenuClick('fleet-filters')} 
+            className="sidebar-item" 
+            title="Ayarlar ve Filtreler"
+          >
             <span className="material-icons">tune</span>
+          </button>
+        </li>
+
+        {/* ✅ YENİ EKLENDİ: Geçmişe Dönük İzleme İkonu */}
+        <li>
+          <button 
+            onClick={() => onMenuClick('historical-tracking')} 
+            className="sidebar-item" 
+            title="Geçmiş İzleme"
+          >
+            <span className="material-icons">history</span>
           </button>
         </li>
 

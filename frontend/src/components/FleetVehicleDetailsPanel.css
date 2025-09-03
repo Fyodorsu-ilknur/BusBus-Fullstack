@@ -14,7 +14,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: 300px;
+    width: 290px;
     background-color: var(--panel-bg-color);
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -75,6 +75,7 @@
     color: var(--accent-color);
 }
 
+
 .category-icons-container {
     display: flex;
     justify-content: center;
@@ -84,7 +85,7 @@
     background-color: var(--navbar-bg-color);
     gap: 5px; 
     flex-wrap: wrap;
-    margin-left:35px;
+    margin-left:3px;
 }
 
 .category-icon-btn {

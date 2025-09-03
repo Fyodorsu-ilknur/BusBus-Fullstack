@@ -225,7 +225,7 @@ body {
 .panel-wrapper.details-panel-right {
   right: 12px;
   left: auto;
-  width: 350px;
+  width: 295px;
   transform: translateX(120%);
 }
 

@@ -3,14 +3,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
 import FleetTrackingPanel from './components/FleetTrackingPanel';
-import FleetFiltersPanel from './components/FleetFiltersPanel'; // ✅ YENİ: Ayarlar ve Filtreler paneli
-import FilteredVehiclesPanel from './components/FilteredVehiclesPanel'; // ✅ YENİ: Sağ panel
+import FleetFiltersPanel from './components/FleetFiltersPanel';
+import FilteredVehiclesPanel from './components/FilteredVehiclesPanel';
+import HistoricalTrackingPanel from './components/HistoricalTrackingPanel'; // ✅ YENİ: Geçmiş İzleme paneli
 
 import FleetVehicleDetailsPanel from './components/FleetVehicleDetailsPanel';
 
 import {
   setAllRoutes, clearSelectedRoutes, toggleSelectedRoute, selectAllRoutes,
-  toggleSelectedStop, clearSelectedStops, setAllStops, selectAllStops, selectMultipleStops // ✅ YENİ: selectMultipleStops eklendi
+  toggleSelectedStop, clearSelectedStops, setAllStops, selectAllStops, selectMultipleStops
 } from './store/selectedItemsSlice';
 
 import Navbar from './components/Navbar';
@@ -32,7 +33,7 @@ function App() {
   const allStops = useSelector(state => state.selectedItems.allStops);
   const selectedStopIds = useSelector(state => state.selectedItems.selectedStopIds);
 
-  // ✅ YENİ: Dark Mode State - localStorage'dan yükle
+  // Theme state - localStorage'dan yükle
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('app-theme');
     return savedTheme || 'light';
@@ -42,8 +43,8 @@ function App() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedFleetVehicle, setSelectedFleetVehicle] = useState(null);
   const [selectedFleetVehicles, setSelectedFleetVehicles] = useState([]);
-  const [filteredFleetVehicles, setFilteredFleetVehicles] = useState([]); // ✅ YENİ: Filtrelenmiş araçlar
-  const [isFilteredVehiclesPanelOpen, setIsFilteredVehiclesPanelOpen] = useState(false); // ✅ YENİ: Sağ panel kontrol
+  const [filteredFleetVehicles, setFilteredFleetVehicles] = useState([]);
+  const [isFilteredVehiclesPanelOpen, setIsFilteredVehiclesPanelOpen] = useState(false);
   
   // Pop-up entegrasyonu için state'ler
   const [selectedPopupInfo, setSelectedPopupInfo] = useState([
@@ -54,18 +55,18 @@ function App() {
     { key: 'lastGpsTime', label: 'Son GPS', value: '14:26:53', icon: '⏰' },
     { key: 'odometer', label: 'KM', value: '522.005,32 km', icon: '📊' }
   ]);
-  const [selectedVehicleForPanel, setSelectedVehicleForPanel] = useState(null); // Şu an kullanılmıyor, ileride kaldırılabilir
-  const [isPanelOpenForVehicleDetails, setIsPanelOpenForVehicleDetails] = useState(false); // Şu an kullanılmıyor, ileride kaldırılabilir
 
+  // Panel state'leri
   const [selectedItem, setSelectedItem] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isRouteDetailsPanelOpen, setIsRouteDetailsPanelOpen] = useState(false);
   const [isDepartureTimesPanelOpen, setIsDepartureTimesPanelOpen] = useState(false);
   const [isStopSelectorOpen, setIsStopSelectorOpen] = useState(false);
-  
   const [isFleetTrackingPanelOpen, setIsFleetTrackingPanelOpen] = useState(false);
-  const [isFleetFiltersPanelOpen, setIsFleetFiltersPanelOpen] = useState(false); // ✅ YENİ: Filtreler paneli
+  const [isFleetFiltersPanelOpen, setIsFleetFiltersPanelOpen] = useState(false);
+  const [isHistoricalTrackingPanelOpen, setIsHistoricalTrackingPanelOpen] = useState(false); // ✅ YENİ: Geçmiş İzleme paneli
 
+  // Diğer state'ler
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
@@ -80,7 +81,13 @@ function App() {
   const [animatedDistanceToDestination, setAnimatedDistanceToDestination] = useState(null);
   const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
 
-  // ✅ YENİ: Theme değişikliklerini localStorage'a kaydet
+  // ✅ YENİ: Geçmiş izleme states
+  const [historicalTrackingData, setHistoricalTrackingData] = useState([]);
+  const [currentHistoricalVehicle, setCurrentHistoricalVehicle] = useState(null);
+  const [currentHistoricalIndex, setCurrentHistoricalIndex] = useState(0);
+  const [isHistoricalMode, setIsHistoricalMode] = useState(false);
+
+  // Theme değişikliklerini localStorage'a kaydet
   useEffect(() => {
     localStorage.setItem('app-theme', theme);
     if (theme === 'dark') {
@@ -92,7 +99,7 @@ function App() {
     }
   }, [theme]);
 
-  // ✅ YENİ: Dark Mode Toggle Fonksiyonu
+  // Dark Mode Toggle Fonksiyonu
   const toggleTheme = useCallback(() => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   }, []);
@@ -102,11 +109,10 @@ function App() {
     setSelectedPopupInfo(newSelectedInfo);
   }, []);
 
-  // ✅ YENİ: Filtrelenmiş araçları güncelleme fonksiyonu - GÜNCELLENDİ
+  // Filtrelenmiş araçları güncelleme fonksiyonu
   const handleFilteredVehiclesChange = useCallback((filtered) => {
     console.log('Filtrelenmiş araçlar güncelleniyor:', filtered.length);
     setFilteredFleetVehicles(filtered);
-    // ✅ YENİ: Eğer filtrelenmiş araç varsa sağ paneli aç
     if (filtered.length > 0) {
       setIsFilteredVehiclesPanelOpen(true);
     } else {
@@ -114,12 +120,47 @@ function App() {
     }
   }, []);
 
-  // ✅ YENİ: Sağ panel kapatma handler'ı
+  // Sağ panel kapatma handler'ı
   const closeFilteredVehiclesPanel = useCallback(() => {
     setIsFilteredVehiclesPanelOpen(false);
   }, []);
 
-  // ✅ YENİ: Filtrelenmiş panelden araç seçme handler'ı
+  // ✅ YENİ: Geçmiş veri değişikliği handler
+  const handleHistoricalDataChange = useCallback((data, vehicle, currentIndex = 0) => {
+    setHistoricalTrackingData(data);
+    setCurrentHistoricalVehicle(vehicle);
+    setCurrentHistoricalIndex(currentIndex);
+    setIsHistoricalMode(true);
+    
+    // Haritayı güncelle
+    if (data && data[currentIndex]) {
+      setMapCenter(data[currentIndex].location);
+    }
+  }, []);
+
+  // Fleet vehicle seçim handler'ı
+  const handleFleetVehicleSelect = useCallback((vehicle) => {
+    console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
+
+    // selectedFleetVehicles state'ini güncelle
+    setSelectedFleetVehicles(prevSelected => {
+      const isAlreadySelected = prevSelected.some(v => v.id === vehicle.id);
+      if (isAlreadySelected) {
+        const newSelection = prevSelected.filter(v => v.id !== vehicle.id);
+        return newSelection;
+      } else {
+        const newSelection = [...prevSelected, vehicle];
+        return newSelection;
+      }
+    });
+
+    // Toggle logic: Eğer seçilen araç zaten selectedFleetVehicle ise, null yap (kapat). Aksi takdirde yeni seçilen aracı ata.
+    setSelectedFleetVehicle(prevVehicle => 
+      prevVehicle?.id === vehicle.id ? null : vehicle
+    );
+  }, []);
+
+  // Filtrelenmiş panelden araç seçme handler'ı
   const handleFilteredVehicleSelect = useCallback((vehicle) => {
     // Seçilen aracı ana filo takip panelindeki seçime ekle
     handleFleetVehicleSelect(vehicle);
@@ -127,7 +168,7 @@ function App() {
     // Seçilen aracın detaylarını göster
     setSelectedFleetVehicle(vehicle);
     setMapCenter(vehicle.location ? [vehicle.location.lng, vehicle.location.lat] : null);
-  }, []);
+  }, [handleFleetVehicleSelect]);
 
   // -------- Genel Kullanım Fonksiyonları --------
   const handleToggleSelectedRoute = useCallback((routeId) => {
@@ -146,7 +187,6 @@ function App() {
     dispatch(selectAllStops());
   }, [dispatch]);
 
-  // ✅ YENİ: Toplu durak seçimi için optimize edilmiş fonksiyon
   const handleSelectMultipleStops = useCallback((stopIds) => {
     dispatch(selectMultipleStops(stopIds));
   }, [dispatch]);
@@ -167,7 +207,7 @@ function App() {
   const getRandomLocation = useCallback(() => {
     const izmirCenterLat = 38.419;
     const izmirCenterLng = 27.128;
-    const range = 0.05; // +/- 0.05 derece enlem/boylam
+    const range = 0.05;
 
     const lat = izmirCenterLat + (Math.random() * 2 - 1) * range;
     const lng = izmirCenterLng + (Math.random() * 2 - 1) * range;
@@ -203,7 +243,6 @@ function App() {
       ];
       const randomStatus = statusesWeighted[Math.floor(Math.random() * statusesWeighted.length)];
 
-      // ✅ YENİ: Filtreler paneli için genişletilmiş araç verileri
       return {
           id: `vehicle-${vehicleId}`,
           vehicleId: vehicleId,
@@ -234,17 +273,17 @@ function App() {
           endDateTime: new Date(now.getTime() + 3600 * 1000).toLocaleDateString('tr-TR') + ' ' + new Date(now.getTime() + 3600 * 1000).toLocaleTimeString('tr-TR'),
           routeData: routeData,
           
-          // ✅ YENİ: Filtreler için ek veriler
-          motorTemp: Math.floor(Math.random() * 40) + 60, // 60-100°C
-          fuelLevel: Math.floor(Math.random() * 100) + 1, // 1-100%
-          age: Math.floor(Math.random() * 15) + 1, // 1-15 yıl
-          mileage: Math.floor(Math.random() * 800000) + 50000, // 50k-850k km
-          wheelchairAccessible: Math.random() > 0.7, // %30 ihtimalle
-          airConditioning: Math.random() > 0.2, // %80 ihtimalle
-          wifiEnabled: Math.random() > 0.6, // %40 ihtimalle
+          // Filtreler için ek veriler
+          motorTemp: Math.floor(Math.random() * 40) + 60,
+          fuelLevel: Math.floor(Math.random() * 100) + 1,
+          age: Math.floor(Math.random() * 15) + 1,
+          mileage: Math.floor(Math.random() * 800000) + 50000,
+          wheelchairAccessible: Math.random() > 0.7,
+          airConditioning: Math.random() > 0.2,
+          wifiEnabled: Math.random() > 0.6,
           type: ['standard', 'articulated', 'electric'][Math.floor(Math.random() * 3)],
-          capacity: 80 + Math.floor(Math.random() * 70), // 80-150 kişi
-          daysSinceLastMaintenance: Math.floor(Math.random() * 90), // 0-90 gün
+          capacity: 80 + Math.floor(Math.random() * 70),
+          daysSinceLastMaintenance: Math.floor(Math.random() * 90),
           fuelType: ['diesel', 'electric', 'hybrid', 'cng'][Math.floor(Math.random() * 4)]
       };
   }, [getRandomLocation, getRandomSpeed, generateRandomPlate]);
@@ -269,7 +308,6 @@ function App() {
     if (item?.route_number) {
         try {
           let fullRouteData = item;
-          // Bu kontrol sayesinde, güzergah detayı daha önce çekilmemişse API'den istenir.
           if (!item.directions || !item.directions['1'] || item.directions['1'].length === 0) {
              console.log("Item üzerinde directions bulunamadı, API'den çekiliyor:", item.route_number);
              const response1 = await fetch(`http://localhost:5000/api/route-details/${item.route_number}/1`);
@@ -314,29 +352,6 @@ function App() {
   }
 };
 
-  const handleFleetVehicleSelect = useCallback((vehicle) => {
-    console.log("Filo Takip Panelinde araç seçildi/seçim kaldırıldı:", vehicle);
-
-    // selectedFleetVehicles state'ini güncelle
-    setSelectedFleetVehicles(prevSelected => {
-      const isAlreadySelected = prevSelected.some(v => v.id === vehicle.id);
-      if (isAlreadySelected) {
-        const newSelection = prevSelected.filter(v => v.id !== vehicle.id);
-        return newSelection;
-      } else {
-        const newSelection = [...prevSelected, vehicle];
-        return newSelection;
-      }
-    });
-
-    // ✅ YENİ MANTIK: Eğer seçilen araç zaten `selectedFleetVehicle` ise, null yap (kapat). Aksi takdirde yeni seçilen aracı ata.
-    // Bu, tekli seçimi toggle etme işlevi görür.
-    setSelectedFleetVehicle(prevVehicle => 
-      prevVehicle?.id === vehicle.id ? null : vehicle
-    );
-
-  }, []); // selectedFleetVehicles bağımlılıktan kaldırıldı, çünkü setSelectedFleetVehicles fonksiyonu prevSelected ile çalışıyor
-
   const handleSearch = useCallback(async (term) => {
     setSearchTerm(term);
     setSelectedItem(null);
@@ -361,7 +376,7 @@ function App() {
     );
 
     setFilteredItems(currentFilteredItems);
-  }, [allRoutes, setFilteredItems, setSelectedItem, setSelectedRoute, setSelectedStop, setMapCenter, setCurrentAnimatedStop, setIsRouteProgressPanelActive, setSearchTerm]);
+  }, [allRoutes]);
 
   // -------- Genel Efektler (Resize, İlk Veri Yükleme, Simülasyon) --------
   useEffect(() => {
@@ -374,12 +389,10 @@ function App() {
     };
   }, []);
 
-  // ✅ DEĞİŞİKLİK BURADA BAŞLIYOR: Bu useEffect, artık sayfa yüklenirken yüzlerce API isteği yapmayacak.
-  // Sadece tek bir istek ile ana hat listesini alacak.
+  // Ana hat listesini çek
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
-        // 1. Adım: Sadece ana hat listesini çek.
         const res = await fetch('http://localhost:5000/api/routes');
         const data = await res.json();
 
@@ -398,15 +411,12 @@ function App() {
           return;
         }
 
-        // 2. Adım: Güzergah detaylarını çekmeden, sadece listeyi işle.
-        // Detaylar, kullanıcı hatta tıkladığında `handleVehicleClick` içinde çekilecek.
         initialRoutes.forEach(route => {
           if (route && route.id) {
             routesObject[route.id] = {
               ...route,
               start_point: route.start_point || '',
               end_point: route.end_point || '',
-              // Diğer bileşenlerde hata olmaması için bu alanları boş olarak başlatalım
               directions: { '1': [], '2': [] }, 
               directionsStops: { '1': [], '2': [] }
             };
@@ -415,7 +425,7 @@ function App() {
 
         dispatch(setAllRoutes(routesObject));
         setFilteredItems(Object.values(routesObject));
-        console.log("Sadece ana hat listesi yüklendi (performanslı yöntem):", Object.values(routesObject));
+        console.log("Sadece ana hat listesi yüklendi:", Object.values(routesObject));
 
       } catch (err) {
         console.error("Hat verisi alınırken hata oluştu (App.js):", err);
@@ -425,9 +435,9 @@ function App() {
     };
 
     fetchRoutes();
-  }, [dispatch, setFilteredItems]);
-  // ✅ DEĞİŞİKLİK BURADA BİTİYOR.
+  }, [dispatch]);
 
+  // Araçları oluştur ve simüle et
   useEffect(() => {
     if (vehicles.length === 0 && Object.keys(allRoutes).length > 0) {
       const routesList = Object.values(allRoutes);
@@ -440,18 +450,16 @@ function App() {
       });
       
       setVehicles(initialVehicles);
-      setFilteredFleetVehicles(initialVehicles); // ✅ YENİ: Başlangıçta tüm araçlar filtrelenmiş olarak ayarlanır
+      setFilteredFleetVehicles(initialVehicles);
       console.log(`394 araç oluşturuldu. ${routesList.length} farklı rota kullanıldı.`);
     }
 
     const intervalId = setInterval(() => {
       setVehicles(prevVehicles => {
         return prevVehicles.map(vehicle => {
-          // Eğer selectedFleetVehicles boşsa veya araç seçili değilse, tüm araçları güncelle.
-          // Aksi takdirde sadece seçili olanları güncelle (performans için)
           const isSelected = selectedFleetVehicles.some(v => v.id === vehicle.id);
           if (selectedFleetVehicles.length > 0 && !isSelected) {
-            return vehicle; // Seçili değilse güncelleme
+            return vehicle;
           }
 
           const newLocation = getRandomLocation();
@@ -534,18 +542,25 @@ function App() {
 
   const closeFleetTrackingPanel = useCallback(() => {
     setIsFleetTrackingPanelOpen(false);
-    setSelectedFleetVehicle(null); // Panel kapanırken seçili aracı temizle
-    setSelectedFleetVehicles([]); // Panel kapanırken çoklu seçimi temizle
+    setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]);
     setMapCenter(null);
-    setSelectedPopupInfo([]); // Panel kapanırken pop-up bilgilerini temizle
+    setSelectedPopupInfo([]);
   }, []);
 
-  // ✅ YENİ: Filtreler panel kapatma fonksiyonu - GÜNCELLENDİ
   const closeFleetFiltersPanel = useCallback(() => {
     setIsFleetFiltersPanelOpen(false);
-    // ✅ YENİ: Filtreler kapanırken sağ paneli de kapat
     setIsFilteredVehiclesPanelOpen(false);
     setFilteredFleetVehicles([]);
+  }, []);
+
+  // ✅ YENİ: Geçmiş izleme panel kapatma fonksiyonu
+  const closeHistoricalTrackingPanel = useCallback(() => {
+    setIsHistoricalTrackingPanelOpen(false);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
+    setCurrentHistoricalIndex(0);
   }, []);
 
   const togglePanel = useCallback(() => {
@@ -555,7 +570,8 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -570,6 +586,9 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, [dispatch]);
 
   const toggleRouteDetailsPanel = useCallback(() => {
@@ -579,7 +598,8 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -593,6 +613,9 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, []);
 
   const toggleDepartureTimesPanel = useCallback(() => {
@@ -602,7 +625,8 @@ function App() {
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -617,6 +641,9 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, [dispatch]);
 
   const toggleStopSelectorPanel = useCallback(() => {
@@ -626,7 +653,8 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsFleetTrackingPanelOpen(false);
     setIsFleetFiltersPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -640,6 +668,9 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, [dispatch]);
 
   const toggleFleetTrackingPanel = useCallback(() => {
@@ -649,7 +680,8 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetFiltersPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -664,9 +696,11 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, [dispatch]);
 
-  // ✅ YENİ: Filtreler panel toggle fonksiyonu
   const toggleFleetFiltersPanel = useCallback(() => {
     setIsFleetFiltersPanelOpen(prev => !prev);
     setIsPanelOpen(false);
@@ -674,7 +708,8 @@ function App() {
     setIsDepartureTimesPanelOpen(false);
     setIsStopSelectorOpen(false);
     setIsFleetTrackingPanelOpen(false);
-    setIsFilteredVehiclesPanelOpen(false); // ✅ YENİ: Sağ paneli kapat
+    setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
+    setIsFilteredVehiclesPanelOpen(false);
     setIsSidebarExpanded(true);
     setSelectedItem(null);
     setSelectedRoute(null);
@@ -689,7 +724,42 @@ function App() {
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
+    setIsHistoricalMode(false);
+    setHistoricalTrackingData([]);
+    setCurrentHistoricalVehicle(null);
   }, [dispatch]);
+
+  // ✅ YENİ: Geçmiş izleme panel toggle fonksiyonu
+  const toggleHistoricalTrackingPanel = useCallback(() => {
+    setIsHistoricalTrackingPanelOpen(prev => !prev);
+    setIsPanelOpen(false);
+    setIsRouteDetailsPanelOpen(false);
+    setIsDepartureTimesPanelOpen(false);
+    setIsStopSelectorOpen(false);
+    setIsFleetTrackingPanelOpen(false);
+    setIsFleetFiltersPanelOpen(false);
+    setIsFilteredVehiclesPanelOpen(false);
+    setIsSidebarExpanded(true);
+    setSelectedItem(null);
+    setSelectedRoute(null);
+    setSelectedStop(null);
+    setMapCenter(null);
+    setCurrentAnimatedStop(null);
+    setIsRouteProgressPanelActive(false);
+    dispatch(clearSelectedRoutes());
+    setCurrentDirection('1');
+    setAnimatedDistanceToDestination(null);
+    setAnimatedTimeToDestination(null);
+    setSelectedFleetVehicle(null);
+    setSelectedFleetVehicles([]);
+    setSelectedPopupInfo([]);
+    // Panel kapandığında geçmiş modunu kapat
+    if (isHistoricalTrackingPanelOpen) {
+      setIsHistoricalMode(false);
+      setHistoricalTrackingData([]);
+      setCurrentHistoricalVehicle(null);
+    }
+  }, [dispatch, isHistoricalTrackingPanelOpen]);
 
   const handleMenuClick = useCallback((menuItem) => {
     switch (menuItem) {
@@ -711,10 +781,13 @@ function App() {
       case 'fleet-filters':
         toggleFleetFiltersPanel();
         break;
+      case 'historical-tracking': // ✅ YENİ
+        toggleHistoricalTrackingPanel();
+        break;
       default:
         console.log('Bilinmeyen menü öğesi:', menuItem);
     }
-  }, [togglePanel, toggleRouteDetailsPanel, toggleDepartureTimesPanel, toggleStopSelectorPanel, toggleFleetTrackingPanel, toggleFleetFiltersPanel]);
+  }, [togglePanel, toggleRouteDetailsPanel, toggleDepartureTimesPanel, toggleStopSelectorPanel, toggleFleetTrackingPanel, toggleFleetFiltersPanel, toggleHistoricalTrackingPanel]);
 
   const toggleSidebarExpansion = useCallback(() => {
     setIsSidebarExpanded(prev => {
@@ -725,7 +798,8 @@ function App() {
         setIsDepartureTimesPanelOpen(false);
         setIsStopSelectorOpen(false);
         setIsFleetTrackingPanelOpen(false);
-        setIsFleetFiltersPanelOpen(false); // ✅ YENİ
+        setIsFleetFiltersPanelOpen(false);
+        setIsHistoricalTrackingPanelOpen(false); // ✅ YENİ
         setIsFilteredVehiclesPanelOpen(false);
         setSelectedItem(null);
         setSelectedRoute(null);
@@ -740,6 +814,9 @@ function App() {
         setSelectedFleetVehicle(null);
         setSelectedFleetVehicles([]);
         setSelectedPopupInfo([]);
+        setIsHistoricalMode(false);
+        setHistoricalTrackingData([]);
+        setCurrentHistoricalVehicle(null);
       }
       return newExpandedState;
     });
@@ -787,7 +864,7 @@ function App() {
           <div className="content-area">
             <div className="map-container">
               <Map
-                vehicles={vehicles} // Tüm araçlar
+                vehicles={vehicles}
                 selectedFleetVehicle={selectedFleetVehicle}
                 selectedFleetVehicles={selectedFleetVehicles}
                 selectedVehicle={selectedItem}
@@ -807,6 +884,11 @@ function App() {
                 isFleetTrackingPanelOpen={isFleetTrackingPanelOpen}
                 selectedPopupInfo={selectedPopupInfo}
                 onPopupInfoChange={handlePopupInfoChange}
+                // ✅ YENİ: Geçmiş izleme props
+                historicalTrackingData={historicalTrackingData}
+                currentHistoricalVehicle={currentHistoricalVehicle}
+                currentHistoricalIndex={currentHistoricalIndex}
+                isHistoricalMode={isHistoricalMode}
               />
             </div>
 
@@ -854,7 +936,7 @@ function App() {
                   onToggleSelectedStop={handleToggleSelectedStop}
                   onClearSelectedStops={handleClearSelectedStops}
                   onSelectAllStops={handleSelectAllStops}
-                  onSelectMultipleStops={handleSelectMultipleStops} // ✅ YENİ: Prop eklendi
+                  onSelectMultipleStops={handleSelectMultipleStops}
                   theme={theme}
                 />
               </div>
@@ -864,7 +946,7 @@ function App() {
               <div className={`panel-wrapper ${isFleetTrackingPanelOpen ? 'open' : ''}`}>
                 <FleetTrackingPanel
                   onClose={closeFleetTrackingPanel}
-                  vehicles={vehicles} // ✅ GÜNCELLENDİ: Tüm araçlar (filtrelenmiş değil)
+                  vehicles={vehicles}
                   onVehicleSelect={handleFleetVehicleSelect}
                   selectedVehicles={selectedFleetVehicles}
                   theme={theme}
@@ -872,15 +954,26 @@ function App() {
               </div>
             )}
 
-            {/* ✅ YENİ: Ayarlar ve Filtreler Paneli */}
             {isFleetFiltersPanelOpen && (
               <div className={`panel-wrapper ${isFleetFiltersPanelOpen ? 'open' : ''}`}>
                 <FleetFiltersPanel
                   isOpen={isFleetFiltersPanelOpen}
                   onClose={closeFleetFiltersPanel}
-                  vehicles={vehicles} // Ham araç verileri
-                  onFilteredVehiclesChange={handleFilteredVehiclesChange} // ✅ YENİ: Callback
+                  vehicles={vehicles}
+                  onFilteredVehiclesChange={handleFilteredVehiclesChange}
                   theme={theme}
+                />
+              </div>
+            )}
+
+            {/* ✅ YENİ: Geçmişe Dönük İzleme Paneli */}
+            {isHistoricalTrackingPanelOpen && (
+              <div className={`panel-wrapper ${isHistoricalTrackingPanelOpen ? 'open' : ''}`}>
+                <HistoricalTrackingPanel
+                  onClose={closeHistoricalTrackingPanel}
+                  vehicles={vehicles}
+                  theme={theme}
+                  onHistoricalDataChange={handleHistoricalDataChange}
                 />
               </div>
             )}
@@ -890,8 +983,8 @@ function App() {
                 <FleetVehicleDetailsPanel
                   onClose={() => setSelectedFleetVehicle(null)}
                   selectedVehicle={selectedFleetVehicle}
-                  selectedPopupInfo={selectedPopupInfo} // Map'e gidecek state'i alıyor
-                  onPopupInfoChange={handlePopupInfoChange} // Map'e göndermek için App.js'e güncellenecek
+                  selectedPopupInfo={selectedPopupInfo}
+                  onPopupInfoChange={handlePopupInfoChange}
                   theme={theme}
                 />
               </div>
@@ -913,7 +1006,7 @@ function App() {
           />
         )}
 
-        {/* ✅ YENİ: Sağ Taraf Filtrelenmiş Araçlar Paneli */}
+        {/* Sağ Taraf Filtrelenmiş Araçlar Paneli */}
         <FilteredVehiclesPanel
           filteredVehicles={filteredFleetVehicles}
           isOpen={isFilteredVehiclesPanelOpen}
