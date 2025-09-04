@@ -12,6 +12,21 @@ import locationIconUrl from '../assets/location.png';
 
 const SIMULATED_BUS_SPEED_KMH = 30;
 const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
+const formatTime = (totalSeconds) => {
+  if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
+  if (totalSeconds < 1) return 'Vardı';
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+
+  if (minutes > 0) {
+    return `${minutes} dk ${seconds} sn`;
+  } else {
+    return `${seconds} sn`;
+  }
+};
+
+
 
 const ROUTE_COLORS = [
   '#FF0000', '#00FF00', '#0000FF', '#FFD700', '#FF69B4', '#00CED1', '#FF4500',
@@ -1436,7 +1451,7 @@ function MapComponent({
           {animatedDistanceToDestination !== null && animatedTimeToDestination !== null && (
             <div className="bus-popup">
               <div>Kalan: {(animatedDistanceToDestination / 1000).toFixed(2)} km</div>
-              <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/s</div>
+              <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/h</div>
               <div>Süre: {formatTime(animatedTimeToDestination)}</div>
               {currentAnimatedStop?.name && (
                 <div>Durak: {currentAnimatedStop.name}</div>

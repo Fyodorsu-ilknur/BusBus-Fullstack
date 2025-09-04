@@ -31,7 +31,7 @@ pool.connect((err, client, release) => {
     });
 });
 
-// API Endpoint:vehiclelistiçin tum hatları dönürür
+//vehiclelistiçin tum hatları dönürür
 app.get('/api/routes', async (req, res) => {
     try {
         const result = await pool.query('SELECT route_id, route_short_name, route_long_name FROM routes ORDER BY route_short_name ASC');
@@ -53,16 +53,15 @@ app.get('/api/routes', async (req, res) => {
     }
 });
 
-// API Endpoint durakalrı dondurecek - OPTIMIZE EDİLDİ
 app.get('/api/stops', async (req, res) => {
     
     const limit = parseInt(req.query.limit) || 100;
     const offset = parseInt(req.query.offset) || 0;
 
-    // ✅ Güvenlik kontrolü - maksimum limit 2000
+    
     const actualLimit = Math.min(limit, 2000);
     
-    console.log(`📊 Durak çekiliyor: limit=${actualLimit}, offset=${offset}`);
+    console.log(` Durak çekiliyor: limit=${actualLimit}, offset=${offset}`);
 
     try {
         let query = `SELECT stop_id, stop_name, stop_lat, stop_lon FROM stops ORDER BY stop_name ASC LIMIT $1 OFFSET $2`;
@@ -78,19 +77,19 @@ app.get('/api/stops', async (req, res) => {
             district: '' 
         }));
 
-        // ✅ Performans için sadece gerektiğinde toplam sayıyı hesapla
+        // sadece gerektiğinde toplam sayıyı hesapla
         let totalStops = 0;
         if (offset === 0) {
             const totalCountResult = await pool.query('SELECT COUNT(*) FROM stops');
             totalStops = parseInt(totalCountResult.rows[0].count);
         }
 
-        console.log(`✅ ${formattedStops.length} durak döndürüldü`);
+        console.log(` ${formattedStops.length} durak döndürüldü`);
 
         res.json({
             stops: formattedStops,
             total: totalStops,
-            hasMore: formattedStops.length === actualLimit // Eğer istenen kadar döndü ise daha fazlası var demektir
+            hasMore: formattedStops.length === actualLimit 
         });
 
     } catch (err) {
@@ -99,23 +98,22 @@ app.get('/api/stops', async (req, res) => {
     }
 });
 
-// API Endpoint: Durak arama (tüm duraklar arasından arama) - OPTIMIZE EDİLDİ
+//tüm duraklar araından arama
 app.get('/api/stops/search', async (req, res) => {
     const searchTerm = req.query.q || '';
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
 
-    // ✅ Arama için maksimum limit 1000
     const actualLimit = Math.min(limit, 1000);
 
     if (!searchTerm.trim()) {
         return res.status(400).json({ error: 'Arama terimi boş olamaz.' });
     }
 
-    console.log(`🔍 Durak araması: "${searchTerm}", limit=${actualLimit}, offset=${offset}`);
+    console.log(` Durak araması: "${searchTerm}", limit=${actualLimit}, offset=${offset}`);
 
     try {
-        // Arama query'si - durak adı veya ID'ye göre arama
+        // Arama query'si 
         const searchQuery = `
             SELECT stop_id, stop_name, stop_lat, stop_lon 
             FROM stops 
@@ -154,7 +152,7 @@ app.get('/api/stops/search', async (req, res) => {
             district: ''
         }));
 
-        // ✅ Performans için sadece ilk sayfa için toplam sayıyı hesapla
+        //  Performans için 
         let totalResults = 0;
         if (offset === 0) {
             const countQuery = `
@@ -182,13 +180,13 @@ app.get('/api/stops/search', async (req, res) => {
     }
 });
 
-// API Endpoint: Tüm durak sayısını döndür (Tümünü Seç için)
+// Tüm durak sayısını döndür 
 app.get('/api/stops/count', async (req, res) => {
     try {
         const result = await pool.query('SELECT COUNT(*) FROM stops');
         const totalStops = parseInt(result.rows[0].count);
         
-        console.log(`📊 Toplam durak sayısı: ${totalStops}`);
+        console.log(` Toplam durak sayısı: ${totalStops}`);
         
         res.json({ 
             total: totalStops 
@@ -200,15 +198,14 @@ app.get('/api/stops/count', async (req, res) => {
     }
 });
 
-// API Endpoint: Tüm durak ID'lerini döndür (Tümünü Seç için) - OPTIMIZE EDİLDİ
+// Tüm durak ID'lerini döndür -tümünü seç için bu
 app.get('/api/stops/all-ids', async (req, res) => {
-    const limit = parseInt(req.query.limit) || 1000; // ✅ Varsayılan limit 1000
+    const limit = parseInt(req.query.limit) || 1000; 
     const offset = parseInt(req.query.offset) || 0;
     
-    // ✅ Güvenlik: maksimum 2000 ID döndür
     const actualLimit = Math.min(limit, 2000);
     
-    console.log(`🎯 Tüm durak ID'leri çekiliyor: limit=${actualLimit}, offset=${offset}`);
+    console.log(` Tüm durak ID'leri çekiliyor: limit=${actualLimit}, offset=${offset}`);
     
     try {
         const result = await pool.query(
@@ -218,7 +215,7 @@ app.get('/api/stops/all-ids', async (req, res) => {
         
         const stopIds = result.rows.map(row => row.stop_id);
         
-        console.log(`✅ ${stopIds.length} durak ID'si döndürüldü`);
+        console.log(` ${stopIds.length} durak ID'si döndürüldü`);
         
         res.json({ 
             stopIds: stopIds,
@@ -232,10 +229,10 @@ app.get('/api/stops/all-ids', async (req, res) => {
     }
 });
 
-// ✅ YENİ: Hızlı durak ID'leri endpoint'i (sadece ID'ler, coğrafi veri yok)
+// Hızlı durak ID'leri 
 app.get('/api/stops/ids-only', async (req, res) => {
     const limit = parseInt(req.query.limit) || 1000;
-    const actualLimit = Math.min(limit, 5000); // Sadece ID olduğu için daha yüksek limit
+    const actualLimit = Math.min(limit, 5000); 
     
     console.log(`⚡ Sadece durak ID'leri çekiliyor: limit=${actualLimit}`);
     
@@ -260,7 +257,7 @@ app.get('/api/stops/ids-only', async (req, res) => {
     }
 });
 
-// API Endpoint: Batch olarak durak bilgilerini al (performans için) - OPTIMIZE EDİLDİ
+// Batch olarak durak bilgilerini alma
 app.post('/api/stops/batch', async (req, res) => {
     const { stopIds } = req.body;
     
@@ -268,12 +265,12 @@ app.post('/api/stops/batch', async (req, res) => {
         return res.status(400).json({ error: 'Geçerli durak ID listesi gönderilmedi.' });
     }
     
-    // ✅ Limit artırıldı: 2000'e kadar
+    // limit artırıldı2000
     if (stopIds.length > 2000) {
         return res.status(400).json({ error: 'Tek seferde en fazla 2000 durak sorgulanabilir.' });
     }
 
-    console.log(`📦 Batch durak sorgusu: ${stopIds.length} durak`);
+    console.log(`Batch durak sorgusu: ${stopIds.length} durak`);
 
     try {
         const query = `
@@ -293,7 +290,7 @@ app.post('/api/stops/batch', async (req, res) => {
             district: ''
         }));
 
-        console.log(`📦 Batch sonucu: ${formattedStops.length}/${stopIds.length} durak bulundu`);
+        console.log(` Batch sonucu: ${formattedStops.length}/${stopIds.length} durak bulundu`);
 
         res.json({
             stops: formattedStops,
@@ -391,7 +388,7 @@ app.get('/api/route-details/:routeNumber/:direction', async (req, res) => {
     }
 });
 
-// API Endpoint: Belirli bir hattın günlük kalkış saatlerini döndürür
+// Belirli bir hattın günlük kalkış saatlerini döndürecek
 app.get('/api/departure-times/:routeNumber/:dayOfWeek', async (req, res) => {
     const { routeNumber, dayOfWeek } = req.params;
 
@@ -502,11 +499,16 @@ app.get('/api/stop-routes/:stopId', async (req, res) => {
     }
 });
 
-// Geçmiş İzleme API Endpoints - server.js dosyanızın sonuna ekleyin
+// =========================================
 
-// 1. Araç konum loglarını kaydetme
+
+// Araç konum loglarını kaydetme
 app.post('/api/vehicle-history/log', async (req, res) => {
     const { vehicleId, lat, lng, speed, direction, status, routeCode } = req.body;
+    
+    if (!vehicleId || !lat || !lng) {
+        return res.status(400).json({ error: 'Eksik parametreler: vehicleId, lat, lng gerekli' });
+    }
     
     try {
         const result = await pool.query(
@@ -523,15 +525,19 @@ app.post('/api/vehicle-history/log', async (req, res) => {
             timestamp: result.rows[0].timestamp 
         });
     } catch (err) {
-        console.error('Araç konum logu kaydedilirken hata:', err.stack);
-        res.status(500).json({ error: 'Konum logu kaydedilemedi.' });
+        console.error('Araç konum logu kaydedilirken hata:', err);
+        res.status(500).json({ error: 'Konum logu kaydedilemedi: ' + err.message });
     }
 });
 
-// 2. Belirli araç için geçmiş verileri getirme
+// Belirli araç için geçmiş verileri getirme 
 app.get('/api/vehicle-history/:vehicleId', async (req, res) => {
     const { vehicleId } = req.params;
     const { startDate, endDate, limit = 1000 } = req.query;
+    
+    if (!vehicleId) {
+        return res.status(400).json({ error: 'Araç ID gerekli' });
+    }
     
     try {
         let query = `
@@ -551,35 +557,116 @@ app.get('/api/vehicle-history/:vehicleId', async (req, res) => {
         
         if (endDate) {
             query += ` AND timestamp <= $${paramIndex}`;
-            params.push(endDate + ' 23:59:59'); // Günün sonuna kadar
+            params.push(endDate + ' 23:59:59');
             paramIndex++;
         }
         
-        query += ` ORDER BY timestamp DESC LIMIT $${paramIndex}`;
+        query += ` ORDER BY timestamp ASC LIMIT $${paramIndex}`;
         params.push(parseInt(limit));
         
+        console.log('Executing query:', query, 'with params:', params);
+        
         const result = await pool.query(query, params);
+        
+        if (result.rows.length === 0) {
+            return res.json({
+                success: true,
+                message: 'Bu parametreler için veri bulunamadı',
+                data: [],
+                count: 0
+            });
+        }
         
         const historyData = result.rows.map(row => ({
             id: row.id,
             vehicleId: row.vehicle_id,
             latitude: parseFloat(row.latitude),
             longitude: parseFloat(row.longitude),
-            timestamp: row.timestamp,
-            speed: row.speed,
-            direction: row.direction,
-            status: row.status,
+            timestamp: new Date(row.timestamp).toISOString(),
+            speed: row.speed || 0,
+            direction: row.direction || 0,
+            status: row.status || 'active',
             routeCode: row.route_code
         }));
         
-        res.json(historyData);
+        res.json({
+            success: true,
+            count: historyData.length,
+            data: historyData
+        });
     } catch (err) {
-        console.error(`Araç geçmiş verileri alınırken hata (Vehicle ID: ${vehicleId}):`, err.stack);
-        res.status(500).json({ error: 'Geçmiş verileri alınamadı.' });
+        console.error(`Araç geçmiş verileri alınırken hata (Vehicle ID: ${vehicleId}):`, err);
+        res.status(500).json({ error: 'Geçmiş verileri alınamadı: ' + err.message });
     }
 });
 
-// 3. Belirli tarih aralığındaki tüm araç logları
+// Tüm araçları listeleme 
+app.get('/api/vehicles', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT DISTINCT vehicle_id, route_code, 
+                   MAX(timestamp) as last_seen,
+                   COUNT(*) as log_count
+            FROM vehicle_location_logs 
+            WHERE timestamp >= NOW() - INTERVAL '24 hours'
+            GROUP BY vehicle_id, route_code
+            ORDER BY last_seen DESC
+        `);
+        
+        const vehicles = result.rows.map(row => ({
+            id: row.vehicle_id,
+            routeCode: row.route_code,
+            lastSeen: row.last_seen,
+            logCount: parseInt(row.log_count)
+        }));
+        
+        res.json({
+            success: true,
+            vehicles: vehicles
+        });
+    } catch (err) {
+        console.error('Araç listesi alınırken hata:', err);
+        res.status(500).json({ error: 'Araç listesi alınamadı: ' + err.message });
+    }
+});
+
+// Araç konum geçmişini silme
+app.delete('/api/vehicle-history/:vehicleId', async (req, res) => {
+    const { vehicleId } = req.params;
+    const { beforeDate } = req.query;
+    
+    try {
+        let query = 'DELETE FROM vehicle_location_logs WHERE vehicle_id = $1';
+        let params = [vehicleId];
+        
+        if (beforeDate) {
+            query += ' AND timestamp < $2';
+            params.push(beforeDate);
+        }
+        
+        const result = await pool.query(query, params);
+        
+        res.json({
+            success: true,
+            deletedCount: result.rowCount
+        });
+    } catch (err) {
+        console.error('Araç geçmişi silinirken hata:', err);
+        res.status(500).json({ error: 'Geçmiş silinirken hata: ' + err.message });
+    }
+});
+
+// Veritabanı bağlantı testi
+app.get('/api/health/database', async (req, res) => {
+    try {
+        await pool.query('SELECT NOW()');
+        res.json({ status: 'ok', message: 'Veritabanı bağlantısı aktif' });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: 'Veritabanı bağlantısı hatası: ' + err.message });
+    }
+});
+
+// Belirli tarih aralığındaki tüm araç logları
 app.get('/api/vehicle-history', async (req, res) => {
     const { startDate, endDate, vehicleIds, limit = 500 } = req.query;
     
@@ -628,7 +715,7 @@ app.get('/api/vehicle-history', async (req, res) => {
     }
 });
 
-// 4. Güzergah kesiti analizi
+// Güzergah kesiti 
 app.get('/api/vehicle-history/:vehicleId/route-segment', async (req, res) => {
     const { vehicleId } = req.params;
     const { startLat, startLng, endLat, endLng, startTime, endTime, radius = 0.001 } = req.query;
@@ -678,7 +765,7 @@ app.get('/api/vehicle-history/:vehicleId/route-segment', async (req, res) => {
     }
 });
 
-// 5. Araç geçmiş istatistikleri
+// Araç geçmiş 
 app.get('/api/vehicle-history/:vehicleId/stats', async (req, res) => {
     const { vehicleId } = req.params;
     const { startDate, endDate } = req.query;
@@ -701,13 +788,13 @@ app.get('/api/vehicle-history/:vehicleId/stats', async (req, res) => {
         let paramIndex = 2;
         
         if (startDate) {
-            query += ` AND timestamp >= $${paramIndex}`;
+            query += ` AND timestamp >= ${paramIndex}`;
             params.push(startDate);
             paramIndex++;
         }
         
         if (endDate) {
-            query += ` AND timestamp <= $${paramIndex}`;
+            query += ` AND timestamp <= ${paramIndex}`;
             params.push(endDate + ' 23:59:59');
             paramIndex++;
         }
@@ -734,11 +821,8 @@ app.get('/api/vehicle-history/:vehicleId/stats', async (req, res) => {
     }
 });
 
-
-
-
-
 app.listen(PORT, () => {
-    console.log(`🚀 Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
-    console.log(`📊 Maksimum durak limitleri: Normal=2000, Batch=2000, IDs-only=5000`);
+    console.log(` Backend sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+    console.log(` Maksimum durak limitleri: Normal=2000, Batch=2000, IDs-only=5000`);
+    console.log(` Geçmiş İzleme API'ları aktif`);
 });

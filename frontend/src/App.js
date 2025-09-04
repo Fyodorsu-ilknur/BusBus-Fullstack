@@ -860,8 +860,10 @@ function App() {
   }, []);
 
   const handleAnimatedDataChange = useCallback((distance, time) => {
+    setTimeout(() => {
     setAnimatedDistanceToDestination(distance);
     setAnimatedTimeToDestination(time);
+      }, 0);
   }, []);
 
   const handleStopSelectForMap = useCallback((stop) => {
