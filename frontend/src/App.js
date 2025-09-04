@@ -105,10 +105,7 @@ function App() {
   const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [isRouteProgressPanelActive, setIsRouteProgressPanelActive] = useState(false);
   const [currentDirection, setCurrentDirection] = useState('1');
-  const [animatedDistanceToDestination, setAnimatedDistanceToDestination] = useState(null);
-  const [animatedTimeToDestination, setAnimatedTimeToDestination] = useState(null);
-
-  // ✅ YENİ: Geçmiş izleme states
+  //  YENİ: Geçmiş izleme states
   const [historicalTrackingData, setHistoricalTrackingData] = useState([]);
   const [currentHistoricalVehicle, setCurrentHistoricalVehicle] = useState(null);
   const [currentHistoricalIndex, setCurrentHistoricalIndex] = useState(0);
@@ -324,8 +321,7 @@ function App() {
         setMapCenter(null);
         setCurrentAnimatedStop(null);
         setIsRouteProgressPanelActive(false);
-        setAnimatedDistanceToDestination(null);
-        setAnimatedTimeToDestination(null);
+       
         return;
     }
 
@@ -526,8 +522,6 @@ function App() {
     setMapCenter(null);
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
   }, [dispatch]);
@@ -541,8 +535,6 @@ function App() {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
   }, []);
 
   const closeDepartureTimesPanel = useCallback(() => {
@@ -555,8 +547,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
   }, [dispatch]);
 
   const closeStopSelectorPanel = useCallback(() => {
@@ -569,8 +559,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
     dispatch(clearSelectedStops());
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
   }, [dispatch]);
 
   const closeFleetTrackingPanel = useCallback(() => {
@@ -614,8 +602,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -641,8 +627,6 @@ function App() {
     setCurrentAnimatedStop(null);
     setIsRouteProgressPanelActive(false);
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -669,8 +653,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -696,8 +678,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -724,8 +704,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -752,8 +730,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -781,8 +757,6 @@ function App() {
     setIsRouteProgressPanelActive(false);
     dispatch(clearSelectedRoutes());
     setCurrentDirection('1');
-    setAnimatedDistanceToDestination(null);
-    setAnimatedTimeToDestination(null);
     setSelectedFleetVehicle(null);
     setSelectedFleetVehicles([]);
     setSelectedPopupInfo([]);
@@ -842,8 +816,6 @@ function App() {
         setIsRouteProgressPanelActive(false);
         dispatch(clearSelectedRoutes());
         setCurrentDirection('1');
-        setAnimatedDistanceToDestination(null);
-        setAnimatedTimeToDestination(null);
         setSelectedFleetVehicle(null);
         setSelectedFleetVehicles([]);
         setSelectedPopupInfo([]);
@@ -857,13 +829,6 @@ function App() {
 
   const handleCurrentStopChange = useCallback((stop) => {
     setCurrentAnimatedStop(stop);
-  }, []);
-
-  const handleAnimatedDataChange = useCallback((distance, time) => {
-    setTimeout(() => {
-    setAnimatedDistanceToDestination(distance);
-    setAnimatedTimeToDestination(time);
-      }, 0);
   }, []);
 
   const handleStopSelectForMap = useCallback((stop) => {
@@ -907,7 +872,7 @@ function App() {
                 mapCenter={mapCenter}
                 selectedStop={selectedStop}
                 onCurrentStopChange={handleCurrentStopChange}
-                onAnimatedDataChange={handleAnimatedDataChange}
+          
                 currentAnimatedStop={currentAnimatedStop}
                 currentDirection={currentDirection}
                 selectedRouteIds={selectedRouteIds}
@@ -1035,8 +1000,7 @@ function App() {
             onClose={() => setIsRouteProgressPanelActive(false)}
             currentDirection={currentDirection}
             onToggleDirection={handleToggleDirection}
-            distanceToDestination={animatedDistanceToDestination}
-            timeToDestination={animatedTimeToDestination}
+           
             theme={theme}
           />
         )}

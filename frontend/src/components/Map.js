@@ -1,50 +1,30 @@
 // frontend/src/components/Map.js
-
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getDistance } from 'geolib';
 import './Map.css';
-
 import busIconUrl from '../assets/red_bus.png';
 import locationIconUrl from '../assets/location.png';
 
 const SIMULATED_BUS_SPEED_KMH = 30;
 const SIMULATED_BUS_SPEED_MPS = (SIMULATED_BUS_SPEED_KMH * 1000) / 3600;
-const formatTime = (totalSeconds) => {
-  if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
-  if (totalSeconds < 1) return 'Vardı';
-
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = Math.round(totalSeconds % 60);
-
-  if (minutes > 0) {
-    return `${minutes} dk ${seconds} sn`;
-  } else {
-    return `${seconds} sn`;
-  }
-};
-
-
 
 const ROUTE_COLORS = [
   '#FF0000', '#00FF00', '#0000FF', '#FFD700', '#FF69B4', '#00CED1', '#FF4500',
   '#9370DB', '#32CD32', '#FF1493', '#00FA9A', '#1E90FF', '#FF8C00', '#DA70D6',
   '#00FFFF', '##FFB6C1', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C'
 ];
-
 const NAVIGATION_BUS_COLOR = '#4285F4'; 
 const NAVIGATION_WALK_COLOR = '#EA4335'; 
-
 const LIGHT_MAP_STYLE_URL = 'https://api.maptiler.com/maps/streets-v2-pastel/style.json?key=xOQhMUZleM9cojouQ0fu';
 const DARK_MAP_STYLE_URL = 'https://api.maptiler.com/maps/streets-v2-dark/style.json?key=xOQhMUZleM9cojouQ0fu';
 
 function MapComponent({
   vehicles = [], 
   selectedFleetVehicle, 
-  selectedFleetVehicles = [], // Çoklu seçilen araçlar
- 
+  selectedFleetVehicles = [], 
   selectedVehicle, 
   selectedRoute,
   selectedStop,
@@ -63,31 +43,22 @@ function MapComponent({
   allRoutes,
   currentDirection,
   currentAnimatedStop,
-  animatedDistanceToDestination,
-  animatedTimeToDestination,
   selectedPopupInfo = [], 
-  
-  // ✅ YENİ: Geçmiş izleme props'ları
+//Geçmiş izleme props'ları
   historicalTrackingData = [],
   currentHistoricalVehicle,
   currentHistoricalIndex = 0,
   isHistoricalMode = false,
-  
 }) {
   const mapRef = useRef();
-
   const [mapLoaded, setMapLoaded] = useState(false);
-
   const userInteractedFleetZoomRef = useRef(false);
-
   const [animatedBusPosition, setAnimatedBusPosition] = useState(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
   const animationIntervalRef = useRef(null);
   const [displayStopsOnRoute, setDisplayStopsOnRoute] = useState({ current: null, next: null });
-
   const [animatedFleetPositions, setAnimatedFleetPositions] = useState({}); 
   const fleetAnimationIntervals = useRef({}); 
-
   const [selectedRoutesData, setSelectedRoutesData] = useState({});
   const [routePopup, setRoutePopup] = useState(null);
   const [hoveredRoute, setHoveredRoute] = useState(null);
@@ -98,6 +69,8 @@ function MapComponent({
 
   const selectedStops = useSelector(state => state.selectedItems?.selectedStopIds || []);
   const allStops = useSelector(state => state.selectedItems?.allStops || []);
+const animatedDataRef = useRef({ distance: null, time: null });
+
 
   const onMapLoad = useCallback(() => {
     setMapLoaded(true);
@@ -435,9 +408,6 @@ function MapComponent({
       if (onCurrentStopChange) {
         onCurrentStopChange(null);
       }
-      if (onAnimatedDataChange) {
-        onAnimatedDataChange(null, null);
-      }
       return;
     }
 
@@ -477,20 +447,11 @@ function MapComponent({
               onAnimatedDataChange(initialDistance, time);
             }
           } else {
-            if (onAnimatedDataChange) {
-              onAnimatedDataChange(null, null);
-            }
           }
         } catch (error) {
           console.error('Error calculating initial distance/time:', error);
-          if (onAnimatedDataChange) {
-            onAnimatedDataChange(null, null);
-          }
         }
       } else {
-        if (onAnimatedDataChange) {
-          onAnimatedDataChange(null, null);
-        }
       }
 
       animationIntervalRef.current = setInterval(() => {
@@ -522,9 +483,6 @@ function MapComponent({
             animationIntervalRef.current = null;
             console.error('Invalid coordinate detected during animation:', nextCoord);
             setAnimatedBusPosition(null);
-            if (onAnimatedDataChange) {
-              onAnimatedDataChange(null, null);
-            }
             return prevIndex;
           }
 
@@ -536,19 +494,14 @@ function MapComponent({
               );
               if (typeof remainingDist === 'number' && !isNaN(remainingDist)) {
                 const time = (SIMULATED_BUS_SPEED_MPS > 0 && remainingDist >= 0) ? (remainingDist / SIMULATED_BUS_SPEED_MPS) : 0;
-                if (onAnimatedDataChange) {
-                  onAnimatedDataChange(remainingDist, time);
-                }
+                
+animatedDataRef.current = { distance: remainingDist, time: time };
+
+
               } else {
-                if (onAnimatedDataChange) {
-                  onAnimatedDataChange(null, null);
-                }
               }
             } catch (error) {
               console.error('Error calculating remaining distance or time:', error);
-              if (onAnimatedDataChange) {
-                onAnimatedDataChange(null, null);
-              }
             }
           }
 
@@ -590,9 +543,6 @@ function MapComponent({
       if (onCurrentStopChange) {
         onCurrentStopChange(null);
       }
-      if (onAnimatedDataChange) {
-        onAnimatedDataChange(null, null);
-      }
     }
 
     return () => {
@@ -603,9 +553,6 @@ function MapComponent({
       setDisplayStopsOnRoute({ current: null, next: null });
       if (onCurrentStopChange) {
         onCurrentStopChange(null);
-      }
-      if (onAnimatedDataChange) {
-        onAnimatedDataChange(null, null);
       }
     };
   }, [selectedRoute, selectedVehicle, mapLoaded, onCurrentStopChange, currentDirection, isPanelOpen, isRouteDetailsPanelOpen, isDepartureTimesPanelOpen, isRouteNavigationPanelOpen, onAnimatedDataChange, selectedStops, allStops]);
@@ -744,21 +691,6 @@ function MapComponent({
       }
           };
   }, []);
-
-  const formatTime = useCallback((totalSeconds) => {
-    if (totalSeconds === null || isNaN(totalSeconds) || totalSeconds < 0) return 'Hesaplanıyor...';
-    if (totalSeconds < 1) return 'Vardı';
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.round(totalSeconds % 60);
-
-    if (minutes > 0) {
-      return `${minutes} dk ${seconds} sn`;
-    } else {
-      return `${seconds} sn`;
-    }
-  }, []);
-
   const singleSelectedRouteGeoJSON = React.useMemo(() => {
     if (!isPanelOpen || !selectedVehicle || !selectedRoute || !selectedRoute.directions || !selectedRoute.directions[currentDirection] || selectedRoute.directions[currentDirection].length === 0 || isRouteDetailsPanelOpen || isDepartureTimesPanelOpen || isRouteNavigationPanelOpen) {
       return null;
@@ -1092,7 +1024,7 @@ function MapComponent({
 
         const isMultiSelected = selectedFleetVehicles.some(v => v.id === vehicleId);
         const isActive = vehicle.status?.toLowerCase().includes('aktif');
-        const isPopupVisible = selectedFleetVehicle?.id === vehicle.id && selectedPopupInfo.length > 0;
+        const isPopupVisible = isMultiSelected && selectedPopupInfo.length > 0;
 
         if (!isMultiSelected || !isActive) return null;
 
@@ -1148,38 +1080,39 @@ function MapComponent({
                   offset={[0, -45]}
                 >
                   <div style={{
-                    padding: '8px',
-                    minWidth: '200px',
+                    padding: '1px',
+                    minWidth: '60px',
                     background: 'white',
-                    borderRadius: '8px'
+                    borderRadius: '4px',
+                    fontSize: '9px'
                   }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      marginBottom: '8px',
+                      marginBottom: '1px',
                       borderBottom: '1px solid #e2e8f0',
-                      paddingBottom: '4px'
+                      paddingBottom: '1px'
                     }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '10px' }}>
                         {vehicle.plate}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                       {getPopupContent(vehicle).map(info => (
                         <div key={info.key} style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '12px'
+                          gap: '1px',
+                          fontSize: '9px'
                         }}>
-                          <span style={{ fontSize: '14px', width: '16px', textAlign: 'center' }}>
+                          <span style={{ fontSize: '9px', width: '16px', textAlign: 'center' }}>
                             {info.icon}
                           </span>
-                          <span style={{ color: '#718096', fontWeight: '500', minWidth: '60px' }}>
+                          <span style={{ color: '#718096', fontWeight: '400', minWidth: '60px' }}>
                             {info.label}:
                           </span>
-                          <span style={{ color: '#2d3748', fontWeight: '600', flex: 1 }}>
+                          <span style={{ color: '#2d3748', fontWeight: '500', flex: 1 }}>
                             {info.value}
                           </span>
                         </div>
@@ -1448,14 +1381,11 @@ function MapComponent({
             alt="Animated Bus"
             style={{ width: '40px', height: '40px' }}
           />
-          {animatedDistanceToDestination !== null && animatedTimeToDestination !== null && (
+         {currentAnimatedStop?.name && (
             <div className="bus-popup">
-              <div>Kalan: {(animatedDistanceToDestination / 1000).toFixed(2)} km</div>
-              <div>Hız: {SIMULATED_BUS_SPEED_KMH} km/h</div>
-              <div>Süre: {formatTime(animatedTimeToDestination)}</div>
-              {currentAnimatedStop?.name && (
+            
                 <div>Durak: {currentAnimatedStop.name}</div>
-              )}
+              
             </div>
           )}
         </Marker>
