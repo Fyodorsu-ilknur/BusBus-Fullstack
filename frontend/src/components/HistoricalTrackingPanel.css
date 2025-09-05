@@ -1,3 +1,12 @@
+.blue-btn {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  transition: background 0.2s;
+}
+.blue-btn:hover {
+  background-color: #1565c0;
+}
 /* frontend/src/components/HistoricalTrackingPanel.css */
 .historical-tracking-panel {
   position: fixed;
@@ -25,7 +34,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 4px 15px;
   border-bottom: 2px solid var(--primary-color, #2196F3);
   background: linear-gradient(135deg, var(--primary-color, #2196F3), var(--primary-dark, #1976D2));
   color: white;
@@ -48,7 +57,7 @@
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 8px;
+  padding: 6px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -77,7 +86,7 @@
 .playback-controls,
 .timeline-section,
 .vehicle-info-section {
-  padding: 16px 20px;
+  padding: 6px 6px;
   border-bottom: 1px solid var(--panel-border, #f0f0f0);
 }
 
@@ -87,14 +96,14 @@
 
 /* Form Elements */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 4px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--panel-text, #333);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -103,7 +112,7 @@
 .form-select,
 .form-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 8px 10px;
   border: 2px solid #e1e5e9;
   border-radius: 6px;
   font-size: 14px;
@@ -126,7 +135,7 @@
 
 .datetime-group {
   flex: 1;
-  margin-left: -15px;
+  margin-left: -2px;
 }
 
 .datetime-inputs {
@@ -145,7 +154,7 @@
   align-items: center;
   justify-content: center;
   gap: 1px;
-  padding: 6px;
+  padding: 4px;
   background: #f8f9fa;
   border: 2px solid #e1e5e9;
   border-radius: 6px;
@@ -160,26 +169,26 @@
 }
 
 .filters-content {
-  margin-top: 16px;
-  padding: 16px;
+  margin-top: 6px;
+  padding: 6px;
   background: white;
   border: 2px solid #f0f0f0;
   border-radius: 6px;
 }
 
 .filter-group {
-  margin-bottom: 16px;
+  margin-bottom: 6px;
 }
 
 .range-inputs {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .form-input-small {
   width: 80px;
-  padding: 8px 12px;
+  padding: 4px 6px;
   border: 2px solid #e1e5e9;
   border-radius: 4px;
   font-size: 13px;
@@ -191,13 +200,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 16px;
-  background: linear-gradient(135deg, #28a745, #20c997);
+  gap: 3px;
+  padding: 6px;
+  background: linear-gradient(135deg, #285da7, #20c997);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -221,29 +230,29 @@
 
 .control-buttons {
   display: flex;
-  gap: 12px;
+  gap: 6px;
 }
 
 .control-btn {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: white;
-  border: 2px solid #dee2e6;
+  border: 2px solid #84a9ce;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .control-btn:hover {
-  background: #e9ecef;
+  background: #c5d6e6;
   transform: scale(1.05);
 }
 
 .control-btn.play-btn {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #286aa7, #20c997);
   color: white;
   border-color: #28a745;
 }
@@ -266,11 +275,11 @@
 }
 
 .form-select-small {
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 6px 13px;
+  font-size: 13px;
   border: 2px solid #dee2e6;
   border-radius: 4px;
-  background: white;
+  background: rgb(185, 214, 228);
 }
 
 /* Timeline */
@@ -347,8 +356,8 @@
 .info-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 8px;
   background: #f8f9fa;
   border: 2px solid #e9ecef;
   border-radius: 8px;
@@ -362,7 +371,7 @@
 }
 
 .info-card .material-icons {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--primary-color, #2196F3);
   background: rgba(33, 150, 243, 0.1);
   padding: 8px;

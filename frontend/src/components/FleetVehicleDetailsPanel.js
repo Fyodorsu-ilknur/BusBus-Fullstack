@@ -104,30 +104,30 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     );
     
     console.log('🔍 DEBUG - Popup güncelleme detayları:');
-    console.log('   📊 selectedInfoForPopup Set içeriği:', Array.from(selectedInfoForPopup));
-    console.log('   📊 importantInfoOptions array uzunluğu:', importantInfoOptions.length);
-    console.log('   📊 importantInfoOptions keys:', importantInfoOptions.map(opt => opt.key));
-    console.log('   ✅ Filter sonrası options:', updatedSelectedOptions.map(opt => ({
+    console.log('    selectedInfoForPopup Set içeriği:', Array.from(selectedInfoForPopup));
+    console.log('    importantInfoOptions array uzunluğu:', importantInfoOptions.length);
+    console.log('    importantInfoOptions keys:', importantInfoOptions.map(opt => opt.key));
+    console.log('    Filter sonrası options:', updatedSelectedOptions.map(opt => ({
       key: opt.key, 
       label: opt.label,
       value: opt.value
     })));
-    console.log('   📤 GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
-    console.log('   🎯 onPopupInfoChange fonksiyonu mevcut mu?', !!onPopupInfoChange);
+    console.log('    GÖNDERILEN TOPLAM:', updatedSelectedOptions.length);
+    console.log('    onPopupInfoChange fonksiyonu mevcut mu?', !!onPopupInfoChange);
     
     onPopupInfoChange(updatedSelectedOptions);
     
     setTimeout(() => {
       isUpdatingRef.current = false;
-      console.log('🔓 isUpdatingRef.current = false yapıldı');
+      console.log(' isUpdatingRef.current = false yapıldı');
     }, 500);
     
   }, [onPopupInfoChange, selectedVehicle, selectedInfoForPopup, importantInfoOptions]);
 
   // setState callback ile direkt güncelleme
   const handleInfoToggle = useCallback((infoKey) => {
-    console.log('🎯 TOGGLE BAŞLADI - Key:', infoKey);
-    console.log('   📋 Önceki selectedInfoForPopup:', Array.from(selectedInfoForPopup));
+    console.log(' TOGGLE BAŞLADI - Key:', infoKey);
+    console.log('  Önceki selectedInfoForPopup:', Array.from(selectedInfoForPopup));
     
     setSelectedInfoForPopup(prevKeys => {
       const newKeys = new Set(prevKeys);
@@ -197,7 +197,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
   }, [importantInfoOptions, onPopupInfoChange, selectedVehicle]);
 
   const handleClearAll = useCallback(() => {
-    console.log('🗑️ TEMİZLE - BAŞLADI');
+    console.log(' TEMİZLE - BAŞLADI');
     
     setSelectedInfoForPopup(new Set());
     
@@ -205,7 +205,7 @@ function FleetVehicleDetailsPanel({ onClose, selectedVehicle, selectedPopupInfo 
     if (onPopupInfoChange) {
       isUpdatingRef.current = true;
       
-      console.log('🗑️ TEMİZLE - Popup güncelleme: Boş array gönderiliyor');
+      console.log(' TEMİZLE - Popup güncelleme: Boş array gönderiliyor');
       onPopupInfoChange([]);
       
       setTimeout(() => {

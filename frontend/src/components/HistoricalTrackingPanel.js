@@ -291,7 +291,7 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
               <option value="">Araç Seçiniz</option>
               {availableVehicles.map(vehicle => (
                 <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.plate} - {vehicle.driverInfo?.name || 'Şoför Yok'} (Hat: {vehicle.routeCode})
+                  {vehicle.plate} &nbsp; &nbsp;  (Hat: {vehicle.routeCode})
                 </option>
               ))}
             </select>
@@ -322,58 +322,57 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
               className="form-select"
               disabled={isLoading}
             >
-              <option value="1">Gidiş (1)</option>
-              <option value="2">Dönüş (2)</option>
+              <option value="1">Gidiş </option>
+              <option value="2">Dönüş </option>
             </select>
           </div>
         </div>
-
-        {/* Tarih ve Saat Seçimi */}
-        <div className="datetime-section">
-          <div className="datetime-row">
-            <div className="datetime-group">
-              <label>Başlangıç</label>
-              <div className="datetime-inputs">
-                <input 
-                  type="date" 
-                  value={startDate} 
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="form-input"
-                  disabled={isLoading}
-                />
-                <input 
-                  type="time" 
-                  value={startTime} 
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="form-input"
-                  disabled={isLoading}
-                />
+          <div className="datetime-section">
+            <div className="datetime-row">
+              <div className="datetime-group">
+                <label>Başlangıç</label>
+                <div className="datetime-inputs">
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={(e) => setStartDate(e.target.value)}
+              className="form-input"
+              disabled={isLoading}
+            />
+            <input 
+              type="time" 
+              value={startTime} 
+              onChange={(e) => setStartTime(e.target.value)}
+              className="form-input"
+              disabled={isLoading}
+            />
+                </div>
               </div>
             </div>
-            
-            <div className="datetime-group">
-              <label>Bitiş</label>
-              <div className="datetime-inputs">
-                <input 
-                  type="date" 
-                  value={endDate} 
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="form-input"
-                  disabled={isLoading}
-                />
-                <input 
-                  type="time" 
-                  value={endTime} 
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="form-input"
-                  disabled={isLoading}
-                />
+            <div className="datetime-row">
+              <div className="datetime-group">
+                <label>Bitiş</label>
+                <div className="datetime-inputs">
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={(e) => setEndDate(e.target.value)}
+              className="form-input"
+              disabled={isLoading}
+            />
+            <input 
+              type="time" 
+              value={endTime} 
+              onChange={(e) => setEndTime(e.target.value)}
+              className="form-input"
+              disabled={isLoading}
+            />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Veri Yükleme Butonu */}
+          {/* Veri Yükleme Butonu */}
         <div className="load-section">
           <button 
             className={`load-data-btn ${isLoading ? 'loading' : ''}`} 
@@ -525,17 +524,21 @@ function HistoricalTrackingPanel({ onClose, vehicles = [], allRoutes = {}, theme
                 <strong>Toplam Nokta:</strong> {historicalData.length}
               </div>
               <div className="stat-item">
-                <strong>Toplam Döngü:</strong> {currentVehicleData?.totalCycles || 0}
+                {/*<strong>Toplam Döngü:</strong> {currentVehicleData?.totalCycles || 0} */}
               </div>
               <div className="stat-item">
                 <strong>Başlangıç:</strong> {historicalData[0]?.timestamp}
               </div>
+              
               <div className="stat-item">
                 <strong>Bitiş:</strong> {historicalData[historicalData.length - 1]?.timestamp}
               </div>
             </div>
           </div>
         )}
+
+       .
+       
       </div>
     </div>
   );
